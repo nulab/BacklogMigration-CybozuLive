@@ -23,3 +23,9 @@ lazy val cli = (project in file("modules/cli"))
   .settings(commonSettings)
   .dependsOn(core)
 
+lazy val root = (project in file("."))
+  .settings(commonSettings)
+  .dependsOn(core)
+  .dependsOn(cli)
+
+
