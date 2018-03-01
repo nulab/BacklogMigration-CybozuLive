@@ -18,7 +18,7 @@ lazy val commonSettings = Seq(
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
 
-lazy val commandLine = (project in file("modules/command-line"))
+lazy val cli = (project in file("modules/cli"))
   .settings(commonSettings)
   .dependsOn(core)
 
