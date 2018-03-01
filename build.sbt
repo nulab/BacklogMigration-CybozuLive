@@ -9,8 +9,9 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= {
     val catsVersion = "1.0.1"
     Seq(
-      "org.typelevel" %% "cats-core" % catsVersion,
-      "org.typelevel" %% "cats-free" % catsVersion
+      "org.typelevel" %% "cats-core"    % catsVersion,
+      "org.typelevel" %% "cats-free"    % catsVersion,
+      "org.typelevel" %% "cats-effect"  % "0.9"
     )
   }
 )
