@@ -24,7 +24,6 @@ object App {
         case _ => Left(throw new RuntimeException("Invalid command type"))
       }
       case None =>
-        parser.help()
         Left(throw new RuntimeException("Command parsing failed"))
     }
 

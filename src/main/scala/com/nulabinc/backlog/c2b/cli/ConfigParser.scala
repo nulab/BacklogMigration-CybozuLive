@@ -21,10 +21,10 @@ object ConfigParser {
 
       head(applicationName, applicationVersion)
 
-      opt[String]("dstBacklogUrl").required().action( (x, c) =>
+      opt[String]("backlog.url").required().action( (x, c) =>
         c.copy(backlogUrl = x) ).text("Backlog URL")
 
-      opt[String]("dstBacklogKey").required().action( (x, c) =>
+      opt[String]("backlog.key").required().action( (x, c) =>
         c.copy(backlogKey = x) ).text("Backlog API key")
 
       opt[String]("projectKey").required().action( (x, c) =>
@@ -37,6 +37,8 @@ object ConfigParser {
         .text("migrate project.")
 
       help("help") text "print this usage text."
+
+      override def showUsageOnError = true
 
     }
 }
