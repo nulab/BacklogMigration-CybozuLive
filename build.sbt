@@ -23,9 +23,10 @@ lazy val root = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "com.typesafe"      %  "config"     % "1.3.3",
-      "com.osinka.i18n"   %% "scala-i18n" % "1.0.2",
-      "com.github.scopt"  %% "scopt"      % "3.7.0"
+      "com.typesafe"          %  "config"     % "1.3.3",
+      "com.osinka.i18n"       %% "scala-i18n" % "1.0.2",
+      "com.github.scopt"      %% "scopt"      % "3.7.0",
+      "org.fusesource.jansi"  %  "jansi"      % "1.17"
     )
   )
   .dependsOn(core)
