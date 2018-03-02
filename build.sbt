@@ -24,7 +24,12 @@ lazy val cli = (project in file("modules/cli"))
   .dependsOn(core)
 
 lazy val root = (project in file("."))
-  .settings(commonSettings)
+  .settings(commonSettings: _*)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe" % "config" % "1.3.3"
+    )
+  )
   .dependsOn(core)
   .dependsOn(cli)
 

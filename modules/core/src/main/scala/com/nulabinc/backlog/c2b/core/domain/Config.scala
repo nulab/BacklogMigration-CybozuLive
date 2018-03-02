@@ -1,6 +1,7 @@
 package com.nulabinc.backlog.c2b.core.domain
 
-import com.nulabinc.backlog.c2b.core.domain.CommandType.Undefined
+import com.nulabinc.backlog.c2b.core.domain.Config._
+
 
 case class Config(
   backlogUrl: String = "",
@@ -9,12 +10,14 @@ case class Config(
   commandType: CommandType = Undefined
 )
 
-sealed trait CommandType
+object Config {
 
-object CommandType {
+  sealed trait CommandType
+
   case object Init extends CommandType
   case object Import extends CommandType
   case object Undefined extends CommandType
 }
+
 
 

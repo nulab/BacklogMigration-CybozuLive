@@ -1,13 +1,20 @@
 package com.nulabinc.backlog.c2b.cli
 
+import com.nulabinc.backlog.c2b.cli.ConfigParser.parser
 import com.nulabinc.backlog.c2b.core.domain.Config
+
+case class ConfigParser(applicationName: String, applicationVersion: String) {
+  def parse(args: Array[String]): Option[Config] =
+    parser(applicationName, applicationVersion).parse(args, Config())
+
+  def help(): Unit = {
+    parser(applicationName, applicationVersion).parse(Seq("--help"), Config()).getOrElse("")
+  }
+}
 
 object ConfigParser {
 
-  import com.nulabinc.backlog.c2b.core.domain.CommandType._
-
-  def parse(args: Array[String]): Option[Config] =
-    parser("", "").parse(args, Config())
+  import com.nulabinc.backlog.c2b.core.domain.Config._
 
   private def parser(applicationName: String, applicationVersion: String) =
     new scopt.OptionParser[Config](s"$applicationName-$applicationVersion.jar") {
