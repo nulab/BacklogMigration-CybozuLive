@@ -21,6 +21,10 @@ lazy val commonSettings = Seq(
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
 
+lazy val parser = (project in file("modules/parser"))
+  .settings(commonSettings)
+  .dependsOn(core)
+
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
