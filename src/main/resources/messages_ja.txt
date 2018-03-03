@@ -1,0 +1,2 @@
+
+error.require_java8=現在のJavaのバージョンは[{0}]です。Java8以上が必須になります。

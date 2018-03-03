@@ -1,0 +1,2 @@
+
+error.require_java8=The current version of Java is [{0}]. Java 8 is required for this program.

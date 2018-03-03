@@ -9,9 +9,11 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= {
     val catsVersion = "1.0.1"
     Seq(
-      "org.typelevel" %% "cats-core"    % catsVersion,
-      "org.typelevel" %% "cats-free"    % catsVersion,
-      "org.typelevel" %% "cats-effect"  % "0.9"
+      "org.typelevel"   %% "cats-core"        % catsVersion,
+      "org.typelevel"   %% "cats-free"        % catsVersion,
+      "org.typelevel"   %% "cats-effect"      % "0.9",
+      "ch.qos.logback"  %  "logback-classic"  % "1.2.3",
+      "com.osinka.i18n" %% "scala-i18n"       % "1.0.2"
     )
   }
 )
@@ -19,18 +21,15 @@ lazy val commonSettings = Seq(
 lazy val core = (project in file("modules/core"))
   .settings(commonSettings)
 
-lazy val cli = (project in file("modules/cli"))
-  .settings(commonSettings)
-  .dependsOn(core)
-
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.3.3"
+      "com.typesafe"          %  "config"     % "1.3.3",
+      "com.github.scopt"      %% "scopt"      % "3.7.0",
+      "org.fusesource.jansi"  %  "jansi"      % "1.17"
     )
   )
   .dependsOn(core)
-  .dependsOn(cli)
 
 

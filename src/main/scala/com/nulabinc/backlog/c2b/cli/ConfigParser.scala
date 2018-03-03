@@ -21,22 +21,24 @@ object ConfigParser {
 
       head(applicationName, applicationVersion)
 
-      opt[String]("dstBacklogUrl").required().action( (x, c) =>
+      opt[String]("backlog.url").required().action( (x, c) =>
         c.copy(backlogUrl = x) ).text("Backlog URL")
 
-      opt[String]("dstBacklogKey").required().action( (x, c) =>
+      opt[String]("backlog.key").required().action( (x, c) =>
         c.copy(backlogKey = x) ).text("Backlog API key")
 
       opt[String]("projectKey").required().action( (x, c) =>
         c.copy(projectKey = x) ).text("Backlog Project key")
 
       cmd("init").action( (_, c) => c.copy(commandType = Init) ).
-        text("migrate users.")
+        text("Prepare project information")
 
       cmd("import").action { (_, c) => c.copy(commandType = Import) }
-        .text("migrate project.")
+        .text("Import project to Backlog.")
 
       help("help") text "print this usage text."
+
+      override def showUsageOnError = true
 
     }
 }
