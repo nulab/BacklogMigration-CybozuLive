@@ -3,7 +3,6 @@ package com.nulabinc.backlog.c2b
 import java.io.PrintStream
 
 import com.nulabinc.backlog.c2b.core.utils.Logger
-import com.osinka.i18n.Messages
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Color._
 import org.fusesource.jansi.Ansi.ansi
@@ -69,10 +68,7 @@ private[c2b] object Console extends Logger {
       |$applicationName
       |--------------------------------------------------""".stripMargin)
 
-  def printClassVersionError(): Unit = {
-    val message = Messages("error.require_java8", System.getProperty("java.specification.version"))
-    error(message)
-  }
+  def printError(ex: Throwable): Unit =
+    error(ex.getMessage)
 
-  def showError(error: Throwable): Unit = ???
 }

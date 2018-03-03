@@ -35,14 +35,12 @@ object App {
     // ------------------------------------------------------------------------
     // check
     // ------------------------------------------------------------------------
-    if(!ClassVersionChecker.check()) {
-      Console.printClassVersionError()
-      sys.exit(1)
+    ClassVersionChecker.check() match {
+      case Failure(ex) => exit(1, ex)
+      case _ => ()
     }
     DisableSSLCertificateChecker.check() match {
-      case Failure(ex) =>
-        Console.error(ex.getMessage)
-        sys.exit(1)
+      case Failure(ex) => exit(1, ex)
       case _ => ()
     }
     // TODO: check release version
@@ -56,15 +54,10 @@ object App {
       case None => ConfigError
     }
 
-    // clean up
-    AnsiConsole.systemUninstall()
-
     result match {
-      case Success => sys.exit(0)
-      case ConfigError => sys.exit(1)
-      case Error(ex) =>
-        Console.showError(ex)
-        sys.exit(1)
+      case Success     => exit(0)
+      case ConfigError => exit(1)
+      case Error(ex)   => exit(1, ex)
     }
   }
 
@@ -76,6 +69,16 @@ object App {
     case "ja" => Locale.setDefault(Locale.JAPAN)
     case "en" => Locale.setDefault(Locale.US)
     case _    => ()
+  }
+
+  private def exit(exitCode: Int): Unit = {
+    AnsiConsole.systemUninstall()
+    sys.exit(exitCode)
+  }
+
+  private def exit(exitCode: Int, error: Throwable): Unit = {
+    Console.printError(error)
+    exit(exitCode)
   }
 
 }
