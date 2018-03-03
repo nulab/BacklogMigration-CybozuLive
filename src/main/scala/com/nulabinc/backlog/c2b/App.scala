@@ -56,11 +56,5 @@ object App {
 
 
 
-  /*
-      if (language == "ja") {
-      Locale.setDefault(Locale.JAPAN)
-    } else if (language == "en") {
-      Locale.setDefault(Locale.US)
-    }
-   */
+
 }
