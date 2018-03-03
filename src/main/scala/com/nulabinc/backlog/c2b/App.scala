@@ -4,8 +4,11 @@ import java.util.Locale
 
 import com.nulabinc.backlog.c2b.cli.ConfigParser
 import com.nulabinc.backlog.c2b.core.domain.Config
+import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.typesafe.config.ConfigFactory
 import org.fusesource.jansi.AnsiConsole
+
+import scala.util.Failure
 
 object App {
 
@@ -20,13 +23,31 @@ object App {
     val appVersion    = appConfig.getString("version")
     val language      = appConfig.getString("language")
 
+    // start
+    Console.printBanner(appName)
+
+    // ------------------------------------------------------------------------
     // initialize
+    // ------------------------------------------------------------------------
     AnsiConsole.systemInstall()
     setLanguage(language)
 
-    val parser = ConfigParser(appName, appVersion)
+    // ------------------------------------------------------------------------
+    // check
+    // ------------------------------------------------------------------------
+    if(!ClassVersionChecker.check()) {
+      Console.printClassVersionError()
+      sys.exit(1)
+    }
+    DisableSSLCertificateChecker.check() match {
+      case Failure(ex) =>
+        Console.error(ex.getMessage)
+        sys.exit(1)
+      case _ => ()
+    }
+    // TODO: check release version
 
-    val result = parser.parse(args) match {
+    val result = ConfigParser(appName, appVersion).parse(args) match {
       case Some(config) => config.commandType match {
         case Init => init(config)
         case Import => `import`(config)
@@ -34,6 +55,9 @@ object App {
       }
       case None => ConfigError
     }
+
+    // clean up
+    AnsiConsole.systemUninstall()
 
     result match {
       case Success => sys.exit(0)
@@ -53,8 +77,5 @@ object App {
     case "en" => Locale.setDefault(Locale.US)
     case _    => ()
   }
-
-
-
 
 }
