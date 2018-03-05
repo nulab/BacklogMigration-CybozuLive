@@ -1,3 +1,3 @@
 package com.nulabinc.backlog.c2b.core.domain.model
 
-class User() extends CybozuModel
+case class CybozuComment()
