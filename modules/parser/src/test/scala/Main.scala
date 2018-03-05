@@ -1,14 +1,15 @@
-import com.nulabinc.backlog.c2b.parser.CSVParser
+import com.nulabinc.backlog.c2b.parser.CsvParser
+
 
 object Main extends App {
 
-  println(CSVParser(source))
+  CsvParser.parseUser(source).right.get.foreach(println)
 
   def source =
     """
       |"姓","名","よみがな姓","よみがな名","メールアドレス"
       |"Shoma","Nishitaten","","","shoma.nishitateno@nulab-inc.com"
-      |"内田","優一","うちだ","ゆういち","uchida@nulab-inc.com"
+      |"LastName","FirstName","LastName","FirstName","test@nulab-inc.com"
     """.stripMargin
 
 }
