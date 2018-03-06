@@ -1,4 +1,4 @@
-package com.nulabinc.backlog.c2b.parser
+package com.nulabinc.backlog.c2b.core.domain.parser
 
 import org.apache.commons.csv.CSVRecord
 

@@ -1,9 +1,9 @@
-package com.nulabinc.backlog.c2b.parser
+package com.nulabinc.backlog.c2b.core.domain.parser
 
 import com.nulabinc.backlog.c2b.core.domain.model.{CybozuIssue, CybozuUser}
 import org.apache.commons.csv.CSVRecord
 
-object CsvRecordParser {
+object CSVRecordParser {
 
   def user(record: CSVRecord): Either[CSVParseError[CybozuUser], CybozuUser] = {
     if (record.size() > 5) {
