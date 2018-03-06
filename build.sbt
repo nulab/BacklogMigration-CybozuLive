@@ -13,7 +13,9 @@ lazy val commonSettings = Seq(
       "org.typelevel"   %% "cats-free"        % catsVersion,
       "org.typelevel"   %% "cats-effect"      % "0.9",
       "ch.qos.logback"  %  "logback-classic"  % "1.2.3",
-      "com.osinka.i18n" %% "scala-i18n"       % "1.0.2"
+      "com.osinka.i18n" %% "scala-i18n"       % "1.0.2",
+      "io.monix"        %% "monix-reactive"   % "2.3.0",
+      "io.monix"        %% "monix-nio"        % "0.0.2"
     )
   }
 )
