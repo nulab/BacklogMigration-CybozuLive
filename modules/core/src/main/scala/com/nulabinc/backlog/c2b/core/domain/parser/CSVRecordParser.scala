@@ -6,7 +6,7 @@ import org.apache.commons.csv.CSVRecord
 object CSVRecordParser {
 
   def user(record: CSVRecord): Either[CSVParseError[CybozuUser], CybozuUser] = {
-    if (record.size() > 5) {
+    if (record.size() > 4) {
       Right(
         CybozuUser(
           lastName = record.get(0),
