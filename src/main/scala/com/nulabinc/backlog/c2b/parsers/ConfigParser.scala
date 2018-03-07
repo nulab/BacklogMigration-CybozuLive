@@ -5,10 +5,10 @@ import com.nulabinc.backlog.c2b.Config._
 
 case class ConfigParser(applicationName: String, applicationVersion: String) {
   def parse(args: Array[String]): Option[Config] =
-    parser(applicationName, applicationVersion).parse(args, Config())
+    ConfigParser.parser(applicationName, applicationVersion).parse(args, Config())
 
   def help(): Unit = {
-    parser(applicationName, applicationVersion).parse(Seq("--help"), Config()).getOrElse("")
+    ConfigParser.parser(applicationName, applicationVersion).parse(Seq("--help"), Config()).getOrElse("")
   }
 }
 
