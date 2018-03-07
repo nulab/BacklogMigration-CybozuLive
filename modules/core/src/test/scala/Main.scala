@@ -3,7 +3,7 @@ import java.nio.charset.Charset
 import java.nio.file.Paths
 
 import com.nulabinc.backlog.c2b.core.domain.model.CybozuUser
-import com.nulabinc.backlog.c2b.core.domain.parser.{ParseError, CSVRecordParser, CommentParser}
+import com.nulabinc.backlog.c2b.core.domain.parser.{CSVRecordParser, CommentParser, ParseError, ZonedDateTimeParser}
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import monix.eval.Task
 import monix.reactive.{Consumer, Observable}
@@ -73,7 +73,7 @@ object CommentTest extends App {
 
 object ZonedDateTimeTest extends App {
 
-  println(CommentParser.toZonedDateTime("2018/3/7 (水) 10:44"))
+  println(ZonedDateTimeParser.toZonedDateTime("2018/3/7 (水) 10:44"))
 }
 
 object IssueTest extends App {

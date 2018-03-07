@@ -1,14 +1,14 @@
-package com.nulabinc.backlog.c2b.core.utils
+package com.nulabinc.backlog.c2b.core.domain.parser
 
 import java.time.{ZoneId, ZonedDateTime}
 
-object ZonedDateTimeUtil {
+object ZonedDateTimeParser {
 
-  def toZonedDateTime(value: String): Option[ZonedDateTime] = {
+  def toZonedDateTime(value: String): Either[ParseError[ZonedDateTime], ZonedDateTime] = {
     val pattern = """(\d+?)/(\d+?)/(\d+?) .+? (\d+?):(\d+?)""".r
     value match {
       case pattern(year, month, day, hour, minutes) =>
-        Some(
+        Right(
           ZonedDateTime.of(
             year.toInt,
             month.toInt,
@@ -20,7 +20,7 @@ object ZonedDateTimeUtil {
             ZoneId.systemDefault()
           )
         )
-      case _ => None
+      case _ => Left(CannotParseFromString(classOf[ZonedDateTime], value))
     }
   }
 }

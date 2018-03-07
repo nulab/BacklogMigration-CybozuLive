@@ -1,9 +1,6 @@
 package com.nulabinc.backlog.c2b.core.domain.parser
 
-import java.time.{ZoneId, ZonedDateTime}
-
-import com.nulabinc.backlog.c2b.core.domain.model.{CybozuComment, CybozuUser}
-import com.nulabinc.backlog.c2b.core.utils.ZonedDateTimeUtil
+import com.nulabinc.backlog.c2b.core.domain.model.CybozuComment
 
 object CommentParser {
 
@@ -19,21 +16,25 @@ object CommentParser {
           val lines = comment.split("\n").tail
           val header = lines.head
           val body = lines.tail.tail
-          val pattern = """(\d+)?: (.+?) (.+?) (.+)""".r
+          val pattern = """(\d+)?: (.+? .+?) (.+)""".r
 
           header match {
-            case pattern(id, firstName, lastName, createdAt) =>
-              ZonedDateTimeUtil.toZonedDateTime(createdAt) match {
-                case Some(parsedZonedDateTime) =>
-                  Right(
-                    CybozuComment(
-                      id        = id.toLong,
-                      creator   = CybozuUser(firstName = firstName, lastName = lastName),
-                      createdAt = parsedZonedDateTime,
-                      content   = body.mkString("\n")
-                    )
+            case pattern(id, userString, createdAtString) =>
+              (for {
+                user      <- UserParser.toUser(userString)
+                createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
+              } yield {
+                  CybozuComment(
+                    id = id.toLong,
+                    creator = user,
+                    createdAt = createdAt,
+                    content = body.mkString("\n")
                   )
-                case None => Left(CannotParseComment("Invalid DateTime", createdAt))
+
+              }) match {
+                case Right(a) => Right(a)
+                case Left(error) =>
+                  Left(CannotParseComment("Header parsing error.", error.toString))
               }
             case _ => Left(CannotParseComment("Invalid header", comment))
           }
