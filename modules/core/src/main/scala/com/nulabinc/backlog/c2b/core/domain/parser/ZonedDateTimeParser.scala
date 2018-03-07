@@ -5,7 +5,7 @@ import java.time.{ZoneId, ZonedDateTime}
 object ZonedDateTimeParser {
 
   def toZonedDateTime(value: String): Either[ParseError[ZonedDateTime], ZonedDateTime] = {
-    val pattern = """(\d+?)/(\d+?)/(\d+?) .+? (\d+?):(\d+?)""".r
+    val pattern = """(\d+?)/(\d+?)/(\d+?) .*?(\d+?):(\d+?)""".r
     value match {
       case pattern(year, month, day, hour, minutes) =>
         Right(
