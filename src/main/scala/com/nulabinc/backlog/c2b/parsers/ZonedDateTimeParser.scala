@@ -1,4 +1,4 @@
-package com.nulabinc.backlog.c2b.core.domain.parser
+package com.nulabinc.backlog.c2b.parsers
 
 import java.time.{ZoneId, ZonedDateTime}
 

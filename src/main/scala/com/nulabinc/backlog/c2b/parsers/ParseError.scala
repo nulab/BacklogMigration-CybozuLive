@@ -1,6 +1,6 @@
-package com.nulabinc.backlog.c2b.core.domain.parser
+package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.core.domain.model.CybozuComment
+import com.nulabinc.backlog.c2b.datas.CybozuComment
 import org.apache.commons.csv.CSVRecord
 
 sealed trait ParseError[A]

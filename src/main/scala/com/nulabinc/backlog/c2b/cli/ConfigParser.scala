@@ -1,7 +1,8 @@
 package com.nulabinc.backlog.c2b.cli
 
+import com.nulabinc.backlog.c2b.Config
+import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.cli.ConfigParser.parser
-import com.nulabinc.backlog.c2b.core.domain.Config
 
 case class ConfigParser(applicationName: String, applicationVersion: String) {
   def parse(args: Array[String]): Option[Config] =
@@ -13,8 +14,6 @@ case class ConfigParser(applicationName: String, applicationVersion: String) {
 }
 
 object ConfigParser {
-
-  import com.nulabinc.backlog.c2b.core.domain.Config._
 
   private def parser(applicationName: String, applicationVersion: String) =
     new scopt.OptionParser[Config](s"$applicationName-$applicationVersion.jar") {

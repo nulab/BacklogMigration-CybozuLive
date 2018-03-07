@@ -2,8 +2,8 @@
 import java.nio.charset.Charset
 import java.nio.file.Paths
 
-import com.nulabinc.backlog.c2b.core.domain.model.CybozuUser
-import com.nulabinc.backlog.c2b.core.domain.parser.{CSVRecordParser, CommentParser, ParseError, ZonedDateTimeParser}
+import com.nulabinc.backlog.c2b.datas.CybozuUser
+import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, CommentParser, ParseError, ZonedDateTimeParser}
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import monix.eval.Task
 import monix.reactive.{Consumer, Observable}
@@ -20,7 +20,7 @@ object Main extends App {
   val concurrentProcesses = 10
   val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
 
-  val csvFiles = Paths.get("./modules/core/src/test/scala").toFile.listFiles().filter(_.getName.endsWith(".csv"))
+  val csvFiles = Paths.get("./src/test/scala").toFile.listFiles().filter(_.getName.endsWith(".csv"))
 
   def printResult(data: Either[ParseError[CybozuUser], CybozuUser]): Task[Unit] = Task {
     data match {

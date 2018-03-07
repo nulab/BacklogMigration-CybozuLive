@@ -3,7 +3,7 @@ package com.nulabinc.backlog.c2b.utils
 import java.security.cert.X509Certificate
 import javax.net.ssl._
 
-import com.nulabinc.backlog.c2b.core.utils.Logger
+import com.nulabinc.backlog.c2b.core.Logger
 
 import scala.util.{Failure, Success, Try}
 

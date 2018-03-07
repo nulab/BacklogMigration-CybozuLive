@@ -1,6 +1,6 @@
-package com.nulabinc.backlog.c2b.core.domain.parser
+package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.core.domain.model.CybozuComment
+import com.nulabinc.backlog.c2b.datas.CybozuComment
 
 object CommentParser {
 
@@ -12,8 +12,7 @@ object CommentParser {
       .filterNot(_.isEmpty)
       .filterNot(_ == "\n")
       .map { comment =>
-        try {
-          val lines = comment.split("\n").tail
+          val lines = comment.split("\n").toIndexedSeq.tail
           val header = lines.head
           val body = lines.tail.tail
           val pattern = """(\d+)?: (.+? .+?) (.+)""".r
@@ -38,9 +37,6 @@ object CommentParser {
               }
             case _ => Left(CannotParseComment("Invalid header", comment))
           }
-        } catch {
-          case ex: Throwable => Left(CannotParseComment(ex.getMessage, comment))
-        }
       }
   }
 

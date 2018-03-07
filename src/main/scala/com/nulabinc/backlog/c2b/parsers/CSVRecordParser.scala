@@ -1,6 +1,7 @@
-package com.nulabinc.backlog.c2b.core.domain.parser
+package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.core.domain.model.{CybozuIssue, CybozuPriority, CybozuStatus, CybozuUser}
+import com.nulabinc.backlog.c2b.datas.{CybozuIssue, CybozuPriority, CybozuUser}
+import com.nulabinc.backlog.c2b.core.domain.model.CybozuStatus
 import org.apache.commons.csv.CSVRecord
 
 object CSVRecordParser {

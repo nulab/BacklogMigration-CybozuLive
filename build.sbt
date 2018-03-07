@@ -21,9 +21,6 @@ lazy val commonSettings = Seq(
   }
 )
 
-lazy val core = (project in file("modules/core"))
-  .settings(commonSettings)
-
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
@@ -33,6 +30,4 @@ lazy val root = (project in file("."))
       "org.fusesource.jansi"  %  "jansi"      % "1.17"
     )
   )
-  .dependsOn(core)
-
 

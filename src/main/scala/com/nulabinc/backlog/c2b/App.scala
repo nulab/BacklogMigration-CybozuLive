@@ -2,8 +2,8 @@ package com.nulabinc.backlog.c2b
 
 import java.util.Locale
 
+import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.cli.ConfigParser
-import com.nulabinc.backlog.c2b.core.domain.Config
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.typesafe.config.ConfigFactory
 import org.fusesource.jansi.AnsiConsole
@@ -13,8 +13,6 @@ import scala.util.Failure
 object App {
 
   def main(args: Array[String]): Unit = {
-
-    import com.nulabinc.backlog.c2b.core.domain.Config._
 
     // config
     val configFactory = ConfigFactory.load()

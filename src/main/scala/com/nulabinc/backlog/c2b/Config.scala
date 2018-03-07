@@ -1,6 +1,6 @@
-package com.nulabinc.backlog.c2b.core.domain
+package com.nulabinc.backlog.c2b
 
-import com.nulabinc.backlog.c2b.core.domain.Config._
+import com.nulabinc.backlog.c2b.Config._
 
 
 case class Config(

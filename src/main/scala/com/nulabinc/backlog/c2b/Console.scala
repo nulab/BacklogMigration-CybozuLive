@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b
 
 import java.io.PrintStream
 
-import com.nulabinc.backlog.c2b.core.utils.Logger
+import com.nulabinc.backlog.c2b.core.Logger
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Color._
 import org.fusesource.jansi.Ansi.ansi

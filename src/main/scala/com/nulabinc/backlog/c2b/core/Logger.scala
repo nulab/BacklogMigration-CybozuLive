@@ -1,4 +1,4 @@
-package com.nulabinc.backlog.c2b.core.utils
+package com.nulabinc.backlog.c2b.core
 
 import java.util.Locale
 
