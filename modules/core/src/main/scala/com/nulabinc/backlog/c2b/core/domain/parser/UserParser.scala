@@ -20,4 +20,15 @@ object UserParser {
       case _ => Left(CannotParseFromString(classOf[CybozuUser], value))
     }
   }
+
+  def toMaybeUser(value: String): Either[ParseError[CybozuUser], Option[CybozuUser]] = {
+    if (value.isEmpty) {
+      Right(None)
+    } else {
+      toUser(value) match {
+        case Right(data) => Right(Some(data))
+        case Left(error) => Left(error)
+      }
+    }
+  }
 }

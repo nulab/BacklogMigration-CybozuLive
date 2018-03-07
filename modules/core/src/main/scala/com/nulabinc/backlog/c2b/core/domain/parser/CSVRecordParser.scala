@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.core.domain.parser
 
-import com.nulabinc.backlog.c2b.core.domain.model.{CybozuIssue, CybozuUser}
+import com.nulabinc.backlog.c2b.core.domain.model.{CybozuIssue, CybozuPriority, CybozuStatus, CybozuUser}
 import org.apache.commons.csv.CSVRecord
 
 object CSVRecordParser {
@@ -19,6 +19,37 @@ object CSVRecordParser {
   }
 
   // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","ステータス","優先度","担当者","期日","コメント"
-  def issue(line: String): CybozuIssue = ???
+  def issue(record: CSVRecord): Either[ParseError[CybozuIssue], CybozuIssue] = {
+    if (record.size() > 11) {
+      (for {
+        creator <- UserParser.toUser(record.get(3))
+        createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(4))
+        updater <- UserParser.toUser(record.get(5))
+        updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(6))
+        maybeAssignee <- UserParser.toMaybeUser(record.get(9))
+        dueDate <- ZonedDateTimeParser.toMaybeZonedDate(record.get(10))
+      } yield {
+        CybozuIssue(
+          id        = record.get(0),
+          title     = record.get(1),
+          content   = record.get(2),
+          creator   = creator,
+          createdAt = createdAt,
+          updater   = updater,
+          updatedAt = updatedAt,
+          status    = CybozuStatus(record.get(7)),
+          priority  = CybozuPriority(record.get(8)),
+          assignee  = maybeAssignee,
+          dueDate   = dueDate,
+          comments  = CommentParser.parse(record.get(11)).map(_.right.get)
+        )
+      }) match {
+        case Right(issue) => Right(issue)
+        case Left(_) => Left(CannotParseCSV(classOf[CybozuIssue], record))
+      }
+    } else {
+      Left(CannotParseCSV(classOf[CybozuIssue], record))
+    }
+  }
 
 }
