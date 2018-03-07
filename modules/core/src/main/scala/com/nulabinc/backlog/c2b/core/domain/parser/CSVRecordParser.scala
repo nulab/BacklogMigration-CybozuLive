@@ -5,13 +5,12 @@ import org.apache.commons.csv.CSVRecord
 
 object CSVRecordParser {
 
-  def user(record: CSVRecord): Either[CSVParseError[CybozuUser], CybozuUser] = {
+  def user(record: CSVRecord): Either[ParseError[CybozuUser], CybozuUser] = {
     if (record.size() > 4) {
       Right(
         CybozuUser(
           lastName = record.get(0),
-          firstName = record.get(1),
-          emailAddress = record.get(4)
+          firstName = record.get(1)
         )
       )
     } else {
