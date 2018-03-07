@@ -10,8 +10,7 @@ object CSVRecordParser {
       Right(
         CybozuUser(
           lastName = record.get(0),
-          firstName = record.get(1),
-          emailAddress = record.get(4)
+          firstName = record.get(1)
         )
       )
     } else {
