@@ -36,6 +36,7 @@ object Main extends App {
     .fromIterable(csvFiles)
     .mapAsync(csvFiles.length) { file =>
       Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+        .drop(1)
         .map(CSVRecordParser.user)
         .consumeWith(printingResults)
     }
