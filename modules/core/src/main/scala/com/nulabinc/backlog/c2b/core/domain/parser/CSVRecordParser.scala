@@ -14,7 +14,7 @@ object CSVRecordParser {
         )
       )
     } else {
-      Left(CannotParseCSV(classOf[CybozuUser], record))
+      Left(CannotParseCSV(classOf[CybozuUser], "Invalid record size: " + record.size(), record))
     }
   }
 
@@ -28,6 +28,7 @@ object CSVRecordParser {
         updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(6))
         maybeAssignee <- UserParser.toMaybeUser(record.get(9))
         dueDate <- ZonedDateTimeParser.toMaybeZonedDate(record.get(10))
+        comments <- CommentParser.sequence(CommentParser.parse(record.get(11)).toList)
       } yield {
         CybozuIssue(
           id        = record.get(0),
@@ -41,14 +42,14 @@ object CSVRecordParser {
           priority  = CybozuPriority(record.get(8)),
           assignee  = maybeAssignee,
           dueDate   = dueDate,
-          comments  = CommentParser.parse(record.get(11)).map(_.right.get)
+          comments  = comments
         )
       }) match {
         case Right(issue) => Right(issue)
-        case Left(_) => Left(CannotParseCSV(classOf[CybozuIssue], record))
+        case Left(error) => Left(CannotParseCSV(classOf[CybozuIssue], error.toString, record))
       }
     } else {
-      Left(CannotParseCSV(classOf[CybozuIssue], record))
+      Left(CannotParseCSV(classOf[CybozuIssue], "Invalid record size: " + record.size(), record))
     }
   }
 

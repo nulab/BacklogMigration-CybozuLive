@@ -44,4 +44,8 @@ object CommentParser {
       }
   }
 
+  def sequence(comments: List[Either[ParseError[CybozuComment] , CybozuComment]]): Either[ParseError[CybozuComment], List[CybozuComment]] =
+    comments.foldRight(Right(Nil): Either[ParseError[CybozuComment], List[CybozuComment]]) { (elem, acc) =>
+      acc.right.flatMap(list => elem.right.map(a => a :: list))
+    }
 }
