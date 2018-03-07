@@ -1,9 +1,6 @@
 package com.nulabinc.backlog.c2b.core.domain.parser
 
-import java.time.{ZoneId, ZonedDateTime}
-import java.time.format.DateTimeFormatter
-
-import com.nulabinc.backlog.c2b.core.domain.model.{CybozuComment, CybozuUser}
+import com.nulabinc.backlog.c2b.core.domain.model.CybozuComment
 
 object CommentParser {
 
@@ -19,21 +16,25 @@ object CommentParser {
           val lines = comment.split("\n").tail
           val header = lines.head
           val body = lines.tail.tail
-          val pattern = """(\d+)?: (.+?) (.+?) (.+)""".r
+          val pattern = """(\d+)?: (.+? .+?) (.+)""".r
 
           header match {
-            case pattern(id, firstName, lastName, createdAt) =>
-              toZonedDateTime(createdAt) match {
-                case Some(parsedZonedDateTime) =>
-                  Right(
-                    CybozuComment(
-                      id        = id.toLong,
-                      creator   = CybozuUser(firstName = firstName, lastName = lastName),
-                      createdAt = parsedZonedDateTime,
-                      content   = body.mkString("\n")
-                    )
+            case pattern(id, userString, createdAtString) =>
+              (for {
+                user      <- UserParser.toUser(userString)
+                createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
+              } yield {
+                  CybozuComment(
+                    id = id.toLong,
+                    creator = user,
+                    createdAt = createdAt,
+                    content = body.mkString("\n")
                   )
-                case None => Left(CannotParseComment("Invalid DateTime", createdAt))
+
+              }) match {
+                case Right(a) => Right(a)
+                case Left(error) =>
+                  Left(CannotParseComment("Header parsing error.", error.toString))
               }
             case _ => Left(CannotParseComment("Invalid header", comment))
           }
@@ -43,23 +44,8 @@ object CommentParser {
       }
   }
 
-  def toZonedDateTime(value: String): Option[ZonedDateTime] = {
-    val pattern = """(\d+?)/(\d+?)/(\d+?) .+? (\d+?):(\d+?)""".r
-    value match {
-      case pattern(year, month, day, hour, minutes) =>
-        Some(
-          ZonedDateTime.of(
-            year.toInt,
-            month.toInt,
-            day.toInt,
-            hour.toInt,
-            minutes.toInt,
-            0,
-            0,
-            ZoneId.systemDefault()
-          )
-        )
-      case _ => None
+  def sequence(comments: List[Either[ParseError[CybozuComment] , CybozuComment]]): Either[ParseError[CybozuComment], List[CybozuComment]] =
+    comments.foldRight(Right(Nil): Either[ParseError[CybozuComment], List[CybozuComment]]) { (elem, acc) =>
+      acc.right.flatMap(list => elem.right.map(a => a :: list))
     }
-  }
 }

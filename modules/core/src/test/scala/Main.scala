@@ -3,7 +3,7 @@ import java.nio.charset.Charset
 import java.nio.file.Paths
 
 import com.nulabinc.backlog.c2b.core.domain.model.CybozuUser
-import com.nulabinc.backlog.c2b.core.domain.parser.{ParseError, CSVRecordParser, CommentParser}
+import com.nulabinc.backlog.c2b.core.domain.parser.{CSVRecordParser, CommentParser, ParseError, ZonedDateTimeParser}
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import monix.eval.Task
 import monix.reactive.{Consumer, Observable}
@@ -36,6 +36,7 @@ object Main extends App {
     .fromIterable(csvFiles)
     .mapAsync(csvFiles.length) { file =>
       Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+        .drop(1)
         .map(CSVRecordParser.user)
         .consumeWith(printingResults)
     }
@@ -73,16 +74,23 @@ object CommentTest extends App {
 
 object ZonedDateTimeTest extends App {
 
-  println(CommentParser.toZonedDateTime("2018/3/7 (水) 10:44"))
+  println(ZonedDateTimeParser.toZonedDateTime("2018/3/7 (水) 10:44"))
+  println(ZonedDateTimeParser.toZonedDateTime("2018/2/28 09:38"))
 }
 
 object IssueTest extends App {
 
   CSVParser.parse(source, CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()).getRecords.asScala.foreach { r =>
-    println(r)
+    CSVRecordParser.issue(r) match {
+      case Right(issue) =>
+        println("======================")
+        println(issue)
+        println("======================")
+      case Left(error) => println("ERROR: " + error.toString)
+    }
   }
 
-  def source = """"ID","タイトル","本文","作成者","作成日時","更新者","更新日時","Status","Priority","Assignees","Due Date","comment"
+  def source = """"ID","タイトル","本文","作成者","作成日時","更新者","更新日時","Status","Priority","Assignees","Due Date","コメント"
                  |"1:2929246","メアド違い、同姓同名がコメント","aaa","Shoma Nishitaten","2018/2/28 09:38","Shoma Nishitaten","2018/3/7 11:49","保留","C","内田 優一","","--------------------------------------------------
                  |2: Shoma Nishitaten 2018/3/7 (水) 11:49
                  |
@@ -98,5 +106,22 @@ object IssueTest extends App {
                  |"1:2937458","複数のコメントと複数のコメント行","aa
                  |aaa
                  |aaaa
+                 |","Shoma Nishitaten","2018/3/7 10:43","Shoma Nishitaten","2018/3/7 10:44","Not started","B","","2018/3/7","--------------------------------------------------
+                 |2: Shoma Nishitaten 2018/3/7 (水) 10:44
+                 |
+                 |     a
+                 |    aa
+                 |   aaaa
+                 | aaaaaaa
+                 |aaaaaaaaa
+                 |
+                 |--------------------------------------------------
+                 |1: Shoma Nishitaten 2018/3/7 (水) 10:44
+                 |
+                 |123
+                 |345
+                 |789
+                 |
+                 |--------------------------------------------------
                  |"""".stripMargin
 }
