@@ -1,9 +1,9 @@
 package com.nulabinc.backlog.c2b.core.domain.parser
 
 import java.time.{ZoneId, ZonedDateTime}
-import java.time.format.DateTimeFormatter
 
 import com.nulabinc.backlog.c2b.core.domain.model.{CybozuComment, CybozuUser}
+import com.nulabinc.backlog.c2b.core.utils.ZonedDateTimeUtil
 
 object CommentParser {
 
@@ -23,7 +23,7 @@ object CommentParser {
 
           header match {
             case pattern(id, firstName, lastName, createdAt) =>
-              toZonedDateTime(createdAt) match {
+              ZonedDateTimeUtil.toZonedDateTime(createdAt) match {
                 case Some(parsedZonedDateTime) =>
                   Right(
                     CybozuComment(
@@ -43,23 +43,4 @@ object CommentParser {
       }
   }
 
-  def toZonedDateTime(value: String): Option[ZonedDateTime] = {
-    val pattern = """(\d+?)/(\d+?)/(\d+?) .+? (\d+?):(\d+?)""".r
-    value match {
-      case pattern(year, month, day, hour, minutes) =>
-        Some(
-          ZonedDateTime.of(
-            year.toInt,
-            month.toInt,
-            day.toInt,
-            hour.toInt,
-            minutes.toInt,
-            0,
-            0,
-            ZoneId.systemDefault()
-          )
-        )
-      case _ => None
-    }
-  }
 }
