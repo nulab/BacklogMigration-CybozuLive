@@ -1,8 +1,7 @@
-package com.nulabinc.backlog.c2b.cli
+package com.nulabinc.backlog.c2b.parsers
 
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.cli.ConfigParser.parser
 
 case class ConfigParser(applicationName: String, applicationVersion: String) {
   def parse(args: Array[String]): Option[Config] =

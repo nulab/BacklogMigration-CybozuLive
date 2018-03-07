@@ -3,7 +3,7 @@ package com.nulabinc.backlog.c2b
 import java.util.Locale
 
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.cli.ConfigParser
+import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.typesafe.config.ConfigFactory
 import org.fusesource.jansi.AnsiConsole
