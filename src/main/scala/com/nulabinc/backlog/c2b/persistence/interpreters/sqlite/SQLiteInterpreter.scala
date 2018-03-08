@@ -1,23 +1,25 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
-import cats.Monad
 import com.nulabinc.backlog.c2b.persistence.dsl.{Pure, StoreADT}
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
 import monix.eval.Task
-import slick.dbio.DBIO
+import cats.Monad
 import slick.jdbc.SQLiteProfile.api._
 
 case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
 
   private val db = Database.forConfig(configPath)
 
-  implicit val monad: Monad[DBIO] = ???
+  implicit val monad = implicitly[Monad[Task]]
 
-  override def run[A](prg: StoreProgram[A]): Task[A] = ???
-//    db.run(prg.foldMap(this))
+  override def run[A](prg: StoreProgram[A]): Task[A] =
+    Task.deferFuture {
+    db.run(prg.foldMap(this))
+  }
 
-  override def apply[A](fa: StoreADT[A]): DBIO[A] = ???
+
+  override def apply[A](fa: StoreADT[A]): Task[A] = ???
 
 //  override def apply[A](fa: StoreADT[A]): DBIO[A] = fa match {
 //    case Pure(a) => DBIO.successful(a)
