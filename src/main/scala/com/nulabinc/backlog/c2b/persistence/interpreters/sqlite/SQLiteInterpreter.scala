@@ -11,14 +11,11 @@ case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
 
   private val db = Database.forConfig(configPath)
 
-  implicit val monad = implicitly[Monad[Task]]
+  implicit val monad: Monad[Task] = implicitly[Monad[Task]]
 
   override def run[A](prg: StoreProgram[A]): Task[A] =
-    Task.deferFuture {
-    db.run(prg.foldMap(this))
-  }
-
-
+    prg.foldMap(this)
+  
   override def apply[A](fa: StoreADT[A]): Task[A] = ???
 
 //  override def apply[A](fa: StoreADT[A]): DBIO[A] = fa match {
