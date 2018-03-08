@@ -7,22 +7,30 @@ object CommentParser {
   val separator: String = "--------------------------------------------------"
 
   def parse(comments: String): Seq[Either[ParseError[CybozuComment] , CybozuComment]] = {
+
+    val MINIMUM_NUMBER_OF_ROWS = 5
+    val HEADER_INDEX = 1
+    val COMMENT_START_INDEX = 3
+    
     comments
       .split(separator)
       .filterNot(_.isEmpty)
       .filterNot(_ == "\n")
       .map { comment =>
-          val lines = comment.split("\n").toIndexedSeq.tail
-          val header = lines.head
-          val body = lines.tail.tail
-          val pattern = """(\d+)?: (.+? .+?) (.+)""".r
+          val parsedLines = comment.split("\n").toIndexedSeq
+          if (parsedLines.length < MINIMUM_NUMBER_OF_ROWS) {
+            Left(CannotParseComment("Invalid line numbers.", parsedLines.mkString("\n")))
+          } else {
+            val header = parsedLines(HEADER_INDEX)
+            val body = parsedLines.view(COMMENT_START_INDEX, parsedLines.length)
+            val pattern = """(\d+)?: (.+? .+?) (.+)""".r
 
-          header match {
-            case pattern(id, userString, createdAtString) =>
-              (for {
-                user      <- UserParser.toUser(userString)
-                createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
-              } yield {
+            header match {
+              case pattern(id, userString, createdAtString) =>
+                (for {
+                  user      <- UserParser.toUser(userString)
+                  createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
+                } yield {
                   CybozuComment(
                     id = id.toLong,
                     creator = user,
@@ -30,13 +38,15 @@ object CommentParser {
                     content = body.mkString("\n")
                   )
 
-              }) match {
-                case Right(a) => Right(a)
-                case Left(error) =>
-                  Left(CannotParseComment("Header parsing error.", error.toString))
-              }
-            case _ => Left(CannotParseComment("Invalid header", comment))
+                }) match {
+                  case Right(a) => Right(a)
+                  case Left(error) =>
+                    Left(CannotParseComment("Header parsing error.", error.toString))
+                }
+              case _ => Left(CannotParseComment("Invalid header", comment))
+            }
           }
+
       }
   }
 
