@@ -8,3 +8,7 @@ case class CybozuUser(
   val key: String = s"$firstName $lastName"
 
 }
+
+object CybozuUser {
+  val fieldSize = 3
+}

@@ -16,3 +16,7 @@ case class CybozuIssue(
   dueDate: Option[ZonedDateTime],
   comments: Seq[CybozuComment]
 )
+
+object CybozuIssue {
+  val fieldSize = 12
+}

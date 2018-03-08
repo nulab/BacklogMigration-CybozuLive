@@ -14,13 +14,5 @@ case class CybozuForum(
 )
 
 object CybozuForum {
-  val idFieldIndex        = 0
-  val titleFieldIndex     = 1
-  val contentFieldIndex   = 2
-  val creatorFieldIndex   = 3
-  val createdAtFieldIndex = 4
-  val updaterFieldIndex   = 5
-  val updatedAtFieldIndex = 6
-  val commentFieldIndex   = 7
-  val csvFieldSize        = 8
+  val fieldSize = 8
 }
