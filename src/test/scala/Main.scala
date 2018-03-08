@@ -47,38 +47,6 @@ object Main extends App {
   println("Finish")
 }
 
-object CommentTest extends App {
-
-  CommentParser.parse(source).foreach(println)
-
-
-  def source = """--------------------------------------------------
-                 |2: Shoma Nishitaten 2018/3/7 (水) 10:44
-                 |
-                 |     a
-                 |    aa
-                 |   aaaa
-                 | aaaaaaa
-                 |aaaaaaaaa
-                 |
-                 |--------------------------------------------------
-                 |1: Shoma Nishitaten 2018/3/7 (水) 10:44
-                 |
-                 |123
-                 |345
-                 |789
-                 |
-                 |--------------------------------------------------
-                 |""".stripMargin
-}
-
-object ZonedDateTimeTest extends App {
-
-  println(ZonedDateTimeParser.toZonedDateTime("2018/3/7 (水) 10:44"))
-  println(ZonedDateTimeParser.toZonedDateTime("2018/2/28 09:38"))
-  println(ZonedDateTimeParser.toZonedDateTime("2019/4/16 06:11:12"))
-}
-
 object IssueTest extends App {
 
   CSVParser.parse(source, CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()).getRecords.asScala.foreach { r =>
