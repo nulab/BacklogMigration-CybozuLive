@@ -25,6 +25,10 @@ lazy val commonSettings = Seq(
 lazy val domains = (project in file("domains"))
   .settings(commonSettings)
 
+lazy val persistence = (project in file("persistence"))
+  .settings(commonSettings)
+  .dependsOn(domains)
+
 lazy val root = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
@@ -35,4 +39,5 @@ lazy val root = (project in file("."))
     )
   )
   .dependsOn(domains)
+  .dependsOn(persistence)
 
