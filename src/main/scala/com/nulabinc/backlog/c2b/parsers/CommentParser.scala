@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.domains.CybozuComment
+import com.nulabinc.backlog.c2b.datas.CybozuComment
 
 object CommentParser {
 
