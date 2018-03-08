@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b.parsers
 
 import java.time.{ZoneId, ZonedDateTime}
 
-import com.nulabinc.backlog.c2b.datas.CybozuUser
+import com.nulabinc.backlog.c2b.domains.CybozuUser
 import org.scalatest.{FlatSpec, Matchers}
 
 class CommentParserSpec extends FlatSpec with Matchers {

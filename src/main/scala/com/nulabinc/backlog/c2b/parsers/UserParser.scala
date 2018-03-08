@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.datas.CybozuUser
+import com.nulabinc.backlog.c2b.domains.CybozuUser
 
 import scala.util.matching.Regex
 

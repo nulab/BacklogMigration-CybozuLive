@@ -1,4 +1,4 @@
-package com.nulabinc.backlog.c2b.datas
+package com.nulabinc.backlog.c2b.domains
 
 import java.time.ZonedDateTime
 
