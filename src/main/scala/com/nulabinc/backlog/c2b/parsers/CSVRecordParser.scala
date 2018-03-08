@@ -28,7 +28,7 @@ object CSVRecordParser {
         updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(6))
         maybeAssignee <- UserParser.toMaybeUser(record.get(9))
         dueDate <- ZonedDateTimeParser.toMaybeZonedDate(record.get(10))
-        comments <- CommentParser.sequence(CommentParser.parse(record.get(11)).toList)
+        comments <- CommentParser.sequence(CommentParser.parse(record.get(11)))
       } yield {
         CybozuIssue(
           id        = record.get(0),
@@ -50,6 +50,39 @@ object CSVRecordParser {
       }
     } else {
       Left(CannotParseCSV(classOf[CybozuIssue], "Invalid record size: " + record.size(), record))
+    }
+  }
+
+  // "開始日付","開始時刻","終了日付","終了時刻","予定メニュー","タイトル","メモ","作成者","コメント"
+  def event(record: CSVRecord): Either[ParseError[CybozuEvent], CybozuEvent] = {
+
+    if (record.size() >= CybozuEvent.csvFieldSize) {
+      val startDate = record.get(CybozuEvent.startDateFieldIndex)
+      val startTime = record.get(CybozuEvent.startTimeFieldIndex)
+      val endDate = record.get(CybozuEvent.endDateFieldIndex)
+      val endTime = record.get(CybozuEvent.endTimeFieldIndex)
+
+      (for {
+        startDateTime <- ZonedDateTimeParser.toZonedDateTime(startDate, startTime)
+        endDateTime <- ZonedDateTimeParser.toZonedDateTime(endDate, endTime)
+        creator <- UserParser.toUser(record.get(CybozuEvent.creatorFieldIndex))
+        comments <- CommentParser.sequence(CommentParser.parse(record.get(CybozuEvent.commentFieldIndex)))
+      } yield {
+        CybozuEvent(
+          startDateTime = startDateTime,
+          endDateTime = endDateTime,
+          menu = ScheduledMenu(record.get(CybozuEvent.menuFieldIndex)),
+          title = record.get(CybozuEvent.titleFieldIndex),
+          memo = record.get(CybozuEvent.memoFieldIndex),
+          creator = creator,
+          comments = comments
+        )
+      }) match {
+        case Right(event) => Right(event)
+        case Left(error) => Left(CannotParseCSV(classOf[CybozuEvent], error.toString, record))
+      }
+    } else {
+      Left(CannotParseCSV(classOf[CybozuEvent], "Invalid record size: " + record.size(), record))
     }
   }
 
