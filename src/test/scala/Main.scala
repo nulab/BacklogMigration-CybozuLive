@@ -76,6 +76,7 @@ object ZonedDateTimeTest extends App {
 
   println(ZonedDateTimeParser.toZonedDateTime("2018/3/7 (水) 10:44"))
   println(ZonedDateTimeParser.toZonedDateTime("2018/2/28 09:38"))
+  println(ZonedDateTimeParser.toZonedDateTime("2019/4/16 06:11:12"))
 }
 
 object IssueTest extends App {
@@ -124,4 +125,42 @@ object IssueTest extends App {
                  |
                  |--------------------------------------------------
                  |"""".stripMargin
+}
+
+object EventTest extends App {
+
+  try {
+    CSVParser.parse(source, CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()).getRecords.asScala.foreach { r =>
+      CSVRecordParser.event(r) match {
+        case Right(event) =>
+          println("======================")
+          println(event)
+          println("======================")
+        case Left(error) => println("ERROR: " + error.toString)
+      }
+    }
+  } catch {
+    case ex: Throwable =>
+      println(ex.getMessage)
+      ex.getStackTrace.foreach(println)
+  }
+
+  def source = """"開始日付","開始時刻","終了日付","終了時刻","予定メニュー","タイトル","メモ","作成者","コメント"
+                 |"2018/3/1","","2018/3/1","","会議","最初の会議","時間指定なし","Shoma Nishitaten","--------------------------------------------------
+                 |2: Shoma Nishitaten 2018/3/1 (木) 15:14
+                 |
+                 |添付ファイルあり
+                 |
+                 |--------------------------------------------------
+                 |1: Shoma Nishitaten 2018/3/1 (木) 15:14
+                 |
+                 |a
+                 |
+                 |--------------------------------------------------
+                 |"
+                 |"2018/3/2","13:10:00","2018/3/2","13:45:00","往訪","時間指定","","Shoma Nishitaten",""
+                 |"2018/3/3","08:00:00","2018/3/3","10:00:00","勉強会","詳細設定","aaaaaaa [file:1]","Shoma Nishitaten",""
+                 |"2018/3/3","08:00:00","2018/3/3","10:00:00","勉強会","詳細設定 書式設定なし","aaaaaaa
+                 |[file:1]","Shoma Nishitaten",""
+                 |""".stripMargin
 }
