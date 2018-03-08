@@ -1,4 +1,4 @@
-package com.nulabinc.backlog.c2b.domains
+package com.nulabinc.backlog.c2b.datas
 
 case class CybozuUser(
   lastName: String,

@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.dsl
 
 import cats.free.Free
-import com.nulabinc.backlog.c2b.domains._
+import com.nulabinc.backlog.c2b.datas._
 import monix.reactive.Observable
 
 object StoreDSL {

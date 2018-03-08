@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.dsl
 
-import com.nulabinc.backlog.c2b.domains._
+import com.nulabinc.backlog.c2b.datas._
 import monix.reactive.Observable
 
 sealed trait StoreADT[A]
