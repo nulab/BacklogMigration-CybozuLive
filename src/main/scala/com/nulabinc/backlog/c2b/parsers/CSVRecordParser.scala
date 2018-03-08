@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.datas._
+import com.nulabinc.backlog.c2b.domains._
 import org.apache.commons.csv.CSVRecord
 
 object CSVRecordParser {
