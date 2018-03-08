@@ -164,3 +164,65 @@ object EventTest extends App {
                  |[file:1]","Shoma Nishitaten",""
                  |""".stripMargin
 }
+
+object ForumTest extends App {
+
+  try {
+    CSVParser.parse(source, CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()).getRecords.asScala.foreach { r =>
+      CSVRecordParser.forum(r) match {
+        case Right(data) =>
+          println("======================")
+          println(data)
+          println("======================")
+        case Left(error) => println("ERROR: " + error.toString)
+      }
+    }
+  } catch {
+    case ex: Throwable =>
+      println(ex.getMessage)
+      ex.getStackTrace.foreach(println)
+  }
+
+  def source = """"ID","タイトル","本文","作成者","作成日時","更新者","更新日時","コメント"
+                 |"1:6305695","Wiki-C","aaaaaa","Shoma Nishitaten","2018/3/1 13:48","Shoma Nishitaten","2018/3/8 11:40","--------------------------------------------------
+                 |3: Shoma Nishitaten 2018/3/8 (木) 11:40
+                 |
+                 |添付ファイルあり
+                 |
+                 |--------------------------------------------------
+                 |2: Shoma Nishitaten 2018/3/1 (木) 13:49
+                 |
+                 |添付
+                 |
+                 |--------------------------------------------------
+                 |1: Shoma Nishitaten 2018/3/1 (木) 13:49
+                 |
+                 |aaa
+                 |
+                 |--------------------------------------------------
+                 |"
+                 |"1:6305702","アンケート","アンケート作成","Shoma Nishitaten","2018/3/1 13:50","Shoma Nishitaten","2018/3/1 13:50",""
+                 |"1:6103883","使い方","","Shoma Nishitaten","2017/12/13 10:11","Shoma Nishitaten","2018/2/27 15:57","--------------------------------------------------
+                 |4: Shoma Nishitaten 2018/2/27 (火) 15:57
+                 |
+                 |共有フォルダから
+                 |
+                 |--------------------------------------------------
+                 |3: Shoma Nishitaten 2018/2/27 (火) 15:57
+                 |
+                 |ファイル添付
+                 |
+                 |--------------------------------------------------
+                 |2: Shoma Nishitaten 2018/2/27 (火) 15:57
+                 |
+                 |ちがうかも
+                 |
+                 |--------------------------------------------------
+                 |1: Shoma Nishitaten 2018/2/27 (火) 15:57
+                 |
+                 |forumはwikiなのか
+                 |
+                 |--------------------------------------------------
+                 |"
+                 |""".stripMargin
+}

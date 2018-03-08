@@ -86,4 +86,33 @@ object CSVRecordParser {
     }
   }
 
+  // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","コメント"
+  def forum(record: CSVRecord): Either[ParseError[CybozuForum], CybozuForum] = {
+    if (record.size() >= CybozuForum.csvFieldSize) {
+      (for {
+        creator <- UserParser.toUser(record.get(CybozuForum.creatorFieldIndex))
+        createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CybozuForum.createdAtFieldIndex))
+        updater <- UserParser.toUser(record.get(CybozuForum.updaterFieldIndex))
+        updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CybozuForum.updatedAtFieldIndex))
+        comments <- CommentParser.sequence(CommentParser.parse(record.get(CybozuForum.commentFieldIndex)))
+      } yield {
+        CybozuForum(
+          id = record.get(CybozuForum.idFieldIndex),
+          title = record.get(CybozuForum.titleFieldIndex),
+          content = record.get(CybozuForum.contentFieldIndex),
+          creator = creator,
+          createdAt = createdAt,
+          updater = updater,
+          updatedAt = updatedAt,
+          comments = comments
+        )
+      }) match {
+        case Right(forum) => Right(forum)
+        case Left(error) => Left(CannotParseCSV(classOf[CybozuForum], error.toString, record))
+      }
+    } else {
+      Left(CannotParseCSV(classOf[CybozuForum], "Invalid record size: " + record.size(), record))
+    }
+  }
+
 }
