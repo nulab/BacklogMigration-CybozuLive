@@ -56,24 +56,34 @@ object CSVRecordParser {
   // "開始日付","開始時刻","終了日付","終了時刻","予定メニュー","タイトル","メモ","作成者","コメント"
   def event(record: CSVRecord): Either[ParseError[CybozuEvent], CybozuEvent] = {
 
-    if (record.size() >= CybozuEvent.csvFieldSize) {
-      val startDate = record.get(CybozuEvent.startDateFieldIndex)
-      val startTime = record.get(CybozuEvent.startTimeFieldIndex)
-      val endDate = record.get(CybozuEvent.endDateFieldIndex)
-      val endTime = record.get(CybozuEvent.endTimeFieldIndex)
+    val startDateFieldIndex  = 0
+    val startTimeFieldIndex  = 1
+    val endDateFieldIndex    = 2
+    val endTimeFieldIndex    = 3
+    val menuFieldIndex       = 4
+    val titleFieldIndex      = 5
+    val memoFieldIndex       = 6
+    val creatorFieldIndex    = 7
+    val commentFieldIndex    = 8
+
+    if (record.size() >= CybozuEvent.fieldSize) {
+      val startDate = record.get(startDateFieldIndex)
+      val startTime = record.get(startTimeFieldIndex)
+      val endDate = record.get(endDateFieldIndex)
+      val endTime = record.get(endTimeFieldIndex)
 
       (for {
         startDateTime <- ZonedDateTimeParser.toZonedDateTime(startDate, startTime)
         endDateTime <- ZonedDateTimeParser.toZonedDateTime(endDate, endTime)
-        creator <- UserParser.toUser(record.get(CybozuEvent.creatorFieldIndex))
-        comments <- CommentParser.sequence(CommentParser.parse(record.get(CybozuEvent.commentFieldIndex)))
+        creator <- UserParser.toUser(record.get(creatorFieldIndex))
+        comments <- CommentParser.sequence(CommentParser.parse(record.get(commentFieldIndex)))
       } yield {
         CybozuEvent(
           startDateTime = startDateTime,
           endDateTime = endDateTime,
-          menu = ScheduledMenu(record.get(CybozuEvent.menuFieldIndex)),
-          title = record.get(CybozuEvent.titleFieldIndex),
-          memo = record.get(CybozuEvent.memoFieldIndex),
+          menu = ScheduledMenu(record.get(menuFieldIndex)),
+          title = record.get(titleFieldIndex),
+          memo = record.get(memoFieldIndex),
           creator = creator,
           comments = comments
         )
@@ -88,18 +98,28 @@ object CSVRecordParser {
 
   // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","コメント"
   def forum(record: CSVRecord): Either[ParseError[CybozuForum], CybozuForum] = {
-    if (record.size() >= CybozuForum.csvFieldSize) {
+
+    val idFieldIndex        = 0
+    val titleFieldIndex     = 1
+    val contentFieldIndex   = 2
+    val creatorFieldIndex   = 3
+    val createdAtFieldIndex = 4
+    val updaterFieldIndex   = 5
+    val updatedAtFieldIndex = 6
+    val commentFieldIndex   = 7
+
+    if (record.size() >= CybozuForum.fieldSize) {
       (for {
-        creator <- UserParser.toUser(record.get(CybozuForum.creatorFieldIndex))
-        createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CybozuForum.createdAtFieldIndex))
-        updater <- UserParser.toUser(record.get(CybozuForum.updaterFieldIndex))
-        updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CybozuForum.updatedAtFieldIndex))
-        comments <- CommentParser.sequence(CommentParser.parse(record.get(CybozuForum.commentFieldIndex)))
+        creator <- UserParser.toUser(record.get(creatorFieldIndex))
+        createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(createdAtFieldIndex))
+        updater <- UserParser.toUser(record.get(updaterFieldIndex))
+        updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(updatedAtFieldIndex))
+        comments <- CommentParser.sequence(CommentParser.parse(record.get(commentFieldIndex)))
       } yield {
         CybozuForum(
-          id = record.get(CybozuForum.idFieldIndex),
-          title = record.get(CybozuForum.titleFieldIndex),
-          content = record.get(CybozuForum.contentFieldIndex),
+          id = record.get(idFieldIndex),
+          title = record.get(titleFieldIndex),
+          content = record.get(contentFieldIndex),
           creator = creator,
           createdAt = createdAt,
           updater = updater,
