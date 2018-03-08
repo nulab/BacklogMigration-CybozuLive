@@ -72,13 +72,6 @@ object CommentTest extends App {
                  |""".stripMargin
 }
 
-object ZonedDateTimeTest extends App {
-
-  println(ZonedDateTimeParser.toZonedDateTime("2018/3/7 (水) 10:44"))
-  println(ZonedDateTimeParser.toZonedDateTime("2018/2/28 09:38"))
-  println(ZonedDateTimeParser.toZonedDateTime("2019/4/16 06:11:12"))
-}
-
 object IssueTest extends App {
 
   CSVParser.parse(source, CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()).getRecords.asScala.foreach { r =>
