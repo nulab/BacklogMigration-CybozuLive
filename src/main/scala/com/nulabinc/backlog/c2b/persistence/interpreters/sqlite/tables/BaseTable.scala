@@ -8,7 +8,7 @@ import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
 import slick.jdbc.SQLiteProfile.api._
 
-private[sqlite] abstract class BaseTable[A <: CybozuEntity](tag: Tag, name: String) extends Table[A](tag, name) {
+private[sqlite] abstract class BaseTable[A](tag: Tag, name: String) extends Table[A](tag, name) {
   
   implicit val zonedDateTimeMapper: JdbcType[ZonedDateTime] with BaseTypedType[ZonedDateTime] =
     MappedColumnType.base[ZonedDateTime, Long](
