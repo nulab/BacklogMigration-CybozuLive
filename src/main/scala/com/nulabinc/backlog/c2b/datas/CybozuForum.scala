@@ -1,15 +1,15 @@
 package com.nulabinc.backlog.c2b.datas
 
-import java.time.ZonedDateTime
+import com.nulabinc.backlog.c2b.datas.Types.DateTime
 
 case class CybozuForum(
   id: String,
   title: String,
   content: String,
   creator: CybozuUser,
-  createdAt: ZonedDateTime,
+  createdAt: DateTime,
   updater: CybozuUser,
-  updatedAt: ZonedDateTime,
+  updatedAt: DateTime,
   comments: Seq[CybozuComment]
 )
 
