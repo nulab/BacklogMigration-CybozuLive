@@ -9,13 +9,7 @@ import slick.jdbc.JdbcType
 import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] abstract class BaseTable[A <: CybozuEntity](tag: Tag, name: String) extends Table[A](tag, name) {
-
-  implicit val userMapper: JdbcType[CybozuUser] with BaseTypedType[CybozuUser] =
-    MappedColumnType.base[CybozuUser, String](
-      cybozuUser => cybozuUser.key,
-      str => CybozuUser.fromFullName(str).getOrElse(throw new RuntimeException("Should never happen DB is corrupt"))
-    )
-
+  
   implicit val zonedDateTimeMapper: JdbcType[ZonedDateTime] with BaseTypedType[ZonedDateTime] =
     MappedColumnType.base[ZonedDateTime, Long](
       zonedDateTime => zonedDateTime.toInstant.getEpochSecond,
