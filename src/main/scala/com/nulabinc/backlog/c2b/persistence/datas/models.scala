@@ -2,8 +2,6 @@ package com.nulabinc.backlog.c2b.persistence.datas
 
 import java.time.ZonedDateTime
 
-import com.nulabinc.backlog.c2b.datas.CybozuUser
-
 trait CybozuEntity
 
 case class DBCybozuIssue(
@@ -19,3 +17,5 @@ case class DBCybozuIssue(
   assigneeId: Option[String],
   dueDate: Option[ZonedDateTime]
 ) extends CybozuEntity
+
+case class DBCybozuUser(fullName: String) extends CybozuEntity
