@@ -2,9 +2,11 @@ package com.nulabinc.backlog.c2b.parsers
 
 import java.time.{ZoneId, ZonedDateTime}
 
+import com.nulabinc.backlog.c2b.datas.Types.DateTime
+
 object ZonedDateTimeParser {
 
-  def toZonedDateTime(value: String): Either[ParseError[ZonedDateTime], ZonedDateTime] = {
+  def toZonedDateTime(value: String): Either[ParseError[DateTime], DateTime] = {
     val pattern1 = """(\d+?)/(\d+?)/(\d+?) .*?(\d+?):(\d+?):(\d+)""".r
     val pattern2 = """(\d+?)/(\d+?)/(\d+?) .*?(\d+?):(\d+?)""".r
     value match {
@@ -34,16 +36,16 @@ object ZonedDateTimeParser {
             ZoneId.systemDefault()
           )
         )
-      case _ => Left(CannotParseFromString(classOf[ZonedDateTime], value))
+      case _ => Left(CannotParseFromString(classOf[DateTime], value))
     }
   }
 
-  def toZonedDateTime(date: String, time: String): Either[ParseError[ZonedDateTime], ZonedDateTime] = {
+  def toZonedDateTime(date: String, time: String): Either[ParseError[DateTime], DateTime] = {
     val timeString = if (time.nonEmpty) time else "00:00:00"
     toZonedDateTime(s"$date $timeString")
   }
 
-  def toZonedDate(value: String): Either[ParseError[ZonedDateTime], ZonedDateTime] = {
+  def toZonedDate(value: String): Either[ParseError[DateTime], DateTime] = {
     val pattern = """(\d+?)/(\d+?)/(\d+?)""".r
     value match {
       case pattern(year, month, day) =>
@@ -59,11 +61,11 @@ object ZonedDateTimeParser {
             ZoneId.systemDefault()
           )
         )
-      case _ => Left(CannotParseFromString(classOf[ZonedDateTime], value))
+      case _ => Left(CannotParseFromString(classOf[DateTime], value))
     }
   }
 
-  def toMaybeZonedDate(value: String): Either[ParseError[ZonedDateTime], Option[ZonedDateTime]] = {
+  def toMaybeZonedDate(value: String): Either[ParseError[DateTime], Option[DateTime]] = {
     if (value.isEmpty) {
       Right(None)
     } else {
