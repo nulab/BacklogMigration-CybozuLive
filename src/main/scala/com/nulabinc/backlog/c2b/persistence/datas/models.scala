@@ -2,9 +2,7 @@ package com.nulabinc.backlog.c2b.persistence.datas
 
 import java.time.ZonedDateTime
 
-trait Entity {
-  def id: String
-}
+trait Entity
 
 case class DBCybozuIssue(
   id: String,
@@ -21,7 +19,7 @@ case class DBCybozuIssue(
 ) extends Entity
 
 case class DBCybozuComment(
-  id: String,
+  id: Long,
   issueId: String,
   creatorId: String,
   createdAt: ZonedDateTime,

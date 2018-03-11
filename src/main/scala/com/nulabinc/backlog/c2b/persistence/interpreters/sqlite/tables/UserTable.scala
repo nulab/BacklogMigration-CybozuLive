@@ -6,6 +6,7 @@ import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] class UserTable(tag: Tag) extends BaseTable[DBCybozuUser](tag, "cybozu_users") {
 
+  def id: Rep[String] = column[String]("id", O.PrimaryKey, O.Unique)
   def firstName: Rep[String] = column[String]("first_name")
   def lastName: Rep[String] = column[String]("last_name")
 

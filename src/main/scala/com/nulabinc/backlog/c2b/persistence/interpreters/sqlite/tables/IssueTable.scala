@@ -7,6 +7,7 @@ import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] class IssueTable(tag: Tag) extends BaseTable[DBCybozuIssue](tag, "cybozu_issues") {
 
+  def id: Rep[String] = column[String]("id", O.PrimaryKey, O.Unique)
   def title: Rep[String] = column[String]("title")
   def content: Rep[String] = column[String]("content")
   def creatorId: Rep[String] = column[String]("creator_id")

@@ -16,5 +16,4 @@ private[sqlite] abstract class BaseTable[A <: Entity](tag: Tag, name: String) ex
       epoch => ZonedDateTime.ofInstant(Instant.ofEpochSecond(epoch), ZoneId.systemDefault())
     )
 
-  def id: Rep[String] = column[String]("id", O.PrimaryKey, O.Unique)
 }
