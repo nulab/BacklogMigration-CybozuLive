@@ -1,10 +1,10 @@
 package com.nulabinc.backlog.c2b.datas
 
-import java.time.ZonedDateTime
+import com.nulabinc.backlog.c2b.datas.Types.DateTime
 
 case class CybozuComment(
   id: Long,
   creator: CybozuUser,
-  createdAt: ZonedDateTime,
+  createdAt: DateTime,
   content: String
 )

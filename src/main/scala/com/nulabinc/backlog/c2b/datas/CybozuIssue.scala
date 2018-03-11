@@ -1,19 +1,19 @@
 package com.nulabinc.backlog.c2b.datas
 
-import java.time.ZonedDateTime
+import com.nulabinc.backlog.c2b.datas.Types.DateTime
 
 case class CybozuIssue(
   id: String,
   title: String,
   content: String,
   creator: CybozuUser,
-  createdAt: ZonedDateTime,
+  createdAt: DateTime,
   updater: CybozuUser,
-  updatedAt: ZonedDateTime,
+  updatedAt: DateTime,
   status: CybozuStatus,
   priority: CybozuPriority,
   assignee: Option[CybozuUser],
-  dueDate: Option[ZonedDateTime],
+  dueDate: Option[DateTime],
   comments: Seq[CybozuComment]
 )
 
