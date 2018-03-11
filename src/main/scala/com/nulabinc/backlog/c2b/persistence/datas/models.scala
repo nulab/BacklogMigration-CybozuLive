@@ -44,3 +44,13 @@ case class DBCybozuEvent(
   memo: String,
   creatorId: String
 ) extends Entity
+
+case class DBCybozuForum(
+  id: String,
+  title: String,
+  content: String,
+  creatorId: String,
+  createdAt: DateTime,
+  updaterId: String,
+  updatedAt: DateTime
+) extends Entity

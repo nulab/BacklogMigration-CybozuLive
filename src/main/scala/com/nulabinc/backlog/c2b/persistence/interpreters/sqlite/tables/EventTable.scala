@@ -28,5 +28,4 @@ private[sqlite] class EventTable(tag: Tag) extends BaseTable[DBCybozuEvent](tag,
     (id, startDateTime, endDateTime, menu, title,
       memo, creatorId) <> (DBCybozuEvent.tupled, DBCybozuEvent.unapply)
 
-
 }
