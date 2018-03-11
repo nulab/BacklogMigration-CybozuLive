@@ -3,7 +3,7 @@ package com.nulabinc.backlog.c2b.persistence.datas
 import java.time.ZonedDateTime
 
 import com.nulabinc.backlog.c2b.datas.Types.DateTime
-import com.nulabinc.backlog.c2b.datas.{CybozuUser, ScheduledMenu}
+import com.nulabinc.backlog.c2b.datas.ScheduledMenu
 
 trait Entity
 
