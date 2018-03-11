@@ -2,6 +2,9 @@ package com.nulabinc.backlog.c2b.persistence.datas
 
 import java.time.ZonedDateTime
 
+import com.nulabinc.backlog.c2b.datas.Types.DateTime
+import com.nulabinc.backlog.c2b.datas.{CybozuUser, ScheduledMenu}
+
 trait Entity
 
 case class DBCybozuIssue(
@@ -30,4 +33,14 @@ case class DBCybozuUser(
   id: String,
   firstName: String,
   lastName: String
+) extends Entity
+
+case class DBCybozuEvent(
+  id: Int,
+  startDateTime: DateTime,
+  endDateTime: DateTime,
+  menu: ScheduledMenu,
+  title: String,
+  memo: String,
+  creatorId: String
 ) extends Entity
