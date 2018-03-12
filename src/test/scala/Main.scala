@@ -13,39 +13,40 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import monix.execution.Scheduler.Implicits.global
 
-object Main extends App {
-
-  println("Start")
-
-  val concurrentProcesses = 10
-  val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
-
-  val csvFiles = Paths.get("./src/test/scala").toFile.listFiles().filter(_.getName.endsWith(".csv"))
-
-  def printResult(data: Either[ParseError[CybozuUser], CybozuUser]): Task[Unit] = Task {
-    data match {
-      case Right(user) => println(user)
-      case Left(ex) => println(ex.toString)
-    }
-  }
-
-  val printingResults: Consumer[Either[ParseError[CybozuUser], CybozuUser], Unit] =
-    Consumer.foreachParallelAsync(concurrentProcesses)(printResult)
-
-  val a = Observable
-    .fromIterable(csvFiles)
-    .mapAsync(csvFiles.length) { file =>
-      Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
-        .drop(1)
-        .map(CSVRecordParser.user)
-        .consumeWith(printingResults)
-    }
-    .completedL
-    .runAsync
-
-  Await.ready(a, Duration.Inf)
-  println("Finish")
-}
+// TODO: Check monix3
+//object Main extends App {
+//
+//  println("Start")
+//
+//  val concurrentProcesses = 10
+//  val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
+//
+//  val csvFiles = Paths.get("./src/test/scala").toFile.listFiles().filter(_.getName.endsWith(".csv"))
+//
+//  def printResult(data: Either[ParseError[CybozuUser], CybozuUser]): Task[Unit] = Task {
+//    data match {
+//      case Right(user) => println(user)
+//      case Left(ex) => println(ex.toString)
+//    }
+//  }
+//
+//  val printingResults: Consumer[Either[ParseError[CybozuUser], CybozuUser], Unit] =
+//    Consumer.foreachParallelAsync(concurrentProcesses)(printResult)
+//
+//  val a = Observable
+//    .fromIterable(csvFiles)
+//    .mapAsync(csvFiles.length) { file =>
+//      Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+//        .drop(1)
+//        .map(CSVRecordParser.user)
+//        .consumeWith(printingResults)
+//    }
+//    .completedL
+//    .runAsync
+//
+//  Await.ready(a, Duration.Inf)
+//  println("Finish")
+//}
 
 object IssueTest extends App {
 
