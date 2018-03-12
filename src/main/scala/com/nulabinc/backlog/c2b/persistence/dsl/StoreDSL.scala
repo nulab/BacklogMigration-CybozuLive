@@ -11,8 +11,8 @@ object StoreDSL {
   def pure[A](a: A): StoreProgram[A] =
     Free.liftF(Pure(a))
 
-  def getUsers: StoreProgram[Observable[CybozuUser]] =
-    Free.liftF(GetUsers)
+  def getUsers(offset: Long, size: Long): StoreProgram[Observable[CybozuUser]] =
+    Free.liftF(GetUsers(offset, size))
 
   def storeUser(user: CybozuUser): StoreProgram[Unit] =
     Free.liftF(StoreUser(user))
