@@ -1,41 +1,43 @@
-package com.nulabinc.backlog.c2b.persistence.datas
+package com.nulabinc.backlog.c2b.datas
 
-import java.time.ZonedDateTime
+import com.nulabinc.backlog.c2b.datas.Types._
 
-import com.nulabinc.backlog.c2b.datas.Types.DateTime
+case class Id[T] private(value: AnyId) extends AnyVal
 
-trait Entity
+trait Entity {
+  def id: AnyId
+}
 
-case class DBCybozuIssue(
-  id: String,
+case class CybozuIssue(
+  id: AnyId,
   title: String,
   content: String,
   creatorId: String,
-  createdAt: ZonedDateTime,
+  createdAt: DateTime,
   updaterId: String,
-  updatedAt: ZonedDateTime,
+  updatedAt: DateTime,
   status: String,
   priority: String,
   assigneeId: Option[String],
-  dueDate: Option[ZonedDateTime]
+  dueDate: Option[DateTime]
 ) extends Entity
 
-case class DBCybozuComment(
-  id: Long,
+case class CybozuComment(
+  id: AnyId,
   parentId: String,
   creatorId: String,
-  createdAt: ZonedDateTime,
+  createdAt: DateTime,
   content: String
 ) extends Entity
 
-case class DBCybozuUser(
-  id: String,
+case class CybozuUser(
+  id: AnyId,
   firstName: String,
   lastName: String
 ) extends Entity
 
-case class DBCybozuEvent(
-  id: Int,
+case class CybozuEvent(
+  id: AnyId,
   startDateTime: DateTime,
   endDateTime: DateTime,
   menu: String,
@@ -44,8 +46,8 @@ case class DBCybozuEvent(
   creatorId: String
 ) extends Entity
 
-case class DBCybozuForum(
-  id: String,
+case class CybozuForum(
+  id: AnyId,
   title: String,
   content: String,
   creatorId: String,

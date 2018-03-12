@@ -1,19 +1,16 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
-import com.nulabinc.backlog.c2b.persistence.datas.DBCybozuForum
-import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOWrite}
+import com.nulabinc.backlog.c2b.datas.CybozuForum
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIOWrite
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.ForumTable
 import slick.lifted.TableQuery
 import slick.jdbc.SQLiteProfile.api._
 
-private[sqlite] case class ForumTableOps() extends BaseTableOps[DBCybozuForum, ForumTable] {
+private[sqlite] case class ForumTableOps() extends BaseTableOps[CybozuForum, ForumTable] {
 
   protected def tableQuery = TableQuery[ForumTable]
 
-  def select(id: String): DBIORead[Option[DBCybozuForum]] =
-    tableQuery.filter(_.id === id.value).result.headOption
-
-  def save(forum: DBCybozuForum): DBIOWrite[DBCybozuForum] =
+  def save(forum: CybozuForum): DBIOWrite[CybozuForum] =
     tableQuery
       .filter(_.id === forum.id)
       .insertOrUpdate(forum)

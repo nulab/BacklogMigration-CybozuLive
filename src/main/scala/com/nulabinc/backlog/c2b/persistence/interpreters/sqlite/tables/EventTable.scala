@@ -1,15 +1,12 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables
 
+import com.nulabinc.backlog.c2b.datas.CybozuEvent
 import com.nulabinc.backlog.c2b.datas.Types.DateTime
-import com.nulabinc.backlog.c2b.persistence.datas.DBCybozuEvent
-import slick.ast.BaseTypedType
-import slick.jdbc.JdbcType
 import slick.lifted.{ProvenShape, Tag}
 import slick.jdbc.SQLiteProfile.api._
 
-private[sqlite] class EventTable(tag: Tag) extends BaseTable[DBCybozuEvent](tag, "cybozu_events") {
+private[sqlite] class EventTable(tag: Tag) extends BaseTable[CybozuEvent](tag, "cybozu_events") {
 
-  def id: Rep[Int] = column[Int]("id", O.PrimaryKey, O.Unique, O.AutoInc)
   def startDateTime: Rep[DateTime] = column[DateTime]("start_date_time")
   def endDateTime: Rep[DateTime] = column[DateTime]("end_date_time")
   def menu: Rep[String] = column[String]("menu")
@@ -17,8 +14,8 @@ private[sqlite] class EventTable(tag: Tag) extends BaseTable[DBCybozuEvent](tag,
   def memo: Rep[String] = column[String]("memo")
   def creatorId: Rep[String] = column[String]("creator_id")
 
-  override def * :ProvenShape[DBCybozuEvent] =
+  override def * :ProvenShape[CybozuEvent] =
     (id, startDateTime, endDateTime, menu, title,
-      memo, creatorId) <> (DBCybozuEvent.tupled, DBCybozuEvent.unapply)
+      memo, creatorId) <> (CybozuEvent.tupled, CybozuEvent.unapply)
 
 }
