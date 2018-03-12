@@ -1,12 +1,12 @@
 package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.datas.CybozuComment
+import com.nulabinc.backlog.c2b.datas.CybozuCSVComment
 
 object CommentParser {
 
   val separator: String = "--------------------------------------------------"
 
-  def parse(comments: String): Seq[Either[ParseError[CybozuComment] , CybozuComment]] = {
+  def parse(comments: String): Seq[Either[ParseError[CybozuCSVComment] , CybozuCSVComment]] = {
 
     val MINIMUM_NUMBER_OF_ROWS = 5
     val HEADER_INDEX = 1
@@ -31,7 +31,7 @@ object CommentParser {
                   user      <- UserParser.toUser(userString)
                   createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
                 } yield {
-                  CybozuComment(
+                  CybozuCSVComment(
                     id = id.toLong,
                     creator = user,
                     createdAt = createdAt,
@@ -50,8 +50,8 @@ object CommentParser {
       }
   }
 
-  def sequence(comments: Seq[Either[ParseError[CybozuComment] , CybozuComment]]): Either[ParseError[CybozuComment], Seq[CybozuComment]] =
-    comments.foldRight(Right(Nil): Either[ParseError[CybozuComment], Seq[CybozuComment]]) { (elem, acc) =>
+  def sequence(comments: Seq[Either[ParseError[CybozuCSVComment] , CybozuCSVComment]]): Either[ParseError[CybozuCSVComment], Seq[CybozuCSVComment]] =
+    comments.foldRight(Right(Nil): Either[ParseError[CybozuCSVComment], Seq[CybozuCSVComment]]) { (elem, acc) =>
       acc.right.flatMap(list => elem.right.map(a => a +: list))
     }
 }

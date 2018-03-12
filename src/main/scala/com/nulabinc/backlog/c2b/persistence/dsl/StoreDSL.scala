@@ -11,46 +11,46 @@ object StoreDSL {
   def pure[A](a: A): StoreProgram[A] =
     Free.liftF(Pure(a))
 
-  def getUsers(offset: Long, size: Long): StoreProgram[Observable[CybozuUser]] =
+  def getUsers(offset: Long, size: Long): StoreProgram[Observable[CybozuCSVUser]] =
     Free.liftF(GetUsers(offset, size))
 
-  def storeUser(user: CybozuUser): StoreProgram[Unit] =
+  def storeUser(user: CybozuCSVUser): StoreProgram[Unit] =
     Free.liftF(StoreUser(user))
 
-  def getIssues(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[CybozuIssue]] =
+  def getIssues(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[CybozuCSVIssue]] =
     Free.liftF(GetIssues(limit, start, step))
 
-  def storeIssue(issue: CybozuIssue): StoreProgram[Unit] =
+  def storeIssue(issue: CybozuCSVIssue): StoreProgram[Unit] =
     Free.liftF(StoreIssue(issue))
 
-  def getIssueComments(issue: CybozuIssue): StoreProgram[Observable[CybozuComment]] =
+  def getIssueComments(issue: CybozuCSVIssue): StoreProgram[Observable[CybozuCSVComment]] =
     Free.liftF(GetIssueComments(issue))
 
-  def storeIssueComment(issue: CybozuIssue, comment: CybozuComment): StoreProgram[Unit] =
+  def storeIssueComment(issue: CybozuCSVIssue, comment: CybozuCSVComment): StoreProgram[Unit] =
     Free.liftF(StoreIssueComment(issue, comment))
 
-  def getPriorities: StoreProgram[Observable[CybozuPriority]] =
+  def getPriorities: StoreProgram[Observable[CybozuCSVPriority]] =
     Free.liftF(GetPriorities)
 
-  def storePriority(priority: CybozuPriority): StoreProgram[Unit] =
+  def storePriority(priority: CybozuCSVPriority): StoreProgram[Unit] =
     Free.liftF(StorePriority(priority))
 
-  def getStatuses: StoreProgram[Observable[CybozuStatus]] =
+  def getStatuses: StoreProgram[Observable[CybozuCSVStatus]] =
     Free.liftF(GetStatuses)
 
-  def storeStatus(status: CybozuStatus): StoreProgram[Unit] =
+  def storeStatus(status: CybozuCSVStatus): StoreProgram[Unit] =
     Free.liftF(StoreStatus(status))
 
-  def getEvents(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[CybozuEvent]] =
+  def getEvents(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[CybozuCSVEvent]] =
     Free.liftF(GetEvents(limit, start, step))
 
-  def storeEvent(event: CybozuEvent): StoreProgram[Unit] =
+  def storeEvent(event: CybozuCSVEvent): StoreProgram[Unit] =
     Free.liftF(StoreEvent(event))
 
-  def getForums(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[CybozuForum]] =
+  def getForums(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[CybozuCSVForum]] =
     Free.liftF(GetForums(limit, start, step))
 
-  def storeForum(forum: CybozuForum): StoreProgram[Unit] =
+  def storeForum(forum: CybozuCSVForum): StoreProgram[Unit] =
     Free.liftF(StoreForum(forum))
 
 }

@@ -2,7 +2,7 @@
 import java.nio.charset.Charset
 import java.nio.file.Paths
 
-import com.nulabinc.backlog.c2b.datas.CybozuUser
+import com.nulabinc.backlog.c2b.datas.CybozuCSVUser
 import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, CommentParser, ParseError, ZonedDateTimeParser}
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import monix.eval.Task

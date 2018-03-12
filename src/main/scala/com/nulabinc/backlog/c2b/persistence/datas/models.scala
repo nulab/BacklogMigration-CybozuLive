@@ -3,7 +3,6 @@ package com.nulabinc.backlog.c2b.persistence.datas
 import java.time.ZonedDateTime
 
 import com.nulabinc.backlog.c2b.datas.Types.DateTime
-import com.nulabinc.backlog.c2b.datas.ScheduledMenu
 
 trait Entity
 
@@ -39,7 +38,7 @@ case class DBCybozuEvent(
   id: Int,
   startDateTime: DateTime,
   endDateTime: DateTime,
-  menu: ScheduledMenu,
+  menu: String,
   title: String,
   memo: String,
   creatorId: String

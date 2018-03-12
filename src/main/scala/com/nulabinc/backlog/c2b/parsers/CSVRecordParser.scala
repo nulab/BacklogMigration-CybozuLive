@@ -5,25 +5,25 @@ import org.apache.commons.csv.CSVRecord
 
 object CSVRecordParser {
 
-  def user(record: CSVRecord): Either[ParseError[CybozuUser], CybozuUser] = {
+  def user(record: CSVRecord): Either[ParseError[CybozuCSVUser], CybozuCSVUser] = {
 
     val LAST_NAME_FIELD_INDEX   = 0
     val FIRST_NAME_FIELD_INDEX  = 1
 
-    if (record.size() >= CybozuUser.fieldSize) {
+    if (record.size() >= CybozuCSVUser.fieldSize) {
       Right(
-        CybozuUser(
+        CybozuCSVUser(
           lastName = record.get(LAST_NAME_FIELD_INDEX),
           firstName = record.get(FIRST_NAME_FIELD_INDEX)
         )
       )
     } else {
-      Left(CannotParseCSV(classOf[CybozuUser], "Invalid record size: " + record.size(), record))
+      Left(CannotParseCSV(classOf[CybozuCSVUser], "Invalid record size: " + record.size(), record))
     }
   }
 
   // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","ステータス","優先度","担当者","期日","コメント"
-  def issue(record: CSVRecord): Either[ParseError[CybozuIssue], CybozuIssue] = {
+  def issue(record: CSVRecord): Either[ParseError[CybozuCSVIssue], CybozuCSVIssue] = {
 
     val ID_FIELD_INDEX          = 0
     val TITLE_FIELD_INDEX       = 1
@@ -38,7 +38,7 @@ object CSVRecordParser {
     val DUE_DATE_FIELD_INDEX    = 10
     val COMMENTS_FIELD_INDEX    = 11
 
-    if (record.size() >= CybozuIssue.fieldSize) {
+    if (record.size() >= CybozuCSVIssue.fieldSize) {
       (for {
         creator <- UserParser.toUser(record.get(CREATOR_FIELD_INDEX))
         createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CREATED_AT_FIELD_INDEX))
@@ -48,7 +48,7 @@ object CSVRecordParser {
         dueDate <- ZonedDateTimeParser.toMaybeZonedDate(record.get(DUE_DATE_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENTS_FIELD_INDEX)))
       } yield {
-        CybozuIssue(
+        CybozuCSVIssue(
           id        = record.get(ID_FIELD_INDEX),
           title     = record.get(TITLE_FIELD_INDEX),
           content   = record.get(CONTENT_FIELD_INDEX),
@@ -56,23 +56,23 @@ object CSVRecordParser {
           createdAt = createdAt,
           updater   = updater,
           updatedAt = updatedAt,
-          status    = CybozuStatus(record.get(STATUS_FIELD_INDEX)),
-          priority  = CybozuPriority(record.get(PRIORITY_FIELD_INDEX)),
+          status    = CybozuCSVStatus(record.get(STATUS_FIELD_INDEX)),
+          priority  = CybozuCSVPriority(record.get(PRIORITY_FIELD_INDEX)),
           assignee  = maybeAssignee,
           dueDate   = dueDate,
           comments  = comments
         )
       }) match {
         case Right(issue) => Right(issue)
-        case Left(error) => Left(CannotParseCSV(classOf[CybozuIssue], error.toString, record))
+        case Left(error) => Left(CannotParseCSV(classOf[CybozuCSVIssue], error.toString, record))
       }
     } else {
-      Left(CannotParseCSV(classOf[CybozuIssue], "Invalid record size: " + record.size(), record))
+      Left(CannotParseCSV(classOf[CybozuCSVIssue], "Invalid record size: " + record.size(), record))
     }
   }
 
   // "開始日付","開始時刻","終了日付","終了時刻","予定メニュー","タイトル","メモ","作成者","コメント"
-  def event(record: CSVRecord): Either[ParseError[CybozuEvent], CybozuEvent] = {
+  def event(record: CSVRecord): Either[ParseError[CybozuCSVEvent], CybozuCSVEvent] = {
 
     val START_DATE_FIELD_INDEX  = 0
     val START_TIME_FIELD_INDEX  = 1
@@ -84,7 +84,7 @@ object CSVRecordParser {
     val CREATOR_FIELD_INDEX     = 7
     val COMMENT_FIELD_INDEX     = 8
 
-    if (record.size() >= CybozuEvent.fieldSize) {
+    if (record.size() >= CybozuCSVEvent.fieldSize) {
       val startDate = record.get(START_DATE_FIELD_INDEX)
       val startTime = record.get(START_TIME_FIELD_INDEX)
       val endDate = record.get(END_DATE_FIELD_INDEX)
@@ -96,10 +96,10 @@ object CSVRecordParser {
         creator <- UserParser.toUser(record.get(CREATOR_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENT_FIELD_INDEX)))
       } yield {
-        CybozuEvent(
+        CybozuCSVEvent(
           startDateTime = startDateTime,
           endDateTime = endDateTime,
-          menu = ScheduledMenu(record.get(MENU_FIELD_INDEX)),
+          menu = record.get(MENU_FIELD_INDEX),
           title = record.get(TITLE_FIELD_INDEX),
           memo = record.get(MEMO_FIELD_INDEX),
           creator = creator,
@@ -107,15 +107,15 @@ object CSVRecordParser {
         )
       }) match {
         case Right(event) => Right(event)
-        case Left(error) => Left(CannotParseCSV(classOf[CybozuEvent], error.toString, record))
+        case Left(error) => Left(CannotParseCSV(classOf[CybozuCSVEvent], error.toString, record))
       }
     } else {
-      Left(CannotParseCSV(classOf[CybozuEvent], "Invalid record size: " + record.size(), record))
+      Left(CannotParseCSV(classOf[CybozuCSVEvent], "Invalid record size: " + record.size(), record))
     }
   }
 
   // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","コメント"
-  def forum(record: CSVRecord): Either[ParseError[CybozuForum], CybozuForum] = {
+  def forum(record: CSVRecord): Either[ParseError[CybozuCSVForum], CybozuCSVForum] = {
 
     val ID_FIELD_INDEX          = 0
     val TITLE_FIELD_INDEX       = 1
@@ -126,7 +126,7 @@ object CSVRecordParser {
     val UPDATED_AT_FIELD_INDEX  = 6
     val COMMENT_FIELD_INDEX     = 7
 
-    if (record.size() >= CybozuForum.fieldSize) {
+    if (record.size() >= CybozuCSVForum.fieldSize) {
       (for {
         creator <- UserParser.toUser(record.get(CREATOR_FIELD_INDEX))
         createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CREATED_AT_FIELD_INDEX))
@@ -134,7 +134,7 @@ object CSVRecordParser {
         updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(UPDATED_AT_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENT_FIELD_INDEX)))
       } yield {
-        CybozuForum(
+        CybozuCSVForum(
           id = record.get(ID_FIELD_INDEX),
           title = record.get(TITLE_FIELD_INDEX),
           content = record.get(CONTENT_FIELD_INDEX),
@@ -146,10 +146,10 @@ object CSVRecordParser {
         )
       }) match {
         case Right(forum) => Right(forum)
-        case Left(error) => Left(CannotParseCSV(classOf[CybozuForum], error.toString, record))
+        case Left(error) => Left(CannotParseCSV(classOf[CybozuCSVForum], error.toString, record))
       }
     } else {
-      Left(CannotParseCSV(classOf[CybozuForum], "Invalid record size: " + record.size(), record))
+      Left(CannotParseCSV(classOf[CybozuCSVForum], "Invalid record size: " + record.size(), record))
     }
   }
 
