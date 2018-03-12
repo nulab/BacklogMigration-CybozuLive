@@ -13,10 +13,10 @@ private[sqlite] case class IssueTableOps() extends BaseTableOps[DBCybozuIssue, I
   def select(id: String): DBIORead[Option[DBCybozuIssue]] =
     tableQuery.filter(_.id === id.value).result.headOption
 
-  def save(forum: DBCybozuIssue): DBIOWrite[DBCybozuIssue] =
+  def save(issue: DBCybozuIssue): DBIOWrite[DBCybozuIssue] =
     tableQuery
-      .filter(_.id === forum.id)
-      .insertOrUpdate(forum)
+      .filter(_.id === issue.id)
+      .insertOrUpdate(issue)
       .transactionally
-  
+
 }

@@ -18,4 +18,7 @@ private[sqlite] case class CommentTableOps() extends BaseTableOps[DBCybozuCommen
       .insertOrUpdate(comment)
       .transactionally
 
+  def selectAllByParentId(id: String, offset: Long, size: Long): DBIORead[Seq[DBCybozuComment]] =
+    tableQuery.filter(_.parentId === id).drop(offset).take(size).result
+
 }

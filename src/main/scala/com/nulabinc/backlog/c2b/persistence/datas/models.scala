@@ -23,7 +23,7 @@ case class DBCybozuIssue(
 
 case class DBCybozuComment(
   id: Long,
-  issueId: String,
+  parentId: String,
   creatorId: String,
   createdAt: ZonedDateTime,
   content: String
