@@ -7,23 +7,24 @@ sealed trait StoreADT[A]
 
 case class Pure[A](a: A) extends StoreADT[A]
 
-case class GetUsers(offset: Long, size: Long) extends StoreADT[Observable[CybozuCSVUser]]
+case class GetUsers(offset: Long, size: Long) extends StoreADT[Observable[Seq[CybozuUser]]]
 case class StoreUser(user: CybozuCSVUser) extends StoreADT[Unit]
 
-case class GetIssues(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[CybozuCSVIssue]]
+case class GetIssues(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[Seq[CybozuIssue]]]
 case class StoreIssue(issue: CybozuCSVIssue) extends StoreADT[Unit]
 
-case class GetIssueComments(issue: CybozuCSVIssue) extends StoreADT[Observable[CybozuCSVComment]]
-case class StoreIssueComment(issue: CybozuCSVIssue, comment: CybozuCSVComment) extends StoreADT[Unit]
+case class GetIssueComments(issue: CybozuCSVIssue) extends StoreADT[Observable[Seq[CybozuComment]]]
+case class StoreIssueComment(issue: CybozuCSVIssue, comment: CybozuComment) extends StoreADT[Unit]
 
-case object GetPriorities extends StoreADT[Observable[CybozuCSVPriority]]
-case class StorePriority(priority: CybozuCSVPriority) extends StoreADT[Unit]
+// TODO: Add later
+//case object GetPriorities extends StoreADT[Observable[Seq[CybozuPriority]]]
+//case class StorePriority(priority: CybozuPriority) extends StoreADT[Unit]
+//
+//case object GetStatuses extends StoreADT[Observable[Seq[CybozuStatus]]]
+//case class StoreStatus(status: CybozuStatus) extends StoreADT[Unit]
 
-case object GetStatuses extends StoreADT[Observable[CybozuCSVStatus]]
-case class StoreStatus(status: CybozuCSVStatus) extends StoreADT[Unit]
+case class GetEvents(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[Seq[CybozuEvent]]]
+case class StoreEvent(event: CybozuEvent) extends StoreADT[Unit]
 
-case class GetEvents(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[CybozuCSVEvent]]
-case class StoreEvent(event: CybozuCSVEvent) extends StoreADT[Unit]
-
-case class GetForums(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[CybozuCSVForum]]
-case class StoreForum(forum: CybozuCSVForum) extends StoreADT[Unit]
+case class GetForums(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[Seq[CybozuForum]]]
+case class StoreForum(forum: CybozuForum) extends StoreADT[Unit]
