@@ -24,7 +24,7 @@ case class CybozuIssue(
 
 case class CybozuComment(
   id: AnyId,
-  parentId: String,
+  parentId: AnyId,
   creatorId: String,
   createdAt: DateTime,
   content: String

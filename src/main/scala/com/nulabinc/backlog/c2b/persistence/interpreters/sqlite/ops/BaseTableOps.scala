@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
-import com.nulabinc.backlog.c2b.datas.{CybozuUser, Entity}
+import com.nulabinc.backlog.c2b.datas.Entity
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIORead
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.BaseTable
 import slick.lifted.TableQuery

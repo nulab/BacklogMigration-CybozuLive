@@ -1,6 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
 import com.nulabinc.backlog.c2b.datas.CybozuComment
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOWrite}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.CommentTable
 import slick.jdbc.SQLiteProfile.api._
@@ -15,7 +16,7 @@ private[sqlite] case class CommentTableOps() extends BaseTableOps[CybozuComment,
       .insertOrUpdate(comment)
       .transactionally
 
-  def selectAllByParentId(id: String, offset: Long, size: Long): DBIORead[Seq[CybozuComment]] =
+  def selectAllByParentId(id: AnyId, offset: Long, size: Long): DBIORead[Seq[CybozuComment]] =
     tableQuery.filter(_.parentId === id).drop(offset).take(size).result
 
 }
