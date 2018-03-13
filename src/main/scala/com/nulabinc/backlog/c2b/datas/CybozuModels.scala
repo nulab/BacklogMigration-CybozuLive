@@ -34,7 +34,9 @@ case class CybozuUser(
   id: AnyId,
   firstName: String,
   lastName: String
-) extends Entity
+) extends Entity {
+  def key: String = s"$firstName $lastName"
+}
 
 case class CybozuEvent(
   id: AnyId,
