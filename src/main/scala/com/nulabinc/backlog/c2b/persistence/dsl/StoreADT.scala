@@ -1,21 +1,22 @@
 package com.nulabinc.backlog.c2b.persistence.dsl
 
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
 import monix.reactive.Observable
 
 sealed trait StoreADT[A]
 
-case class Pure[A](a: A) extends StoreADT[A]
+//case class Pure[A](a: A) extends StoreADT[A]
 
-case class GetUsers(offset: Long, size: Long) extends StoreADT[Observable[Seq[CybozuUser]]]
-case class GetUser(userId: Id[CybozuUser]) extends StoreADT[Observable[Option[CybozuUser]]]
-case class StoreUser(user: CybozuUser) extends StoreADT[Unit]
+case object GetUsers extends StoreADT[Observable[CybozuUser]]
+case class GetUser(userId: Id[CybozuUser]) extends StoreADT[Option[CybozuUser]]
+case class StoreUser(user: CybozuUser) extends StoreADT[AnyId]
 
-case class GetIssues(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[Seq[CybozuIssue]]]
-case class StoreIssue(issue: CybozuIssue) extends StoreADT[Unit]
+case object GetIssues extends StoreADT[Observable[CybozuIssue]]
+case class StoreIssue(issue: CybozuIssue) extends StoreADT[AnyId]
 
-case class GetIssueComments(issue: CybozuIssue) extends StoreADT[Observable[Seq[CybozuComment]]]
-case class StoreIssueComment(issue: CybozuIssue, comment: CybozuComment) extends StoreADT[Unit]
+case class GetIssueComments(issue: CybozuIssue) extends StoreADT[Observable[CybozuComment]]
+case class StoreComment(comment: CybozuComment) extends StoreADT[AnyId]
 
 // TODO: Add later
 //case object GetPriorities extends StoreADT[Observable[Seq[CybozuPriority]]]
@@ -24,8 +25,8 @@ case class StoreIssueComment(issue: CybozuIssue, comment: CybozuComment) extends
 //case object GetStatuses extends StoreADT[Observable[Seq[CybozuStatus]]]
 //case class StoreStatus(status: CybozuStatus) extends StoreADT[Unit]
 
-case class GetEvents(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[Seq[CybozuEvent]]]
-case class StoreEvent(event: CybozuEvent) extends StoreADT[Unit]
+case object GetEvents extends StoreADT[Observable[CybozuEvent]]
+case class StoreEvent(event: CybozuEvent) extends StoreADT[AnyId]
 
-case class GetForums(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[Seq[CybozuForum]]]
-case class StoreForum(forum: CybozuForum) extends StoreADT[Unit]
+case object GetForums extends StoreADT[Observable[CybozuForum]]
+case class StoreForum(forum: CybozuForum) extends StoreADT[AnyId]

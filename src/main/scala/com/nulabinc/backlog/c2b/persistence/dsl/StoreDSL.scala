@@ -1,6 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.dsl
 
 import cats.free.Free
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
 import monix.reactive.Observable
 
@@ -8,29 +9,35 @@ object StoreDSL {
 
   type StoreProgram[A] = Free[StoreADT, A]
 
-  def pure[A](a: A): StoreProgram[A] =
-    Free.liftF(Pure(a))
+//  def pure[A](a: A): StoreProgram[A] =
+//    Free.liftF(Pure(a))
 
-  def getUsers(offset: Long, size: Long): StoreProgram[Observable[Seq[CybozuUser]]] =
-    Free.liftF(GetUsers(offset, size))
+  lazy val getUsers: StoreProgram[Observable[CybozuUser]] =
+    Free.liftF(GetUsers)
 
-  def getUser(userId: Id[CybozuUser]): StoreProgram[Observable[Option[CybozuUser]]] =
+  lazy val getIssues: StoreProgram[Observable[CybozuIssue]] =
+    Free.liftF(GetIssues)
+
+  lazy val getEvents: StoreProgram[Observable[CybozuEvent]] =
+    Free.liftF(GetEvents)
+
+  lazy val getForums: StoreProgram[Observable[CybozuForum]] =
+    Free.liftF(GetForums)
+
+  def getUser(userId: Id[CybozuUser]): StoreProgram[Option[CybozuUser]] =
     Free.liftF(GetUser(userId))
 
-  def storeUser(user: CybozuUser): StoreProgram[Unit] =
+  def storeUser(user: CybozuUser): StoreProgram[AnyId] =
     Free.liftF(StoreUser(user))
 
-  def getIssues(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[Seq[CybozuIssue]]] =
-    Free.liftF(GetIssues(limit, start, step))
-
-  def storeIssue(issue: CybozuIssue): StoreProgram[Unit] =
+  def storeIssue(issue: CybozuIssue): StoreProgram[AnyId] =
     Free.liftF(StoreIssue(issue))
 
-  def getIssueComments(issue: CybozuIssue): StoreProgram[Observable[Seq[CybozuComment]]] =
+  def getIssueComments(issue: CybozuIssue): StoreProgram[Observable[CybozuComment]] =
     Free.liftF(GetIssueComments(issue))
 
-  def storeIssueComment(issue: CybozuIssue, comment: CybozuComment): StoreProgram[Unit] =
-    Free.liftF(StoreIssueComment(issue, comment))
+  def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
+    Free.liftF(StoreComment(comment))
 
 //  def getPriorities: StoreProgram[Observable[CybozuCSVPriority]] =
 //    Free.liftF(GetPriorities)
@@ -44,16 +51,12 @@ object StoreDSL {
 //  def storeStatus(status: CybozuCSVStatus): StoreProgram[Unit] =
 //    Free.liftF(StoreStatus(status))
 
-  def getEvents(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[Seq[CybozuEvent]]] =
-    Free.liftF(GetEvents(limit, start, step))
 
-  def storeEvent(event: CybozuEvent): StoreProgram[Unit] =
+
+  def storeEvent(event: CybozuEvent): StoreProgram[AnyId] =
     Free.liftF(StoreEvent(event))
 
-  def getForums(limit: Int, start: Int = 0, step: Int = 100): StoreProgram[Observable[Seq[CybozuForum]]] =
-    Free.liftF(GetForums(limit, start, step))
-
-  def storeForum(forum: CybozuForum): StoreProgram[Unit] =
+  def storeForum(forum: CybozuForum): StoreProgram[AnyId] =
     Free.liftF(StoreForum(forum))
 
 }

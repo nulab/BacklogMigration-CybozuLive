@@ -9,7 +9,7 @@ private[sqlite] case class UserTableOps() extends BaseTableOps[CybozuUser, UserT
 
   protected val tableQuery = TableQuery[UserTable]
 
-  def save(user: CybozuUser): DBIOWrite[CybozuUser] =
+  def save(user: CybozuUser): DBIOWrite[Int] =
     tableQuery
       .filter(_.id === user.id)
       .insertOrUpdate(user)
