@@ -8,6 +8,7 @@ sealed trait StoreADT[A]
 case class Pure[A](a: A) extends StoreADT[A]
 
 case class GetUsers(offset: Long, size: Long) extends StoreADT[Observable[Seq[CybozuUser]]]
+case class GetUser(userId: Id[CybozuUser]) extends StoreADT[Observable[Option[CybozuUser]]]
 case class StoreUser(user: CybozuUser) extends StoreADT[Unit]
 
 case class GetIssues(limit: Int, start: Int = 0, step: Int = 100) extends StoreADT[Observable[Seq[CybozuIssue]]]
