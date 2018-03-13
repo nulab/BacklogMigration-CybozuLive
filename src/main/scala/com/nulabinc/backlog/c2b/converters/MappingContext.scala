@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.converters
 
-import com.nulabinc.backlog.c2b.datas.{CybozuStatus, CybozuUser}
+import com.nulabinc.backlog.c2b.datas.{CybozuPriority, CybozuStatus, CybozuUser}
 
 case class Mapping(source: String, destination: String)
 
@@ -22,10 +22,9 @@ case class MappingContext(
       case None => Left(MappingFiled[CybozuStatus](source.value))
     }
 
-  // TODO: String -> CybozuPriority
-  def getPriorityName(source: String): Either[ConvertError[String], String] =
+  def getPriorityName(source: CybozuPriority): Either[ConvertError[CybozuPriority], String] =
     statusMappings.find(_.source == source) match {
       case Some(mapping) => Right(mapping.destination)
-      case None => Left(MappingFiled[String](source))
+      case None => Left(MappingFiled[CybozuPriority](source.value))
     }
 }

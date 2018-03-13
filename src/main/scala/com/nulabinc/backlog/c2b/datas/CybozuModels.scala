@@ -13,6 +13,7 @@ trait Entity {
 }
 
 case class CybozuStatus(value: String) extends AnyVal
+case class CybozuPriority(value: String) extends AnyVal
 
 case class CybozuIssue(
   id: AnyId,
@@ -23,7 +24,7 @@ case class CybozuIssue(
   updaterId: AnyId,
   updatedAt: DateTime,
   status: CybozuStatus,
-  priority: String,
+  priority: CybozuPriority,
   assigneeId: Option[AnyId],
   dueDate: Option[DateTime]
 ) extends Entity
