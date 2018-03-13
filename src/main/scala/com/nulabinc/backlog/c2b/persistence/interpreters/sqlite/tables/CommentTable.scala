@@ -8,7 +8,7 @@ import slick.jdbc.SQLiteProfile.api._
 private[sqlite] class CommentTable(tag: Tag) extends BaseTable[CybozuComment](tag, "cybozu_comments") {
 
   def parentId: Rep[AnyId] = column[AnyId]("parent_id")
-  def creatorId: Rep[String] = column[String]("creator_id")
+  def creatorId: Rep[AnyId] = column[AnyId]("creator_id")
   def createdAt: Rep[DateTime] = column[DateTime]("created_at")
   def content: Rep[String] = column[String]("content")
 
