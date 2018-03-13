@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
-import com.nulabinc.backlog.c2b.persistence.dsl.{GetUsers, StoreADT}
+import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
 import monix.eval.Task
@@ -20,6 +20,7 @@ case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
   // https://monix.io/docs/2x/eval/task.html
   // https://monix.io/docs/2x/reactive/observable.html
   override def apply[A](fa: StoreADT[A]): Task[A] = {
+
     import allTableOps._
 
     fa match {
@@ -27,6 +28,44 @@ case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
         Observable.fromReactivePublisher(
           db.stream(userTableOps.stream)
         )
+      }
+      case GetUser(user) => Task.deferFuture {
+        db.run(userTableOps.select(user))
+      }
+      case StoreUser(user) => Task.deferFuture {
+        db.run(userTableOps.save(user))
+      }
+      case GetIssues => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(issueTableOps.stream)
+        )
+      }
+      case StoreIssue(issue) => Task.deferFuture {
+        db.run(issueTableOps.save(issue))
+      }
+      case GetForums => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(forumTableOps.stream)
+        )
+      }
+      case StoreForum(forum) => Task.deferFuture {
+        db.run(forumTableOps.save(forum))
+      }
+      case GetEvents => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(eventTableOps.stream)
+        )
+      }
+      case StoreEvent(event) => Task.deferFuture {
+        db.run(eventTableOps.save(event))
+      }
+      case GetIssueComments(issue) => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(commentTableOps.streamByParentId(issue.id))
+        )
+      }
+      case StoreComment(comment) => Task.deferFuture {
+        db.run(commentTableOps.save(comment))
       }
     }
   }

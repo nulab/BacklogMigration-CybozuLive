@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
-import com.nulabinc.backlog.c2b.datas.Entity
+import com.nulabinc.backlog.c2b.datas.{Entity, Id}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOStream}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.BaseTable
 import slick.lifted.TableQuery
@@ -14,7 +14,7 @@ private[sqlite] trait BaseTableOps[A <: Entity, Table <: BaseTable[A]] {
   lazy val stream: DBIOStream[A] =
     tableQuery.result
 
-  def select(id: AnyId): DBIORead[Option[A]] =
+  def select(id: Id[A]): DBIORead[Option[A]] =
     tableQuery.filter(_.id === id.value).result.headOption
   
 }
