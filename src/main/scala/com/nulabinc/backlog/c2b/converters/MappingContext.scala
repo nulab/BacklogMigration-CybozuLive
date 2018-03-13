@@ -10,20 +10,20 @@ case class MappingContext(
   priorityMappings: IndexedSeq[Mapping]
 ) {
 
-  def getUserName(source: String): Either[ConvertError[CybozuUser], String] =
+  def getUserName(source: String): Either[ConvertError, String] =
     userMappings.find(_.source == source) match {
       case Some(mapping) => Right(mapping.destination)
       case None => Left(MappingFiled[CybozuUser](source))
     }
 
-  def getStatusName(source: CybozuStatus): Either[ConvertError[CybozuStatus], String] =
-    statusMappings.find(_.source == source) match {
+  def getStatusName(source: CybozuStatus): Either[ConvertError, String] =
+    statusMappings.find(_.source == source.value) match {
       case Some(mapping) => Right(mapping.destination)
       case None => Left(MappingFiled[CybozuStatus](source.value))
     }
 
-  def getPriorityName(source: CybozuPriority): Either[ConvertError[CybozuPriority], String] =
-    statusMappings.find(_.source == source) match {
+  def getPriorityName(source: CybozuPriority): Either[ConvertError, String] =
+    statusMappings.find(_.source == source.value) match {
       case Some(mapping) => Right(mapping.destination)
       case None => Left(MappingFiled[CybozuPriority](source.value))
     }

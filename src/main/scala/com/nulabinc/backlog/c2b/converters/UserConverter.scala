@@ -6,7 +6,7 @@ import com.nulabinc.backlog.migration.common.domain.BacklogUser
 
 object UserConverter {
 
-  def toBacklogUser(user: CybozuUser)(implicit ctx: MappingContext): Either[ConvertError[CybozuUser], BacklogUser] =
+  def toBacklogUser(user: CybozuUser)(implicit ctx: MappingContext): Either[ConvertError, BacklogUser] =
     for {
       converted <- ctx.getUserName(user.key)
     } yield {
@@ -18,5 +18,14 @@ object UserConverter {
         optMailAddress = None,
         roleType = BacklogConstantValue.USER_ROLE
       )
+    }
+
+  def toBacklogUser(maybeUser: Option[CybozuUser])(implicit ctx: MappingContext): Either[ConvertError, Option[BacklogUser]] =
+    maybeUser match {
+      case Some(user) => toBacklogUser(user) match {
+        case Right(backlogUser) => Right(Some(backlogUser))
+        case Left(error) => Left(error)
+      }
+      case None => Right(None)
     }
 }
