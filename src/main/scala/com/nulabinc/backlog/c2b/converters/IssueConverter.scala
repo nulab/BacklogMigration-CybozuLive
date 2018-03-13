@@ -1,27 +1,26 @@
 package com.nulabinc.backlog.c2b.converters
 
 import com.nulabinc.backlog.c2b.core.DateUtil
-import com.nulabinc.backlog.c2b.datas.{CybozuIssue, CybozuUser}
+import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuIssue, CybozuUser}
 import com.nulabinc.backlog.migration.common.domain._
 
 object IssueConverter {
 
   def toBacklogIssue(issue: CybozuIssue,
-                     createdUser: CybozuUser,
-                     updaterUser: CybozuUser,
+                     creator: CybozuUser,
+                     updater: CybozuUser,
                      maybeAssignee: Option[CybozuUser])
                     (implicit ctx: MappingContext): Either[ConvertError, BacklogIssue] = {
 
     val ISSUE_TYPE_NAME = "ToDoリスト"
 
     for {
-      convertedCreatedUser <- UserConverter.toBacklogUser(createdUser)
-      convertedUpdaterUser <- UserConverter.toBacklogUser(updaterUser)
+      convertedCreator <- UserConverter.toBacklogUser(creator)
+      convertedUpdater <- UserConverter.toBacklogUser(updater)
       maybeConvertedAssignee <- UserConverter.toBacklogUser(maybeAssignee)
       status <- ctx.getStatusName(issue.status)
       priority <- ctx.getPriorityName(issue.priority)
     } yield {
-//      Right(
         defaultBacklogIssue.copy(
           id                = issue.id,
           summary           = BacklogIssueSummary(value = issue.title, original = issue.title),
@@ -32,13 +31,12 @@ object IssueConverter {
           priorityName      = priority,
           optAssignee       = maybeConvertedAssignee,
           operation         = BacklogOperation(
-            optCreatedUser    = Some(convertedCreatedUser),
+            optCreatedUser    = Some(convertedCreator),
             optCreated        = Some(DateUtil.toDateTimeString(issue.createdAt)),
-            optUpdatedUser    = Some(convertedUpdaterUser),
+            optUpdatedUser    = Some(convertedUpdater),
             optUpdated        = Some(DateUtil.toDateTimeString(issue.updatedAt))
           )
         )
-//      )
     }
   }
 
