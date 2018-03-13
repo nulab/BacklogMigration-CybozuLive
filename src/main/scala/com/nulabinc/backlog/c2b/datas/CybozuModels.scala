@@ -4,6 +4,10 @@ import com.nulabinc.backlog.c2b.datas.Types._
 
 case class Id[T] private(value: AnyId) extends AnyVal
 
+object Id {
+  def userId(id: AnyId) = Id[CybozuUser](id)
+}
+
 trait Entity {
   def id: AnyId
 }
@@ -12,20 +16,20 @@ case class CybozuIssue(
   id: AnyId,
   title: String,
   content: String,
-  creatorId: String,
+  creatorId: AnyId,
   createdAt: DateTime,
-  updaterId: String,
+  updaterId: AnyId,
   updatedAt: DateTime,
   status: String,
   priority: String,
-  assigneeId: Option[String],
+  assigneeId: Option[AnyId],
   dueDate: Option[DateTime]
 ) extends Entity
 
 case class CybozuComment(
   id: AnyId,
   parentId: AnyId,
-  creatorId: String,
+  creatorId: AnyId,
   createdAt: DateTime,
   content: String
 ) extends Entity
@@ -45,15 +49,15 @@ case class CybozuEvent(
   menu: String,
   title: String,
   memo: String,
-  creatorId: String
+  creatorId: AnyId
 ) extends Entity
 
 case class CybozuForum(
   id: AnyId,
   title: String,
   content: String,
-  creatorId: String,
+  creatorId: AnyId,
   createdAt: DateTime,
-  updaterId: String,
+  updaterId: AnyId,
   updatedAt: DateTime
 ) extends Entity
