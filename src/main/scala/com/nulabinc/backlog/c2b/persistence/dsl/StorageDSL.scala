@@ -1,6 +1,5 @@
 package com.nulabinc.backlog.c2b.persistence.dsl
 
-import java.nio.ByteBuffer
 import java.nio.file.Path
 
 import cats.free.Free

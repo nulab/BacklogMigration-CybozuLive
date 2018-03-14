@@ -1,10 +1,11 @@
-package com.nulabinc.backlog.c2b.persistence.interpreters
+package com.nulabinc.backlog.c2b.interpreters
 
 import cats.free.Free
 import cats.~>
+import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.persistence.interpreters.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.persistence.interpreters._
 import monix.eval.Task
 
 sealed trait AppADT[+A]

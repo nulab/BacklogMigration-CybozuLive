@@ -25,11 +25,10 @@ case class MappingContext(
    priorityMappings: HashMap[String, PriorityMapping]
 ) {
 
-  def getUserName(source: String): Either[ConvertError, String] = {
+  def getUserName(source: String): Either[ConvertError, String] =
     userMappings.get(source)
       .map(mapping => Right(mapping.destination))
       .getOrElse(Left(MappingFiled[CybozuUser](source)))
-  }
 
   def getStatusName(source: CybozuStatus): Either[ConvertError, String] =
     statusMappings.get(source.value)
