@@ -10,6 +10,7 @@ sealed trait StoreADT[A]
 
 case object GetUsers extends StoreADT[Observable[CybozuUser]]
 case class GetUser(userId: Id[CybozuUser]) extends StoreADT[Option[CybozuUser]]
+case class GetUserByMaybeId(maybeUserId: Option[Id[CybozuUser]]) extends StoreADT[Option[CybozuUser]]
 case class StoreUser(user: CybozuUser) extends StoreADT[AnyId]
 
 case object GetIssues extends StoreADT[Observable[CybozuIssue]]

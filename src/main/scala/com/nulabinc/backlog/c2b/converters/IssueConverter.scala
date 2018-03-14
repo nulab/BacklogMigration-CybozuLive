@@ -40,6 +40,32 @@ object IssueConverter {
     }
   }
 
+  def toBacklogIssue(event: CybozuEvent,
+                     creator: CybozuUser)(implicit ctx: MappingContext): Either[ConvertError, BacklogIssue] = {
+
+    val ISSUE_TYPE_NAME = "イベント"
+
+    for {
+      convertedCreator <- UserConverter.toBacklogUser(creator)
+    } yield {
+      defaultBacklogIssue.copy(
+        id                = event.id,
+        summary           = BacklogIssueSummary(value = event.title, original = event.title),
+        description       = event.memo + "\n\n" + event.menu,
+        optStartDate      = None,
+        optDueDate        = None,
+        optIssueTypeName  = Some(ISSUE_TYPE_NAME),
+        operation         = BacklogOperation(
+          optCreatedUser    = Some(convertedCreator),
+          optCreated        = Some(DateUtil.toDateTimeString(event.startDateTime)),
+          optUpdatedUser    = None,
+          optUpdated        = None
+        )
+      )
+    }
+  }
+
+
   private val defaultBacklogIssue: BacklogIssue =
     BacklogIssue(
       eventType = "issue",

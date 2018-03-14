@@ -8,6 +8,8 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops.AllTableOps
 import monix.reactive.Observable
 import slick.jdbc.SQLiteProfile.api._
 
+import scala.concurrent.Future
+
 case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
 
   val allTableOps = AllTableOps()
@@ -31,6 +33,12 @@ case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
       }
       case GetUser(user) => Task.deferFuture {
         db.run(userTableOps.select(user))
+      }
+      case GetUserByMaybeId(maybeUserId) => Task.deferFuture {
+        maybeUserId match {
+          case Some(userId) => db.run(userTableOps.select(userId))
+          case None => Future.successful(None)
+        }
       }
       case StoreUser(user) => Task.deferFuture {
         db.run(userTableOps.save(user))

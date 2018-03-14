@@ -27,6 +27,9 @@ object StoreDSL {
   def getUser(userId: Id[CybozuUser]): StoreProgram[Option[CybozuUser]] =
     Free.liftF(GetUser(userId))
 
+  def getUserByMaybeId(maybeUserId: Option[Id[CybozuUser]]): StoreProgram[Option[CybozuUser]] =
+    Free.liftF(GetUserByMaybeId(maybeUserId))
+
   def storeUser(user: CybozuUser): StoreProgram[AnyId] =
     Free.liftF(StoreUser(user))
 
