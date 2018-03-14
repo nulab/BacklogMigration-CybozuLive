@@ -4,49 +4,55 @@ import com.nulabinc.backlog.c2b.core.DateUtil
 import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuForum, CybozuIssue, CybozuUser}
 import com.nulabinc.backlog.migration.common.domain._
 
-object IssueConverter {
 
-  def toBacklogIssue(issue: CybozuIssue,
-                     creator: CybozuUser,
-                     updater: CybozuUser,
-                     maybeAssignee: Option[CybozuUser])
-                    (implicit ctx: MappingContext): Either[ConvertError, BacklogIssue] = {
+case class BacklogIssueParams(issue: CybozuIssue,
+                              creator: CybozuUser,
+                              updater: CybozuUser,
+                              maybeAssignee: Option[CybozuUser])
+
+
+class IssueConverter()(implicit ctx: MappingContext) extends Converter[BacklogIssueParams, BacklogIssue]{
+
+  val userConverter = new UserConverter()
+
+  def to(params: BacklogIssueParams): Either[ConvertError, BacklogIssue] = {
 
     val ISSUE_TYPE_NAME = "ToDoリスト"
 
     for {
-      convertedCreator <- UserConverter.toBacklogUser(creator)
-      convertedUpdater <- UserConverter.toBacklogUser(updater)
-      maybeConvertedAssignee <- UserConverter.toBacklogUser(maybeAssignee)
-      status <- ctx.getStatusName(issue.status)
-      priority <- ctx.getPriorityName(issue.priority)
+      convertedCreator <- userConverter.to(params.creator)
+      convertedUpdater <- userConverter.to(params.updater)
+      maybeConvertedAssignee <- userConverter.to(params.maybeAssignee)
+      t = maybeConvertedAssignee
+      status <- ctx.getStatusName(params.issue.status)
+      priority <- ctx.getPriorityName(params.issue.priority)
     } yield {
         defaultBacklogIssue.copy(
-          id                = issue.id,
-          summary           = BacklogIssueSummary(value = issue.title, original = issue.title),
-          description       = issue.content,
-          optDueDate        = issue.dueDate.map(DateUtil.toDateString),
+          id                = params.issue.id,
+          summary           = BacklogIssueSummary(value = params.issue.title, original = params.issue.title),
+          description       = params.issue.content,
+          optDueDate        = params.issue.dueDate.map(DateUtil.toDateString),
           optIssueTypeName  = Some(ISSUE_TYPE_NAME),
           statusName        = status,
           priorityName      = priority,
           optAssignee       = maybeConvertedAssignee,
           operation         = BacklogOperation(
             optCreatedUser    = Some(convertedCreator),
-            optCreated        = Some(DateUtil.toDateTimeString(issue.createdAt)),
+            optCreated        = Some(DateUtil.toDateTimeString(params.issue.createdAt)),
             optUpdatedUser    = Some(convertedUpdater),
-            optUpdated        = Some(DateUtil.toDateTimeString(issue.updatedAt))
+            optUpdated        = Some(DateUtil.toDateTimeString(params.issue.updatedAt))
           )
         )
     }
   }
 
   def toBacklogIssue(event: CybozuEvent,
-                     creator: CybozuUser)(implicit ctx: MappingContext): Either[ConvertError, BacklogIssue] = {
+                     creator: CybozuUser): Either[ConvertError, BacklogIssue] = {
 
     val ISSUE_TYPE_NAME = "イベント"
 
     for {
-      convertedCreator <- UserConverter.toBacklogUser(creator)
+      convertedCreator <- userConverter.to(creator)
     } yield {
       defaultBacklogIssue.copy(
         id                = event.id,
@@ -67,13 +73,13 @@ object IssueConverter {
 
   def toBacklogIssue(forum: CybozuForum,
                      creator: CybozuUser,
-                     updater: CybozuUser)(implicit ctx: MappingContext): Either[ConvertError, BacklogIssue] = {
+                     updater: CybozuUser): Either[ConvertError, BacklogIssue] = {
 
     val ISSUE_TYPE_NAME = "掲示板"
 
     for {
-      convertedCreator <- UserConverter.toBacklogUser(creator)
-      convertedUpdater <- UserConverter.toBacklogUser(updater)
+      convertedCreator <- userConverter.to(creator)
+      convertedUpdater <- userConverter.to(updater)
     } yield {
       defaultBacklogIssue.copy(
         id                = forum.id,
