@@ -8,6 +8,8 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops.AllTableOps
 import monix.reactive.Observable
 import slick.jdbc.SQLiteProfile.api._
 
+import scala.concurrent.Future
+
 case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
 
   val allTableOps = AllTableOps()

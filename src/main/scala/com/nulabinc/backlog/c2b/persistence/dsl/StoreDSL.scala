@@ -9,8 +9,8 @@ object StoreDSL {
 
   type StoreProgram[A] = Free[StoreADT, A]
 
-//  def pure[A](a: A): StoreProgram[A] =
-//    Free.liftF(Pure(a))
+  def pure[A](a: A): StoreProgram[A] =
+    Free.liftF(Pure(a))
 
   lazy val getUsers: StoreProgram[Observable[CybozuUser]] =
     Free.liftF(GetUsers)

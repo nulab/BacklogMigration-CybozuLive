@@ -6,7 +6,7 @@ import monix.reactive.Observable
 
 sealed trait StoreADT[A]
 
-//case class Pure[A](a: A) extends StoreADT[A]
+case class Pure[A](a: A) extends StoreADT[A]
 
 case object GetUsers extends StoreADT[Observable[CybozuUser]]
 case class GetUser(userId: Id[CybozuUser]) extends StoreADT[Option[CybozuUser]]

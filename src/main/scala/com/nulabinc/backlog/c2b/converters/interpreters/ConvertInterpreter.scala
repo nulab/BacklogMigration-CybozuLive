@@ -1,29 +1,37 @@
-package com.nulabinc.backlog.c2b.converters.interpreters
-
-import cats.~>
-import com.nulabinc.backlog.c2b.converters.{MappingContext, UserConverter}
-import com.nulabinc.backlog.c2b.converters.dsl.{ConvertADT, ConvertToBacklogIssue, ConvertToBacklogUser}
-import com.nulabinc.backlog.c2b.datas.Id
-import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
-import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
-import monix.eval.Task
-
-case class ConvertInterpreter(dbInterpreter: DBInterpreter)(implicit ctx: MappingContext)
-    extends (ConvertADT ~> Task) {
-
-
-  override def apply[A](fa: ConvertADT[A]): Task[A] = ???
-//  {
+//package com.nulabinc.backlog.c2b.converters.interpreters
 //
-//    fa match {
-//      case ConvertToBacklogUser(user) => Task(UserConverter.toBacklogUser(user))
-//      case ConvertToBacklogIssue(issue) =>
-//        val storeProgram = for {
-//          creator <- StoreDSL.getUser(Id.userId(issue.creatorId))
-//        } yield creator
-////        val a = dbInterpreter.run(storeProgram)
-////        a.flatMap(b => b.)
+//import cats.~>
+//import com.nulabinc.backlog.c2b.converters.{IssueConverter, MappingContext, UserConverter}
+//import com.nulabinc.backlog.c2b.converters.dsl._
+//import com.nulabinc.backlog.c2b.datas.Id
+//import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
+//import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
+//import monix.eval.Task
+//
+//case class ConvertInterpreter(dbInterpreter: DBInterpreter)(implicit ctx: MappingContext)
+//    extends (ConvertADT ~> Task) {
+//
+//
+//  override def apply[A](fa: ConvertADT[A]): Task[A] = fa match {
+//    case ConvertToBacklogUser(user) => UserConverter.toBacklogUser(user) match {
+//      case Right(backlogUser) => Task(backlogUser)
+//      case Left(error) => throw new RuntimeException("User conversion failed. " + error)
 //    }
+//    case ConvertToBacklogIssue(issue) =>
+//      val storePrg = for {
+//        maybeCreator <- StoreDSL.getUser(Id.userId(issue.creatorId))
+//        maybeUpdater <- StoreDSL.getUser(Id.userId(issue.updaterId))
+//        maybeAssignee <- issue.assigneeId.map(id => StoreDSL.getUser(Id.userId(id))).getOrElse(StoreDSL.pure(None))
+//      } yield (maybeCreator, maybeUpdater)
+//
+//      dbInterpreter.run(storePrg).map {
+//        case (Some(creator), Some(updater), maybeAssignee) =>
+//          IssueConverter.toBacklogIssue(issue, creator, updater, maybeAssignee) match {
+//            case Right(backlogIssue) => backlogIssue
+//            case Left(error) => throw new RuntimeException("Issue conversion failed. " + error)
+//          }
+//        case (_, _, _) => throw new RuntimeException("Issue conversion failed. User not found")
+//      }
 //  }
-
-}
+//
+//}

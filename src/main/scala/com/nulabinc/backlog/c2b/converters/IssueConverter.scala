@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.converters
 
 import com.nulabinc.backlog.c2b.core.DateUtil
-import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuIssue, CybozuUser}
+import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuForum, CybozuIssue, CybozuUser}
 import com.nulabinc.backlog.migration.common.domain._
 
 object IssueConverter {
@@ -37,6 +37,58 @@ object IssueConverter {
             optUpdated        = Some(DateUtil.toDateTimeString(issue.updatedAt))
           )
         )
+    }
+  }
+
+  def toBacklogIssue(event: CybozuEvent,
+                     creator: CybozuUser)(implicit ctx: MappingContext): Either[ConvertError, BacklogIssue] = {
+
+    val ISSUE_TYPE_NAME = "イベント"
+
+    for {
+      convertedCreator <- UserConverter.toBacklogUser(creator)
+    } yield {
+      defaultBacklogIssue.copy(
+        id                = event.id,
+        summary           = BacklogIssueSummary(value = event.title, original = event.title),
+        description       = event.memo + "\n\n" + event.menu,
+        optStartDate      = None,
+        optDueDate        = None,
+        optIssueTypeName  = Some(ISSUE_TYPE_NAME),
+        operation         = BacklogOperation(
+          optCreatedUser    = Some(convertedCreator),
+          optCreated        = Some(DateUtil.toDateTimeString(event.startDateTime)),
+          optUpdatedUser    = None,
+          optUpdated        = None
+        )
+      )
+    }
+  }
+
+  def toBacklogIssue(forum: CybozuForum,
+                     creator: CybozuUser,
+                     updater: CybozuUser)(implicit ctx: MappingContext): Either[ConvertError, BacklogIssue] = {
+
+    val ISSUE_TYPE_NAME = "掲示板"
+
+    for {
+      convertedCreator <- UserConverter.toBacklogUser(creator)
+      convertedUpdater <- UserConverter.toBacklogUser(updater)
+    } yield {
+      defaultBacklogIssue.copy(
+        id                = forum.id,
+        summary           = BacklogIssueSummary(value = forum.title, original = forum.title),
+        description       = forum.content,
+        optStartDate      = None,
+        optDueDate        = None,
+        optIssueTypeName  = Some(ISSUE_TYPE_NAME),
+        operation         = BacklogOperation(
+          optCreatedUser    = Some(convertedCreator),
+          optCreated        = Some(DateUtil.toDateTimeString(forum.createdAt)),
+          optUpdatedUser    = Some(convertedUpdater),
+          optUpdated        = Some(DateUtil.toDateTimeString(forum.updatedAt))
+        )
+      )
     }
   }
 
