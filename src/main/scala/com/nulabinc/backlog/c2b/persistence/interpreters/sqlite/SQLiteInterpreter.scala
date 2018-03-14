@@ -34,12 +34,6 @@ case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
       case GetUser(user) => Task.deferFuture {
         db.run(userTableOps.select(user))
       }
-      case GetUserByMaybeId(maybeUserId) => Task.deferFuture {
-        maybeUserId match {
-          case Some(userId) => db.run(userTableOps.select(userId))
-          case None => Future.successful(None)
-        }
-      }
       case StoreUser(user) => Task.deferFuture {
         db.run(userTableOps.save(user))
       }
