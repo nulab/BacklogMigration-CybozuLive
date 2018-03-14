@@ -9,6 +9,9 @@ object StoreDSL {
 
   type StoreProgram[A] = Free[StoreADT, A]
 
+  def empty[A]: StoreProgram[Option[A]] =
+    Free.liftF(Pure(None))
+
   def pure[A](a: A): StoreProgram[A] =
     Free.liftF(Pure(a))
 
