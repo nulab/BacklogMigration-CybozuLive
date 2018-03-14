@@ -41,7 +41,7 @@ lazy val root = (project in file("."))
         "com.typesafe.slick"    %% "slick-hikaricp"   % slickVersion,
         "org.xerial"            %  "sqlite-jdbc"      % "3.8.7",
         "io.monix"              %% "monix-reactive"   % "3.0.0-M1",
-        "io.monix"              %% "monix-nio"        % "0.0.2",
+        "io.monix"              %% "monix-nio"        % "0.0.3",
         "org.apache.commons"    %  "commons-csv"      % "1.5",
         "org.scalatest"         %% "scalatest"        % "3.0.1"       % Test
       )
