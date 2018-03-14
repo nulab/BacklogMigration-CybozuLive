@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.converters
 
-import com.nulabinc.backlog.c2b.datas.CybozuUser
+import com.nulabinc.backlog.c2b.datas.{CybozuUser, MappingContext}
 import com.nulabinc.backlog.migration.common.conf.BacklogConstantValue
 import com.nulabinc.backlog.migration.common.domain.BacklogUser
 
