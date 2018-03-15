@@ -19,10 +19,22 @@ object AppDSL {
   def pure[A](a: A): AppProgram[A] =
     Free.liftF(Pure(a))
 
-  def from[A](dbProgram: StoreProgram[A]): AppProgram[A] =
+  /*
+    Renamed
+
+    [error] cybozulive-importer/src/main/scala/com/nulabinc/backlog/c2b/interpreters/AppInterpreter.scala:25:7: double definition:
+    [error] def from[A](dbProgram: com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram[A]): com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram[A] at line 22 and
+    [error] def from[A](storageProgram: com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram[A]): com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram[A] at line 25
+    [error] have same type after erasure: (dbProgram: cats.free.Free)cats.free.Free
+    [error]   def from[A](storageProgram: StorageProgram[A]): AppProgram[A] =
+    [error]       ^
+
+   */
+
+  def fromDB[A](dbProgram: StoreProgram[A]): AppProgram[A] =
     Free.liftF(FromDB(dbProgram))
 
-  def from[A](storageProgram: StorageProgram[A]): AppProgram[A] =
+  def fromStorage[A](storageProgram: StorageProgram[A]): AppProgram[A] =
     Free.liftF(FromStorage(storageProgram))
 }
 
