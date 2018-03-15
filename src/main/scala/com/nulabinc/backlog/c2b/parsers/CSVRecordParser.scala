@@ -153,4 +153,43 @@ object CSVRecordParser {
     }
   }
 
+  def userMapping(record: CSVRecord): Either[ParseError[Mapping], UserMapping] =
+    mapping(record) { (source, destination) =>
+      UserMapping(
+        source = source,
+        destination = destination
+      )
+    }
+
+  def statusMapping(record: CSVRecord): Either[ParseError[Mapping], StatusMapping] =
+    mapping(record) { (source, destination) =>
+      StatusMapping(
+        source = source,
+        destination = destination
+      )
+    }
+
+  def priorityMapping(record: CSVRecord): Either[ParseError[Mapping], PriorityMapping] =
+    mapping(record) { (source, destination) =>
+      PriorityMapping(
+        source = source,
+        destination = destination
+      )
+    }
+
+  private def mapping[A](record: CSVRecord)(f: (String, String) => A): Either[ParseError[Mapping], A] = {
+
+    val SOURCE_FIELD_INDEX = 0
+    val DESTINATION_FIELD_INDEX = 1
+    val FIELD_SIZE = 2
+
+    if (record.size() == FIELD_SIZE) {
+      Right(
+        f(record.get(SOURCE_FIELD_INDEX), record.get(DESTINATION_FIELD_INDEX))
+      )
+    } else {
+      Left(CannotParseCSV(classOf[Mapping], "Invalid record size: " + record.size(), record))
+    }
+  }
+
 }

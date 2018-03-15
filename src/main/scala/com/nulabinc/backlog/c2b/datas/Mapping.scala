@@ -3,11 +3,13 @@ package com.nulabinc.backlog.c2b.datas
 import java.nio.file.{Path, Paths}
 
 import com.nulabinc.backlog.c2b.converters.{ConvertError, MappingFail}
-import com.nulabinc.backlog.migration.common.domain.BacklogUser
 
 import scala.collection.immutable.HashMap
 
-sealed trait Mapping[S, D]
+sealed trait Mapping {
+  val source: String
+  val destination: String
+}
 
 object Mapping {
   val userMappingFilePath: Path = Paths.get("./mapping/users.csv")
@@ -15,9 +17,9 @@ object Mapping {
   val priorityMappingFilePath: Path = Paths.get("./mapping/priorities.csv")
 }
 
-case class UserMapping(source: String, destination: String) extends Mapping[CybozuUser, BacklogUser]
-case class StatusMapping(source: String, destination: String) extends Mapping[CybozuStatus, String]
-case class PriorityMapping(source: String, destination: String) extends Mapping[CybozuPriority, String]
+case class UserMapping(source: String, destination: String) extends Mapping
+case class StatusMapping(source: String, destination: String) extends Mapping
+case class PriorityMapping(source: String, destination: String) extends Mapping
 
 case class MappingContext(
    userMappings: HashMap[String, UserMapping],
