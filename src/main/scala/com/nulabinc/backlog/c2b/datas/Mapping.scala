@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b.datas
 
 import java.nio.file.{Path, Paths}
 
-import com.nulabinc.backlog.c2b.converters.{ConvertError, MappingFiled}
+import com.nulabinc.backlog.c2b.converters.{ConvertError, MappingFail}
 import com.nulabinc.backlog.migration.common.domain.BacklogUser
 
 import scala.collection.immutable.HashMap
@@ -28,16 +28,16 @@ case class MappingContext(
   def getUserName(source: String): Either[ConvertError, String] =
     userMappings.get(source)
       .map(mapping => Right(mapping.destination))
-      .getOrElse(Left(MappingFiled[CybozuUser](source)))
+      .getOrElse(Left(MappingFail[CybozuUser](source)))
 
   def getStatusName(source: CybozuStatus): Either[ConvertError, String] =
     statusMappings.get(source.value)
       .map(mapping => Right(mapping.destination))
-      .getOrElse(Left(MappingFiled[CybozuStatus](source.value)))
+      .getOrElse(Left(MappingFail[CybozuStatus](source.value)))
 
   def getPriorityName(source: CybozuPriority): Either[ConvertError, String] =
     statusMappings.get(source.value)
       .map(mapping => Right(mapping.destination))
-      .getOrElse(Left(MappingFiled[CybozuPriority](source.value)))
+      .getOrElse(Left(MappingFail[CybozuPriority](source.value)))
 
 }
