@@ -23,8 +23,8 @@ class LocalStorageInterpreter extends StorageInterpreter {
     }
     case WriteFile(path, writeStream) =>
       Task.deferAction { implicit scheduler =>
-        Task.eval {
-          writeStream.consumeWith(writeAsync(path))
+        Task.fromFuture {
+          writeStream.consumeWith(writeAsync(path)).runAsync
         }.map(_ => ())
       }
   }

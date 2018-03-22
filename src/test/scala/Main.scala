@@ -202,14 +202,15 @@ object ForumTest extends App {
 
 object GenerateCSVRecodeTest extends App {
 
-  val userObservalbe = Observable(
-    CybozuUser(100, "Nishitateno", "Shoma")
+  val userObservable = Observable(
+    CybozuUser(100, "Nishitateno", "Shoma"),
+    CybozuUser(101, "Aaaa", "Bbb")
   )
 
-  val a = CSVRecordGenerator.to(userObservalbe)
+  val record = CSVRecordGenerator.to(userObservable)
 
   val prg = for {
-    _ <- StorageDSL.writeFile(File("aaa.csv").path, a)
+    _ <-  StorageDSL.writeFile(File("aaa.csv").path, record)
   } yield ()
 
   val interpreter = new LocalStorageInterpreter
