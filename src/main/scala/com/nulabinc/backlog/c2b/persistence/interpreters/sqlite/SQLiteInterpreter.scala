@@ -10,7 +10,7 @@ import slick.jdbc.SQLiteProfile.api._
 
 import scala.concurrent.Future
 
-case class SQLiteInterpreter(configPath: String) extends DBInterpreter {
+class SQLiteInterpreter(configPath: String) extends DBInterpreter {
 
   val allTableOps = AllTableOps()
 

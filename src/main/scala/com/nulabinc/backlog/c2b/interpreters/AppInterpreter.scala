@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b.interpreters
 
+import backlog4s.dsl.ApiDsl.ApiPrg
+import backlog4s.dsl.BacklogHttpInterpret
 import cats.free.Free
 import cats.~>
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
@@ -9,11 +11,14 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
 import monix.eval.Task
 
+import scala.concurrent.Future
+
 sealed trait AppADT[+A]
 case class Pure[A](a: A) extends AppADT[A]
 case class FromStorage[A](prg: StorageProgram[A]) extends AppADT[A]
 case class FromDB[A](prg: StoreProgram[A]) extends AppADT[A]
 case class FromConsole[A](prg: ConsoleProgram[A]) extends AppADT[A]
+case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 
 object AppDSL {
 
@@ -30,9 +35,14 @@ object AppDSL {
 
   def fromConsole[A](consoleProgram: ConsoleProgram[A]): AppProgram[A] =
     Free.liftF(FromConsole(consoleProgram))
+
+  def fromBacklog[A](backlogProgram: ApiPrg[A]): AppProgram[A] =
+    Free.liftF(FromBacklog(backlogProgram))
+
 }
 
-class AppInterpreter(storageInterpreter: StorageInterpreter,
+class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
+                     storageInterpreter: StorageInterpreter,
                      dbInterpreter: DBInterpreter,
                      consoleInterpreter: ConsoleInterpreter) extends (AppADT ~> Task) {
 
@@ -47,5 +57,8 @@ class AppInterpreter(storageInterpreter: StorageInterpreter,
       dbInterpreter.run(dbPrg)
     case FromConsole(consolePrg) =>
       consoleInterpreter.run(consolePrg)
+    case FromBacklog(backlogPrg) => Task.deferFuture {
+      backlogInterpreter.run(backlogPrg)
+    }
   }
 }
