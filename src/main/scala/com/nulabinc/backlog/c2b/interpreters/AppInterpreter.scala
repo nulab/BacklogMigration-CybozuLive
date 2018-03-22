@@ -3,6 +3,7 @@ package com.nulabinc.backlog.c2b.interpreters
 import cats.free.Free
 import cats.~>
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
@@ -12,6 +13,7 @@ sealed trait AppADT[+A]
 case class Pure[A](a: A) extends AppADT[A]
 case class FromStorage[A](prg: StorageProgram[A]) extends AppADT[A]
 case class FromDB[A](prg: StoreProgram[A]) extends AppADT[A]
+case class FromConsole[A](prg: ConsoleProgram[A]) extends AppADT[A]
 
 object AppDSL {
 
@@ -25,10 +27,14 @@ object AppDSL {
 
   def fromStorage[A](storageProgram: StorageProgram[A]): AppProgram[A] =
     Free.liftF(FromStorage(storageProgram))
+
+  def fromConsole[A](consoleProgram: ConsoleProgram[A]): AppProgram[A] =
+    Free.liftF(FromConsole(consoleProgram))
 }
 
 class AppInterpreter(storageInterpreter: StorageInterpreter,
-                     dbInterpreter: DBInterpreter) extends (AppADT ~> Task) {
+                     dbInterpreter: DBInterpreter,
+                     consoleInterpreter: ConsoleInterpreter) extends (AppADT ~> Task) {
 
   def run[A](appProgram: AppProgram[A]): Task[A] =
     appProgram.foldMap(this)
@@ -39,5 +45,7 @@ class AppInterpreter(storageInterpreter: StorageInterpreter,
       storageInterpreter.run(storePrg)
     case FromDB(dbPrg) =>
       dbInterpreter.run(dbPrg)
+    case FromConsole(consolePrg) =>
+      consoleInterpreter.run(consolePrg)
   }
 }
