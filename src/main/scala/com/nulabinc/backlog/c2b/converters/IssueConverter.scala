@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.converters
 
 import com.nulabinc.backlog.c2b.core.DateUtil
-import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuForum, CybozuIssue, CybozuUser}
+import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.migration.common.domain._
 
 
@@ -47,7 +47,6 @@ class IssueConverter()(implicit ctx: MappingContext) extends Converter[IssueFrom
       convertedCreator <- userConverter.to(fromCybozuIssue.creator)
       convertedUpdater <- userConverter.to(fromCybozuIssue.updater)
       maybeConvertedAssignee <- userConverter.to(fromCybozuIssue.maybeAssignee)
-      t = maybeConvertedAssignee
       status <- ctx.getStatusName(fromCybozuIssue.issue.status)
       priority <- ctx.getPriorityName(fromCybozuIssue.issue.priority)
     } yield {

@@ -9,6 +9,7 @@ lazy val commonSettings = Seq(
     "com.osinka.i18n"       %% "scala-i18n"       % "1.0.2",
     "ch.qos.logback"        %  "logback-classic"  % "1.2.3",
     "com.typesafe"          %  "config"           % "1.3.3",
+    "org.scalatest"         %% "scalatest"        % "3.0.1"  % Test
   )
 )
 
@@ -42,8 +43,7 @@ lazy val root = (project in file("."))
         "org.xerial"            %  "sqlite-jdbc"      % "3.8.7",
         "io.monix"              %% "monix-reactive"   % "3.0.0-RC1",
         "io.monix"              %% "monix-nio"        % "0.0.3",
-        "org.apache.commons"    %  "commons-csv"      % "1.5",
-        "org.scalatest"         %% "scalatest"        % "3.0.1"       % Test
+        "org.apache.commons"    %  "commons-csv"      % "1.5"
       )
     }
   )

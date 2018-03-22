@@ -2,8 +2,12 @@
 import java.nio.charset.Charset
 import java.nio.file.Paths
 
-import com.nulabinc.backlog.c2b.datas.CybozuCSVUser
+import better.files.File
+import com.nulabinc.backlog.c2b.datas.{CybozuCSVUser, CybozuUser}
+import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
 import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, CommentParser, ParseError, ZonedDateTimeParser}
+import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL
+import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import monix.eval.Task
 import monix.reactive.{Consumer, Observable}
@@ -194,4 +198,25 @@ object ForumTest extends App {
                  |--------------------------------------------------
                  |"
                  |""".stripMargin
+}
+
+object GenerateCSVRecodeTest extends App {
+
+  val userObservable = Observable(
+    CybozuUser(100, "Nishitateno", "Shoma"),
+    CybozuUser(101, "Aaaa", "Bbb")
+  )
+
+  val record = CSVRecordGenerator.to(userObservable)
+
+  val prg = for {
+    _ <-  StorageDSL.writeFile(File("aaa.csv").path, record)
+  } yield ()
+
+  val interpreter = new LocalStorageInterpreter
+
+  val f = interpreter.run(prg).runAsync
+
+  Await.result(f, Duration.Inf)
+
 }
