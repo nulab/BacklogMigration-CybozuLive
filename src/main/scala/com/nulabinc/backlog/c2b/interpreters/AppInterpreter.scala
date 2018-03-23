@@ -19,6 +19,7 @@ case class FromStorage[A](prg: StorageProgram[A]) extends AppADT[A]
 case class FromDB[A](prg: StoreProgram[A]) extends AppADT[A]
 case class FromConsole[A](prg: ConsoleProgram[A]) extends AppADT[A]
 case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
+case class Exit(exitCode: Int) extends AppADT[Unit]
 
 object AppDSL {
 
@@ -39,6 +40,12 @@ object AppDSL {
   def fromBacklog[A](backlogProgram: ApiPrg[A]): AppProgram[A] =
     Free.liftF(FromBacklog(backlogProgram))
 
+  def exit(reason: String, exitCode: Int): AppProgram[Unit] = {
+    for {
+      _ <- fromConsole(ConsoleDSL.print(reason))
+      _ <- Free.liftF(Exit(exitCode))
+    } yield ()
+  }
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -60,5 +67,6 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case FromBacklog(backlogPrg) => Task.deferFuture {
       backlogInterpreter.run(backlogPrg)
     }
+    case Exit(statusCode) => sys.exit(statusCode)
   }
 }

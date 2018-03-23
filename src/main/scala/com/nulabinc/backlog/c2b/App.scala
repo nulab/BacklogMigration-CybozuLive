@@ -1,21 +1,27 @@
 package com.nulabinc.backlog.c2b
 
-import java.io.FileWriter
 import java.util.Locale
 
-import better.files.File
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import backlog4s.apis.AllApi
+import backlog4s.datas.{Key, KeyParam, Project}
+import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
+import com.nulabinc.backlog.c2b.core.Logger
+import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
-import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
+import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
+import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
-import org.apache.commons.csv.{CSVFormat, CSVPrinter}
+import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
 
-object App {
+object App extends Logger {
 
   def main(args: Array[String]): Unit = {
 
@@ -67,6 +73,34 @@ object App {
   def init(config: Config): AppResult = {
 
     import com.nulabinc.backlog.c2b.interpreters.AppDSL._
+    import com.nulabinc.backlog.c2b.interpreters.syntax._
+
+    implicit val system: ActorSystem = ActorSystem("init")
+    implicit val mat: ActorMaterializer = ActorMaterializer()
+    implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
+
+    val interpreter = new AppInterpreter(
+      backlogInterpreter = new AkkaHttpInterpret,
+      storageInterpreter = new LocalStorageInterpreter,
+      dbInterpreter = new SQLiteInterpreter("db.main"),
+      consoleInterpreter = new ConsoleInterpreter
+    )      // TODO: proxy
+
+    val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
+
+
+
+    val validationProgram = for {
+      _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
+      apiAccess <- fromBacklog(backlogApi.projectApi.byIdOrKey(
+        KeyParam(Key[Project](config.projectKey))
+      ))
+      _ <- apiAccess.orExit(
+        Messages("validation.access.ok", Messages("name.backlog")),
+        Messages("validation.access.ok", Messages("name.backlog"))
+      )
+    } yield ()
+
 
 //    val writer = new FileWriter("mapping/users.json")
 //    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)

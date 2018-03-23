@@ -1,2 +1,10 @@
 
+# Error messages
 error.require_java8=The current version of Java is [{0}]. Java 8 is required for this program.
+
+# Name
+name.backlog=Backlog
+
+# Validation
+validation.access=Checking whether the {0} is accessible ...
+validation.access.ok={0} is available.

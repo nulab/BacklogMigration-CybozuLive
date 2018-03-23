@@ -1,2 +1,10 @@
 
+# Error messages
 error.require_java8=現在のJavaのバージョンは[{0}]です。Java8以上が必須になります。
+
+# Name
+name.backlog=Backlog
+
+# Validation
+validation.access={0}にアクセス可能かチェックしています...
+validation.access.ok={0}にアクセス可能です。
