@@ -97,7 +97,13 @@ object App extends Logger {
       ))
       _ <- apiAccess.orExit(
         Messages("validation.access.ok", Messages("name.backlog")),
-        Messages("validation.access.ok", Messages("name.backlog"))
+        Messages("validation.access.error", Messages("name.backlog"))
+      )
+      _ <- fromConsole(ConsoleDSL.print(Messages("validation.admin", Messages("name.backlog"))))
+      adminCheck <- fromBacklog(backlogApi.spaceApi.diskUsage)
+      _ <- adminCheck.orExit(
+        Messages("validation.admin.ok", Messages("name.backlog")),
+        Messages("validation.admin.error", Messages("name.backlog"))
       )
     } yield ()
 
