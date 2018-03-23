@@ -1,21 +1,28 @@
 package com.nulabinc.backlog.c2b
 
-import java.io.FileWriter
 import java.util.Locale
 
-import better.files.File
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import backlog4s.apis.AllApi
+import backlog4s.datas.{Key, KeyParam, Project}
+import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
+import com.nulabinc.backlog.c2b.core.Logger
+import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
-import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
+import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
+import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
-import org.apache.commons.csv.{CSVFormat, CSVPrinter}
+import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
 
-object App {
+object App extends Logger {
 
   def main(args: Array[String]): Unit = {
 
@@ -66,7 +73,20 @@ object App {
 
   def init(config: Config): AppResult = {
 
-    import com.nulabinc.backlog.c2b.interpreters.AppDSL._
+    implicit val system: ActorSystem = ActorSystem("init")
+    implicit val mat: ActorMaterializer = ActorMaterializer()
+    implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
+
+    val interpreter = new AppInterpreter(
+      backlogInterpreter = new AkkaHttpInterpret,
+      storageInterpreter = new LocalStorageInterpreter,
+      dbInterpreter = new SQLiteInterpreter("db.main"),
+      consoleInterpreter = new ConsoleInterpreter
+    )      // TODO: proxy
+
+    val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
+
+
 
 //    val writer = new FileWriter("mapping/users.json")
 //    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)
@@ -81,6 +101,31 @@ object App {
   }
 
   def `import`(config: Config): AppResult = ???
+
+  def validationProgram(config: Config, backlogApi: AllApi): AppProgram[Unit] = {
+
+    import com.nulabinc.backlog.c2b.interpreters.AppDSL._
+    import com.nulabinc.backlog.c2b.interpreters.syntax._
+
+    for {
+      // Access check
+      _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
+      apiAccess <- fromBacklog(backlogApi.projectApi.byIdOrKey(
+        KeyParam(Key[Project](config.projectKey))
+      ))
+      _ <- apiAccess.orExit(
+        Messages("validation.access.ok", Messages("name.backlog")),
+        Messages("validation.access.error", Messages("name.backlog"))
+      )
+      // Admin check
+      _ <- fromConsole(ConsoleDSL.print(Messages("validation.admin", Messages("name.backlog"))))
+      adminCheck <- fromBacklog(backlogApi.spaceApi.diskUsage)
+      _ <- adminCheck.orExit(
+        Messages("validation.admin.ok", Messages("name.backlog")),
+        Messages("validation.admin.error", Messages("name.backlog"))
+      )
+    } yield ()
+  }
 
   private def setLanguage(language: String): Unit = language match {
     case "ja" => Locale.setDefault(Locale.JAPAN)

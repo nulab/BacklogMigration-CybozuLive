@@ -27,6 +27,13 @@ lazy val backlogMigrationCommon = (project in file("modules/common"))
     )
   )
 
+lazy val backlog4s_core = (project in file("modules/backlog4s/backlog4s-core"))
+  .settings(commonSettings)
+
+lazy val backlog4s_akka = (project in file("modules/backlog4s/backlog4s-akka"))
+  .settings(commonSettings)
+  .dependsOn(backlog4s_core)
+
 lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
@@ -48,3 +55,4 @@ lazy val root = (project in file("."))
     }
   )
   .dependsOn(backlogMigrationCommon)
+  .dependsOn(backlog4s_core, backlog4s_akka)
