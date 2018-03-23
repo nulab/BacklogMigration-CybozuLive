@@ -91,6 +91,7 @@ object App extends Logger {
 
 
     val validationProgram = for {
+      // Access check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
       apiAccess <- fromBacklog(backlogApi.projectApi.byIdOrKey(
         KeyParam(Key[Project](config.projectKey))
@@ -99,6 +100,7 @@ object App extends Logger {
         Messages("validation.access.ok", Messages("name.backlog")),
         Messages("validation.access.error", Messages("name.backlog"))
       )
+      // Admin check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.admin", Messages("name.backlog"))))
       adminCheck <- fromBacklog(backlogApi.spaceApi.diskUsage)
       _ <- adminCheck.orExit(
