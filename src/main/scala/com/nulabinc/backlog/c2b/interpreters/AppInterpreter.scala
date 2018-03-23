@@ -10,6 +10,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
 import monix.eval.Task
+import org.fusesource.jansi.AnsiConsole
 
 import scala.concurrent.Future
 
@@ -67,6 +68,9 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case FromBacklog(backlogPrg) => Task.deferFuture {
       backlogInterpreter.run(backlogPrg)
     }
-    case Exit(statusCode) => sys.exit(statusCode)
+    case Exit(statusCode) => Task {
+      AnsiConsole.systemUninstall()
+      sys.exit(statusCode)
+    }
   }
 }

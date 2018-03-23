@@ -26,13 +26,17 @@ class ConsoleInterpreter extends (ConsoleADT ~> Task) {
   def run[A](program: ConsoleProgram[A]): Task[A] =
     program.foldMap(this)
 
+  def print(string: String): Task[Unit] = Task {
+    Console.println(string)
+    ()
+  }
+
+  def read(printMessage: String): Task[String] = Task {
+    scala.io.StdIn.readLine(printMessage)
+  }
+
   def apply[A](fa: ConsoleADT[A]): Task[A] = fa match  {
-    case Print(str) => Task {
-      Console.println(str)
-      ()
-    }
-    case Read(printMessage) => Task {
-      scala.io.StdIn.readLine(printMessage)
-    }
+    case Print(str) => print(str)
+    case Read(printMessage) => read(printMessage)
   }
 }

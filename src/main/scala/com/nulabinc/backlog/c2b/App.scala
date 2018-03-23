@@ -9,6 +9,7 @@ import backlog4s.datas.{Key, KeyParam, Project}
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.Logger
+import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
@@ -72,9 +73,6 @@ object App extends Logger {
 
   def init(config: Config): AppResult = {
 
-    import com.nulabinc.backlog.c2b.interpreters.AppDSL._
-    import com.nulabinc.backlog.c2b.interpreters.syntax._
-
     implicit val system: ActorSystem = ActorSystem("init")
     implicit val mat: ActorMaterializer = ActorMaterializer()
     implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
@@ -90,7 +88,26 @@ object App extends Logger {
 
 
 
-    val validationProgram = for {
+//    val writer = new FileWriter("mapping/users.json")
+//    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)
+
+//    val mappingFileProgram = for {
+//      user <- fromDB(StoreDSL.getUsers)
+////      _ <- fromStorage(StorageDSL.writeFile(File("mapping/users.json").path, CSVRecordGenerator.to(user)))
+//      _ <- pure(user.map(u => printer.printRecord(u.key, "")))
+//    } yield ()
+
+    Success
+  }
+
+  def `import`(config: Config): AppResult = ???
+
+  def validationProgram(config: Config, backlogApi: AllApi): AppProgram[Unit] = {
+
+    import com.nulabinc.backlog.c2b.interpreters.AppDSL._
+    import com.nulabinc.backlog.c2b.interpreters.syntax._
+
+    for {
       // Access check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
       apiAccess <- fromBacklog(backlogApi.projectApi.byIdOrKey(
@@ -108,21 +125,7 @@ object App extends Logger {
         Messages("validation.admin.error", Messages("name.backlog"))
       )
     } yield ()
-
-
-//    val writer = new FileWriter("mapping/users.json")
-//    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)
-
-//    val mappingFileProgram = for {
-//      user <- fromDB(StoreDSL.getUsers)
-////      _ <- fromStorage(StorageDSL.writeFile(File("mapping/users.json").path, CSVRecordGenerator.to(user)))
-//      _ <- pure(user.map(u => printer.printRecord(u.key, "")))
-//    } yield ()
-
-    Success
   }
-
-  def `import`(config: Config): AppResult = ???
 
   private def setLanguage(language: String): Unit = language match {
     case "ja" => Locale.setDefault(Locale.JAPAN)
