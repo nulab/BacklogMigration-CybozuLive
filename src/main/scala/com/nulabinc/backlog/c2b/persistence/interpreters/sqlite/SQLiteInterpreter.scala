@@ -60,6 +60,9 @@ class SQLiteInterpreter(configPath: String) extends DBInterpreter {
       case StoreComment(comment) => Task.deferFuture {
         db.run(commentTableOps.save(comment))
       }
+      case WriteDBStream(stream) =>
+        stream.map(_.asInstanceOf[StoreProgram[A]]).mapTask[A](run).headL
+
     }
   }
 

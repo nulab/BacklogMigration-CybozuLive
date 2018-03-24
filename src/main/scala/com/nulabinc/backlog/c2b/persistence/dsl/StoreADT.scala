@@ -2,6 +2,7 @@ package com.nulabinc.backlog.c2b.persistence.dsl
 
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
+import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import monix.reactive.Observable
 
 sealed trait StoreADT[A]
@@ -26,3 +27,5 @@ case class StoreEvent(event: CybozuEvent) extends StoreADT[AnyId]
 
 case object GetForums extends StoreADT[Observable[CybozuForum]]
 case class StoreForum(forum: CybozuForum) extends StoreADT[AnyId]
+
+case class WriteDBStream[A](stream: Observable[StoreProgram[A]]) extends StoreADT[Unit]

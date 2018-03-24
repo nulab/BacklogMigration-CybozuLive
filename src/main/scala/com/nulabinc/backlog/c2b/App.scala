@@ -11,19 +11,18 @@ import backlog4s.datas.{Key, KeyParam, Project}
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.Logger
-import com.nulabinc.backlog.c2b.datas.{CybozuCSVIssue, CybozuIssue}
+import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
-import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser, ParseError}
+import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser}
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
-import monix.eval.Task
 import monix.execution.Scheduler
-import monix.reactive.{Consumer, Observable}
+import monix.reactive.Observable
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.fusesource.jansi.AnsiConsole
 
@@ -100,33 +99,22 @@ object App extends Logger {
     val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
 
-    val printingResults: Consumer[CybozuIssue, Unit] =
-      Consumer.foreachParallelTask(10)(_ => Task.unit)
-
     val issueObservable = Observable
       .fromIterable(todoFiles)
       .mapParallelUnordered(todoFiles.length) { file =>
-        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+        val ob = Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
             case Right(csvIssue) => CybozuIssue.from(csvIssue)
             case Left(error) => throw new RuntimeException(error.toString)
           }
-          .consumeWith {
-            Consumer.foreachParallelTask(10) { issue =>
-              val dbProgram = for {
-                _ <- AppDSL.fromDB(StoreDSL.storeIssue(issue))
-              } yield ()
-              interpreter.run(dbProgram)
-            }
-          }
+        ob.headL
       }
-//      .completedL
-//      .runAsync
 
     val program = for {
       _ <- validationProgram(config, backlogApi)
+      _ <- AppDSL.fromDB(StoreDSL.writeDBStream(issueObservable.map(issue => StoreDSL.storeIssue(issue))))
     } yield ()
 
     interpreter.run(program).runAsync
