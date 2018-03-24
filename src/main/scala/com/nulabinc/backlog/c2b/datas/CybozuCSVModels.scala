@@ -61,27 +61,4 @@ case class CybozuCSVPriority(value: String) extends AnyVal
 
 case class CybozuCSVStatus(value: String) extends AnyVal
 
-case class CybozuCSVUser(
-  lastName: String,
-  firstName: String
-)
-
-object CybozuCSVUser {
-
-  val fieldSize = 3
-
-  def fromFullName(fullName: String): Option[CybozuCSVUser] = {
-    val pattern = """(.+?) (.+?)""".r
-    fullName match {
-      case pattern(firstName, lastName) =>
-        Some(
-          CybozuCSVUser(
-            firstName = firstName,
-            lastName = lastName
-          )
-        )
-      case _ => None
-    }
-  }
-
-}
+case class CybozuCSVUser(value: String) extends AnyVal

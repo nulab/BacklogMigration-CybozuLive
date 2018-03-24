@@ -2,17 +2,17 @@ package com.nulabinc.backlog.c2b.generators
 
 import java.nio.charset.Charset
 
-import com.nulabinc.backlog.c2b.datas.CybozuUser
+import com.nulabinc.backlog.c2b.datas.{CybozuPriority, CybozuUser}
 import monix.reactive.Observable
 
 object CSVRecordGenerator {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  def to(user: Observable[CybozuUser]): Observable[Array[Byte]] =
-    user.map { u =>
+  def to(priority: Observable[CybozuPriority]): Observable[Array[Byte]] =
+    priority.map { u =>
       s"""
-        |"${u.key}",""\n
+        |"${u.value}",""\n
       """.stripMargin.getBytes(charset)
     }
 }

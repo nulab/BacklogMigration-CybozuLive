@@ -5,22 +5,22 @@ import org.apache.commons.csv.CSVRecord
 
 object CSVRecordParser {
 
-  def user(record: CSVRecord): Either[ParseError[CybozuCSVUser], CybozuCSVUser] = {
-
-    val LAST_NAME_FIELD_INDEX   = 0
-    val FIRST_NAME_FIELD_INDEX  = 1
-
-    if (record.size() >= CybozuCSVUser.fieldSize) {
-      Right(
-        CybozuCSVUser(
-          lastName = record.get(LAST_NAME_FIELD_INDEX),
-          firstName = record.get(FIRST_NAME_FIELD_INDEX)
-        )
-      )
-    } else {
-      Left(CannotParseCSV(classOf[CybozuCSVUser], "Invalid record size: " + record.size(), record))
-    }
-  }
+//  def user(record: CSVRecord): Either[ParseError[CybozuCSVUser], CybozuCSVUser] = {
+//
+//    val LAST_NAME_FIELD_INDEX   = 0
+//    val FIRST_NAME_FIELD_INDEX  = 1
+//
+//    if (record.size() >= CybozuCSVUser.fieldSize) {
+//      Right(
+//        CybozuCSVUser(
+//          lastName = record.get(LAST_NAME_FIELD_INDEX),
+//          firstName = record.get(FIRST_NAME_FIELD_INDEX)
+//        )
+//      )
+//    } else {
+//      Left(CannotParseCSV(classOf[CybozuCSVUser], "Invalid record size: " + record.size(), record))
+//    }
+//  }
 
   // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","ステータス","優先度","担当者","期日","コメント"
   def issue(record: CSVRecord): Either[ParseError[CybozuCSVIssue], CybozuCSVIssue] = {
@@ -38,13 +38,12 @@ object CSVRecordParser {
     val DUE_DATE_FIELD_INDEX    = 10
     val COMMENTS_FIELD_INDEX    = 11
 
+    val assignee = record.get(ASSIGNEE_FIELD_INDEX)
+
     if (record.size() >= CybozuCSVIssue.fieldSize) {
       (for {
-        creator <- UserParser.toUser(record.get(CREATOR_FIELD_INDEX))
         createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CREATED_AT_FIELD_INDEX))
-        updater <- UserParser.toUser(record.get(UPDATER_FIELD_INDEX))
         updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(UPDATED_AT_FIELD_INDEX))
-        maybeAssignee <- UserParser.toMaybeUser(record.get(ASSIGNEE_FIELD_INDEX))
         dueDate <- ZonedDateTimeParser.toMaybeZonedDate(record.get(DUE_DATE_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENTS_FIELD_INDEX)))
       } yield {
@@ -52,13 +51,13 @@ object CSVRecordParser {
           id        = record.get(ID_FIELD_INDEX),
           title     = record.get(TITLE_FIELD_INDEX),
           content   = record.get(CONTENT_FIELD_INDEX),
-          creator   = creator,
+          creator   = CybozuCSVUser(record.get(CREATOR_FIELD_INDEX)),
           createdAt = createdAt,
-          updater   = updater,
+          updater   = CybozuCSVUser(record.get(UPDATER_FIELD_INDEX)),
           updatedAt = updatedAt,
           status    = CybozuCSVStatus(record.get(STATUS_FIELD_INDEX)),
           priority  = CybozuCSVPriority(record.get(PRIORITY_FIELD_INDEX)),
-          assignee  = maybeAssignee,
+          assignee  = if (assignee.isEmpty) None else Some(CybozuCSVUser(assignee)),
           dueDate   = dueDate,
           comments  = comments
         )
@@ -93,7 +92,6 @@ object CSVRecordParser {
       (for {
         startDateTime <- ZonedDateTimeParser.toZonedDateTime(startDate, startTime)
         endDateTime <- ZonedDateTimeParser.toZonedDateTime(endDate, endTime)
-        creator <- UserParser.toUser(record.get(CREATOR_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENT_FIELD_INDEX)))
       } yield {
         CybozuCSVEvent(
@@ -102,7 +100,7 @@ object CSVRecordParser {
           menu = record.get(MENU_FIELD_INDEX),
           title = record.get(TITLE_FIELD_INDEX),
           memo = record.get(MEMO_FIELD_INDEX),
-          creator = creator,
+          creator = CybozuCSVUser(record.get(CREATOR_FIELD_INDEX)),
           comments = comments
         )
       }) match {
@@ -128,9 +126,7 @@ object CSVRecordParser {
 
     if (record.size() >= CybozuCSVForum.fieldSize) {
       (for {
-        creator <- UserParser.toUser(record.get(CREATOR_FIELD_INDEX))
         createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CREATED_AT_FIELD_INDEX))
-        updater <- UserParser.toUser(record.get(UPDATER_FIELD_INDEX))
         updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(UPDATED_AT_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENT_FIELD_INDEX)))
       } yield {
@@ -138,9 +134,9 @@ object CSVRecordParser {
           id = record.get(ID_FIELD_INDEX),
           title = record.get(TITLE_FIELD_INDEX),
           content = record.get(CONTENT_FIELD_INDEX),
-          creator = creator,
+          creator = CybozuCSVUser(record.get(CREATOR_FIELD_INDEX)),
           createdAt = createdAt,
-          updater = updater,
+          updater = CybozuCSVUser(record.get(UPDATER_FIELD_INDEX)),
           updatedAt = updatedAt,
           comments = comments
         )
