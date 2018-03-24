@@ -13,8 +13,9 @@ import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas.{CybozuCSVIssue, CybozuIssue}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleDSL, ConsoleInterpreter}
+import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser, ParseError}
+import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
@@ -102,7 +103,7 @@ object App extends Logger {
     val printingResults: Consumer[CybozuIssue, Unit] =
       Consumer.foreachParallelTask(10)(_ => Task.unit)
 
-    val issue = Observable
+    val issueObservable = Observable
       .fromIterable(todoFiles)
       .mapParallelUnordered(todoFiles.length) { file =>
         Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
@@ -112,7 +113,14 @@ object App extends Logger {
             case Right(csvIssue) => CybozuIssue.from(csvIssue)
             case Left(error) => throw new RuntimeException(error.toString)
           }
-          .consumeWith(printingResults)
+          .consumeWith {
+            Consumer.foreachParallelTask(10) { issue =>
+              val dbProgram = for {
+                _ <- AppDSL.fromDB(StoreDSL.storeIssue(issue))
+              } yield ()
+              interpreter.run(dbProgram)
+            }
+          }
       }
 //      .completedL
 //      .runAsync
