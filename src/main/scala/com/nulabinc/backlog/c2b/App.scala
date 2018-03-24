@@ -7,11 +7,10 @@ import java.util.Locale
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import backlog4s.apis.AllApi
-import backlog4s.datas.{Key, KeyParam, Project}
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
+import com.nulabinc.backlog.c2b.converters.CybozuIssueConverter
 import com.nulabinc.backlog.c2b.core.Logger
-import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser}
@@ -27,7 +26,6 @@ import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
-import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -101,18 +99,7 @@ object App extends Logger {
     val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
 
-    val issueObservable = Observable
-      .fromIterable(todoFiles)
-      .mapParallelUnordered(todoFiles.length) { file =>
-        val ob = Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
-          .drop(1)
-          .map(CSVRecordParser.issue)
-          .map {
-            case Right(csvIssue) => CybozuIssue.from(csvIssue)
-            case Left(error) => throw new RuntimeException(error.toString)
-          }
-        ob.headL
-      }
+    val issueObservable = CybozuIssueConverter.to(todoFiles, csvFormat)
 
     val program = for {
       _ <- validationProgram(config, backlogApi)
