@@ -28,17 +28,6 @@ class SQLiteInterpreter(configPath: String) extends DBInterpreter {
     fa match {
       case Pure(a) =>
         Task(a)
-      case GetUsers => Task.eval {
-        Observable.fromReactivePublisher(
-          db.stream(userTableOps.stream)
-        )
-      }
-      case GetUser(user) => Task.deferFuture {
-        db.run(userTableOps.select(user))
-      }
-      case StoreUser(user) => Task.deferFuture {
-        db.run(userTableOps.save(user))
-      }
       case GetIssues => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(issueTableOps.stream)

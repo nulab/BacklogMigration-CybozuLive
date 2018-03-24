@@ -15,9 +15,6 @@ object StoreDSL {
   def pure[A](a: A): StoreProgram[A] =
     Free.liftF(Pure(a))
 
-  lazy val getUsers: StoreProgram[Observable[CybozuUser]] =
-    Free.liftF(GetUsers)
-
   lazy val getIssues: StoreProgram[Observable[CybozuIssue]] =
     Free.liftF(GetIssues)
 
@@ -26,12 +23,6 @@ object StoreDSL {
 
   lazy val getForums: StoreProgram[Observable[CybozuForum]] =
     Free.liftF(GetForums)
-
-  def getUser(userId: Id[CybozuUser]): StoreProgram[Option[CybozuUser]] =
-    Free.liftF(GetUser(userId))
-
-  def storeUser(user: CybozuUser): StoreProgram[AnyId] =
-    Free.liftF(StoreUser(user))
 
   def storeIssue(issue: CybozuIssue): StoreProgram[AnyId] =
     Free.liftF(StoreIssue(issue))

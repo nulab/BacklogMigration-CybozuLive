@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.parsers
 
-import com.nulabinc.backlog.c2b.datas.CybozuCSVComment
+import com.nulabinc.backlog.c2b.datas.{CybozuCSVComment, CybozuCSVUser}
 
 object CommentParser {
 
@@ -28,12 +28,11 @@ object CommentParser {
             header match {
               case pattern(id, userString, createdAtString) =>
                 (for {
-                  user      <- UserParser.toUser(userString)
                   createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
                 } yield {
                   CybozuCSVComment(
                     id = id.toLong,
-                    creator = user,
+                    creator = CybozuCSVUser(userString),
                     createdAt = createdAt,
                     content = body.mkString("\n")
                   )
@@ -46,7 +45,6 @@ object CommentParser {
               case _ => Left(CannotParseComment("Invalid header", comment))
             }
           }
-
       }
   }
 

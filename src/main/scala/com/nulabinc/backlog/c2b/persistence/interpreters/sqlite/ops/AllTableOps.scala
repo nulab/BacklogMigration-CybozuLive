@@ -5,5 +5,5 @@ private[sqlite] case class AllTableOps() {
   val eventTableOps = EventTableOps()
   val forumTableOps = ForumTableOps()
   val issueTableOps = IssueTableOps()
-  val userTableOps = UserTableOps()
+//  val userTableOps = UserTableOps()
 }
