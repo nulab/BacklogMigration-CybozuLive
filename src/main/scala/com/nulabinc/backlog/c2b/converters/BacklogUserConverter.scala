@@ -4,7 +4,7 @@ import com.nulabinc.backlog.c2b.datas.{CybozuUser, MappingContext}
 import com.nulabinc.backlog.migration.common.conf.BacklogConstantValue
 import com.nulabinc.backlog.migration.common.domain.BacklogUser
 
-class UserConverter()(implicit ctx: MappingContext) extends Converter[CybozuUser, BacklogUser] {
+class BacklogUserConverter()(implicit ctx: MappingContext) extends Converter[CybozuUser, BacklogUser] {
 
   def to(user: CybozuUser): Either[ConvertError, BacklogUser] =
     for {
