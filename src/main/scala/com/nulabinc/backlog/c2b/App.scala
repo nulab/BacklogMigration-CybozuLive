@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b
 
+import java.nio.charset.Charset
+import java.nio.file.{Path, Paths}
 import java.util.Locale
 
 import akka.actor.ActorSystem
@@ -9,20 +11,27 @@ import backlog4s.datas.{Key, KeyParam, Project}
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.Logger
+import com.nulabinc.backlog.c2b.datas.{CybozuCSVIssue, CybozuIssue}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleDSL, ConsoleInterpreter}
-import com.nulabinc.backlog.c2b.parsers.ConfigParser
+import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser, ParseError}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
+import monix.eval.Task
 import monix.execution.Scheduler
+import monix.reactive.{Consumer, Observable}
+import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
+import scala.collection.JavaConverters._
 
 object App extends Logger {
+
+  val DATA_PATHS: Path = Paths.get("./data")
 
   def main(args: Array[String]): Unit = {
 
@@ -86,7 +95,33 @@ object App extends Logger {
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
+    val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
+    val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
+    val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
 
+    val printingResults: Consumer[CybozuIssue, Unit] =
+      Consumer.foreachParallelTask(10)(_ => Task.unit)
+
+    val issue = Observable
+      .fromIterable(todoFiles)
+      .mapParallelUnordered(todoFiles.length) { file =>
+        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+          .drop(1)
+          .map(CSVRecordParser.issue)
+          .map {
+            case Right(csvIssue) => CybozuIssue.from(csvIssue)
+            case Left(error) => throw new RuntimeException(error.toString)
+          }
+          .consumeWith(printingResults)
+      }
+//      .completedL
+//      .runAsync
+
+    val program = for {
+      _ <- validationProgram(config, backlogApi)
+    } yield ()
+
+    interpreter.run(program).runAsync
 
 //    val writer = new FileWriter("mapping/users.json")
 //    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)
