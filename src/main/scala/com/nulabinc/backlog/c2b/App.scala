@@ -28,6 +28,8 @@ import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object App extends Logger {
 
@@ -117,7 +119,11 @@ object App extends Logger {
       _ <- AppDSL.fromDB(StoreDSL.writeDBStream(issueObservable.map(issue => StoreDSL.storeIssue(issue))))
     } yield ()
 
-    interpreter.run(program).runAsync
+    val f = interpreter.run(program).runAsync
+
+    Await.result(f, Duration.Inf)
+
+    system.terminate()
 
 //    val writer = new FileWriter("mapping/users.json")
 //    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)
@@ -141,9 +147,7 @@ object App extends Logger {
     for {
       // Access check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
-      apiAccess <- fromBacklog(backlogApi.projectApi.byIdOrKey(
-        KeyParam(Key[Project](config.projectKey))
-      ))
+      apiAccess <- fromBacklog(backlogApi.spaceApi.logo)
       _ <- apiAccess.orExit(
         Messages("validation.access.ok", Messages("name.backlog")),
         Messages("validation.access.error", Messages("name.backlog"))

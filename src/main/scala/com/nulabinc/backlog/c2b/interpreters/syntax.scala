@@ -10,7 +10,7 @@ object syntax {
     def orExit(successMessage: String, failureMessage: String): AppProgram[Unit] =
       response match {
         case Right(_) => AppDSL.fromConsole(ConsoleDSL.print(successMessage))
-        case Left(error) => AppDSL.exit(error.toString, 1)
+        case Left(_) => AppDSL.exit(failureMessage, 1)
       }
   }
 }
