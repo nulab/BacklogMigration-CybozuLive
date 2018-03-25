@@ -47,7 +47,7 @@ lazy val root = (project in file("."))
         "com.github.scopt"      %% "scopt"            % "3.7.0",
         "com.typesafe.slick"    %% "slick"            % slickVersion,
         "com.typesafe.slick"    %% "slick-hikaricp"   % slickVersion,
-        "org.xerial"            %  "sqlite-jdbc"      % "3.8.7",
+        "org.xerial"            %  "sqlite-jdbc"      % "3.21.0",
         "io.monix"              %% "monix-reactive"   % "3.0.0-RC1",
         "io.monix"              %% "monix-nio"        % "0.0.3",
         "org.apache.commons"    %  "commons-csv"      % "1.5"
