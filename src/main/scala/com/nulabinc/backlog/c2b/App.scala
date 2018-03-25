@@ -99,12 +99,16 @@ object App extends Logger {
     val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
     val eventFiles = csvFiles.filter(_.getName.contains("live_Events_"))
+    val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_"))
 
     val issueObservable = CybozuConverter.toIssue(todoFiles, csvFormat)
     val eventObservable = CybozuConverter.toEvent(eventFiles, csvFormat)
+    val forumObservable = CybozuConverter.toForum(forumFiles, csvFormat)
 
     val program = for {
+      // Validation
       _ <- validationProgram(config, backlogApi)
+      // Read from CSV - Issue
       issueId <- AppDSL.fromDB(StoreDSL.writeDBStream(issueObservable.map(issue => StoreDSL.storeIssue(issue._1))))
       _ <- AppDSL.fromDB(
         StoreDSL.writeDBStream {
@@ -114,11 +118,22 @@ object App extends Logger {
           }
         }
       )
+      // Read from CSV - Event
       eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(eventObservable.map(event => StoreDSL.storeEvent(event._1))))
       _ <- AppDSL.fromDB(
         StoreDSL.writeDBStream {
           eventObservable.map { data =>
             val comments = CybozuConverter.toComments(eventId, data._2)
+            StoreDSL.storeComments(comments)
+          }
+        }
+      )
+      // Read from CSV - Forum
+      forumId <- AppDSL.fromDB(StoreDSL.writeDBStream(forumObservable.map(forum => StoreDSL.storeForum(forum._1))))
+      _ <- AppDSL.fromDB(
+        StoreDSL.writeDBStream {
+          eventObservable.map { data =>
+            val comments = CybozuConverter.toComments(forumId, data._2)
             StoreDSL.storeComments(comments)
           }
         }

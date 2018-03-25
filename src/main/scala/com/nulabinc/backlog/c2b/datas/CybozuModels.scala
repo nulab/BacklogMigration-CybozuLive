@@ -94,8 +94,24 @@ case class CybozuForum(
   id: AnyId,
   title: String,
   content: String,
-  creatorId: AnyId,
+  creator: CybozuUser,
   createdAt: DateTime,
-  updaterId: AnyId,
+  updater: CybozuUser,
   updatedAt: DateTime
 ) extends Entity
+
+object CybozuForum {
+
+  val tupled = (this.apply _).tupled
+
+  def from(forum: CybozuCSVForum): CybozuForum =
+    new CybozuForum(
+      id = 0,
+      title = forum.title,
+      content = forum.content,
+      creator = CybozuUser(forum.creator.value),
+      createdAt = forum.createdAt,
+      updater = CybozuUser(forum.updater.value),
+      updatedAt = forum.updatedAt
+    )
+}

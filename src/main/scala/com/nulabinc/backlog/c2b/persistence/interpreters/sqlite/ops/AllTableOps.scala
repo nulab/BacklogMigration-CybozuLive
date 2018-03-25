@@ -1,6 +1,8 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
-private[sqlite] case class AllTableOps() {
+import monix.execution.Scheduler
+
+private[sqlite] case class AllTableOps()(implicit exc: Scheduler) {
   val commentTableOps = CommentTableOps()
   val eventTableOps = EventTableOps()
   val forumTableOps = ForumTableOps()

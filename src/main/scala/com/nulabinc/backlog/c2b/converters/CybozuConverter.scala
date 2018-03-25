@@ -41,4 +41,17 @@ object CybozuConverter {
             case Left(error) => throw new RuntimeException(error.toString)
           }.headL
       }
+
+  def toForum(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuForum, Seq[CybozuCSVComment])] =
+    Observable
+      .fromIterable(files)
+      .mapParallelUnordered(files.length) { file =>
+        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+          .drop(1)
+          .map(CSVRecordParser.forum)
+          .map {
+            case Right(csvForum) => (CybozuForum.from(csvForum), csvForum.comments)
+            case Left(error) => throw new RuntimeException(error.toString)
+          }.headL
+      }
 }
