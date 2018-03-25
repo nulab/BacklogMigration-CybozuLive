@@ -15,4 +15,7 @@ object StorageDSL {
   def writeFile(path: Path, writeStream: Observable[Array[Byte]]): StorageProgram[Unit] =
     Free.liftF(WriteFile(path, writeStream))
 
+  def deleteFile(path: Path): StorageProgram[Boolean] =
+    Free.liftF(DeleteFile(path))
+
 }

@@ -7,3 +7,4 @@ import monix.reactive.Observable
 sealed trait StorageADT[A]
 case class ReadFile(path: Path) extends StorageADT[Observable[Array[Byte]]]
 case class WriteFile(path: Path, writeStream: Observable[Array[Byte]]) extends StorageADT[Unit]
+case class DeleteFile(path: Path) extends StorageADT[Boolean]

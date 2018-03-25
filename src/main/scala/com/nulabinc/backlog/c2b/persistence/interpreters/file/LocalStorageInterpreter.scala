@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
-import com.nulabinc.backlog.c2b.persistence.dsl.{ReadFile, StorageADT, WriteFile}
+import com.nulabinc.backlog.c2b.persistence.dsl.{DeleteFile, ReadFile, StorageADT, WriteFile}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
@@ -27,5 +27,8 @@ class LocalStorageInterpreter extends StorageInterpreter {
           writeStream.consumeWith(writeAsync(path)).runAsync
         }.map(_ => ())
       }
+    case DeleteFile(path) => Task {
+      path.toFile.delete()
+    }
   }
 }
