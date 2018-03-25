@@ -28,7 +28,7 @@ case class FromCybozuForum(
 
 class IssueConverter()(implicit ctx: MappingContext) extends Converter[IssueFrom, BacklogIssue]{
 
-  val userConverter = new UserConverter()
+  val userConverter = new BacklogUserConverter()
 
   override def to(issueFrom: IssueFrom): Either[ConvertError, BacklogIssue] = issueFrom match {
     case fromCybozuIssue: FromCybozuIssue =>

@@ -10,9 +10,8 @@ private[sqlite] case class IssueTableOps() extends BaseTableOps[CybozuIssue, Iss
 
   protected def tableQuery = TableQuery[IssueTable]
 
-  def save(issue: CybozuIssue): DBIOWrite[CybozuIssue] =
+  def save(issue: CybozuIssue): DBIOWrite =
     tableQuery
-      .filter(_.id === issue.id)
       .insertOrUpdate(issue)
       .transactionally
 

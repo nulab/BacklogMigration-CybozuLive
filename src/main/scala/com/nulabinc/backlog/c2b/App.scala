@@ -7,32 +7,32 @@ import java.util.Locale
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import backlog4s.apis.AllApi
-import backlog4s.datas.{Key, KeyParam, Project}
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
+import com.nulabinc.backlog.c2b.converters.CybozuConverter
 import com.nulabinc.backlog.c2b.core.Logger
-import com.nulabinc.backlog.c2b.datas.{CybozuCSVIssue, CybozuIssue}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
-import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser, ParseError}
-import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
+import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser}
+import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
-import monix.eval.Task
 import monix.execution.Scheduler
-import monix.reactive.{Consumer, Observable}
+import monix.reactive.Observable
 import org.apache.commons.csv.{CSVFormat, CSVParser}
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
-import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object App extends Logger {
 
   val DATA_PATHS: Path = Paths.get("./data")
+  val DB_PATH: Path = Paths.get("./data/data.db")
 
   def main(args: Array[String]): Unit = {
 
@@ -44,7 +44,7 @@ object App extends Logger {
     val language      = appConfig.getString("language")
 
     // start
-    Console.printBanner(appName)
+    Console.printBanner(appName, appVersion)
 
     // ------------------------------------------------------------------------
     // initialize
@@ -99,37 +99,57 @@ object App extends Logger {
     val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
     val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
+    val eventFiles = csvFiles.filter(_.getName.contains("live_Events_"))
+    val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_"))
 
-    val printingResults: Consumer[CybozuIssue, Unit] =
-      Consumer.foreachParallelTask(10)(_ => Task.unit)
-
-    val issueObservable = Observable
-      .fromIterable(todoFiles)
-      .mapParallelUnordered(todoFiles.length) { file =>
-        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
-          .drop(1)
-          .map(CSVRecordParser.issue)
-          .map {
-            case Right(csvIssue) => CybozuIssue.from(csvIssue)
-            case Left(error) => throw new RuntimeException(error.toString)
-          }
-          .consumeWith {
-            Consumer.foreachParallelTask(10) { issue =>
-              val dbProgram = for {
-                _ <- AppDSL.fromDB(StoreDSL.storeIssue(issue))
-              } yield ()
-              interpreter.run(dbProgram)
-            }
-          }
-      }
-//      .completedL
-//      .runAsync
+    val issueObservable = CybozuConverter.toIssue(todoFiles, csvFormat)
+    val eventObservable = CybozuConverter.toEvent(eventFiles, csvFormat)
+    val forumObservable = CybozuConverter.toForum(forumFiles, csvFormat)
 
     val program = for {
+      // Validation
       _ <- validationProgram(config, backlogApi)
+      // Delete database
+      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(DB_PATH))
+      // Create database
+      _ <- AppDSL.fromDB(StoreDSL.createDatabase)
+      // Read from CSV - Issue
+      issueId <- AppDSL.fromDB(StoreDSL.writeDBStream(issueObservable.map(issue => StoreDSL.storeIssue(issue._1))))
+      _ <- AppDSL.fromDB(
+        StoreDSL.writeDBStream {
+          issueObservable.map { data =>
+            val comments = CybozuConverter.toComments(issueId, data._2)
+            StoreDSL.storeComments(comments)
+          }
+        }
+      )
+      // Read from CSV - Event
+//      eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(eventObservable.map(event => StoreDSL.storeEvent(event._1))))
+//      _ <- AppDSL.fromDB(
+//        StoreDSL.writeDBStream {
+//          eventObservable.map { data =>
+//            val comments = CybozuConverter.toComments(eventId, data._2)
+//            StoreDSL.storeComments(comments)
+//          }
+//        }
+//      )
+      // Read from CSV - Forum
+//      forumId <- AppDSL.fromDB(StoreDSL.writeDBStream(forumObservable.map(forum => StoreDSL.storeForum(forum._1))))
+//      _ <- AppDSL.fromDB(
+//        StoreDSL.writeDBStream {
+//          eventObservable.map { data =>
+//            val comments = CybozuConverter.toComments(forumId, data._2)
+//            StoreDSL.storeComments(comments)
+//          }
+//        }
+//      )
     } yield ()
 
-    interpreter.run(program).runAsync
+    val f = interpreter.run(program).runAsync
+
+    Await.result(f, Duration.Inf)
+
+    system.terminate()
 
 //    val writer = new FileWriter("mapping/users.json")
 //    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)
@@ -153,9 +173,7 @@ object App extends Logger {
     for {
       // Access check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
-      apiAccess <- fromBacklog(backlogApi.projectApi.byIdOrKey(
-        KeyParam(Key[Project](config.projectKey))
-      ))
+      apiAccess <- fromBacklog(backlogApi.spaceApi.logo)
       _ <- apiAccess.orExit(
         Messages("validation.access.ok", Messages("name.backlog")),
         Messages("validation.access.error", Messages("name.backlog"))
