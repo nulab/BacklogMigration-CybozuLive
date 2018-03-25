@@ -45,10 +45,24 @@ object CybozuIssue {
 case class CybozuComment(
   id: AnyId,
   parentId: AnyId,
-  creatorId: AnyId,
+  creator: CybozuUser,
   createdAt: DateTime,
   content: String
 ) extends Entity
+
+object CybozuComment {
+
+  val tupled = (this.apply _).tupled
+
+  def from(parentIssueId: AnyId, comment: CybozuCSVComment): CybozuComment =
+    new CybozuComment(
+      id = 0,
+      parentId = parentIssueId,
+      creator = CybozuUser(comment.creator.value),
+      createdAt = comment.createdAt,
+      content = comment.content
+    )
+}
 
 case class CybozuEvent(
   id: AnyId,
