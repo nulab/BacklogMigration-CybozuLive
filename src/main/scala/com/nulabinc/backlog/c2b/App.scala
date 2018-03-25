@@ -124,25 +124,25 @@ object App extends Logger {
         }
       )
       // Read from CSV - Event
-      eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(eventObservable.map(event => StoreDSL.storeEvent(event._1))))
-      _ <- AppDSL.fromDB(
-        StoreDSL.writeDBStream {
-          eventObservable.map { data =>
-            val comments = CybozuConverter.toComments(eventId, data._2)
-            StoreDSL.storeComments(comments)
-          }
-        }
-      )
+//      eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(eventObservable.map(event => StoreDSL.storeEvent(event._1))))
+//      _ <- AppDSL.fromDB(
+//        StoreDSL.writeDBStream {
+//          eventObservable.map { data =>
+//            val comments = CybozuConverter.toComments(eventId, data._2)
+//            StoreDSL.storeComments(comments)
+//          }
+//        }
+//      )
       // Read from CSV - Forum
-      forumId <- AppDSL.fromDB(StoreDSL.writeDBStream(forumObservable.map(forum => StoreDSL.storeForum(forum._1))))
-      _ <- AppDSL.fromDB(
-        StoreDSL.writeDBStream {
-          eventObservable.map { data =>
-            val comments = CybozuConverter.toComments(forumId, data._2)
-            StoreDSL.storeComments(comments)
-          }
-        }
-      )
+//      forumId <- AppDSL.fromDB(StoreDSL.writeDBStream(forumObservable.map(forum => StoreDSL.storeForum(forum._1))))
+//      _ <- AppDSL.fromDB(
+//        StoreDSL.writeDBStream {
+//          eventObservable.map { data =>
+//            val comments = CybozuConverter.toComments(forumId, data._2)
+//            StoreDSL.storeComments(comments)
+//          }
+//        }
+//      )
     } yield ()
 
     val f = interpreter.run(program).runAsync
