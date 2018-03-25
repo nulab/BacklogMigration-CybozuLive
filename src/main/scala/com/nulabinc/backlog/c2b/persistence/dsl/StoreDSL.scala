@@ -15,6 +15,9 @@ object StoreDSL {
   def pure[A](a: A): StoreProgram[A] =
     Free.liftF(Pure(a))
 
+  lazy val createDatabase: StoreProgram[Unit] =
+    Free.liftF(CreateDatabase)
+
   lazy val getIssues: StoreProgram[Observable[CybozuIssue]] =
     Free.liftF(GetIssues)
 

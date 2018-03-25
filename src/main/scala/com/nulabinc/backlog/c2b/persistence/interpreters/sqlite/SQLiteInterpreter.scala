@@ -27,6 +27,15 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
     fa match {
       case Pure(a) =>
         Task(a)
+      case CreateDatabase => Task.deferFuture {
+        val sqls = DBIO.seq(
+          issueTableOps.createTable,
+          commentTableOps.createTable,
+          eventTableOps.createTable,
+          forumTableOps.createTable
+        )
+        db.run(sqls)
+      }
       case GetIssues => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(issueTableOps.stream)

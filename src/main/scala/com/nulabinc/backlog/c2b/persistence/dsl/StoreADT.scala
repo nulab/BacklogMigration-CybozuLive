@@ -9,6 +9,8 @@ sealed trait StoreADT[A]
 
 case class Pure[A](a: A) extends StoreADT[A]
 
+case object CreateDatabase extends StoreADT[Unit]
+
 case object GetIssues extends StoreADT[Observable[CybozuIssue]]
 case class StoreIssue(issue: CybozuIssue) extends StoreADT[AnyId]
 

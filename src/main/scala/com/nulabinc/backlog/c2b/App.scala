@@ -108,6 +108,8 @@ object App extends Logger {
     val program = for {
       // Validation
       _ <- validationProgram(config, backlogApi)
+      // Create database
+      _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read from CSV - Issue
       issueId <- AppDSL.fromDB(StoreDSL.writeDBStream(issueObservable.map(issue => StoreDSL.storeIssue(issue._1))))
       _ <- AppDSL.fromDB(
