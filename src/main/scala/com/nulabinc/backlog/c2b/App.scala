@@ -98,8 +98,10 @@ object App extends Logger {
     val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
     val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
+    val eventFiles = csvFiles.filter(_.getName.contains("live_Events_"))
 
-    val issueObservable = CybozuConverter.to(todoFiles, csvFormat)
+    val issueObservable = CybozuConverter.toIssue(todoFiles, csvFormat)
+    val eventObservable = CybozuConverter.toEvent(eventFiles, csvFormat)
 
     val program = for {
       _ <- validationProgram(config, backlogApi)
@@ -107,8 +109,17 @@ object App extends Logger {
       _ <- AppDSL.fromDB(
         StoreDSL.writeDBStream {
           issueObservable.map { data =>
-            val comments = CybozuConverter.to(issueId, data._2)
-            StoreDSL.storeIssueComments(comments)
+            val comments = CybozuConverter.toComments(issueId, data._2)
+            StoreDSL.storeComments(comments)
+          }
+        }
+      )
+      eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(eventObservable.map(event => StoreDSL.storeEvent(event._1))))
+      _ <- AppDSL.fromDB(
+        StoreDSL.writeDBStream {
+          eventObservable.map { data =>
+            val comments = CybozuConverter.toComments(eventId, data._2)
+            StoreDSL.storeComments(comments)
           }
         }
       )

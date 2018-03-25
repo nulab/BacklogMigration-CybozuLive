@@ -33,7 +33,7 @@ object StoreDSL {
   def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
     Free.liftF(StoreComment(comment))
 
-  def storeIssueComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
+  def storeComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
     Free.liftF(StoreComments(comments))
 
 //  def getPriorities: StoreProgram[Observable[CybozuCSVPriority]] =

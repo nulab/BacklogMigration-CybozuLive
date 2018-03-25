@@ -71,8 +71,24 @@ case class CybozuEvent(
   menu: String,
   title: String,
   memo: String,
-  creatorId: AnyId
+  creator: CybozuUser
 ) extends Entity
+
+object CybozuEvent {
+
+  val tupled = (this.apply _).tupled
+
+  def from(event: CybozuCSVEvent): CybozuEvent =
+    new CybozuEvent(
+      id = 0,
+      startDateTime = event.startDateTime,
+      endDateTime = event.endDateTime,
+      menu = event.menu,
+      title = event.title,
+      memo = event.memo,
+      creator = CybozuUser(event.creator.value)
+    )
+}
 
 case class CybozuForum(
   id: AnyId,

@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 
 object CybozuConverter {
 
-  def to(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuIssue, Seq[CybozuCSVComment])] =
+  def toIssue(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuIssue, Seq[CybozuCSVComment])] =
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
@@ -26,7 +26,19 @@ object CybozuConverter {
           }.headL
       }
 
-  def to(parentIssueId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
+  def toComments(parentIssueId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
     comments.map(c => CybozuComment.from(parentIssueId, c))
 
+  def toEvent(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuEvent, Seq[CybozuCSVComment])] =
+    Observable
+      .fromIterable(files)
+      .mapParallelUnordered(files.length) { file =>
+        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+          .drop(1)
+          .map(CSVRecordParser.event)
+          .map {
+            case Right(csvEvent) => (CybozuEvent.from(csvEvent), csvEvent.comments)
+            case Left(error) => throw new RuntimeException(error.toString)
+          }.headL
+      }
 }
