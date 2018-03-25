@@ -9,7 +9,7 @@ import akka.stream.ActorMaterializer
 import backlog4s.apis.AllApi
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.converters.CybozuIssueConverter
+import com.nulabinc.backlog.c2b.converters.CybozuConverter
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
@@ -99,11 +99,19 @@ object App extends Logger {
     val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
 
-    val issueObservable = CybozuIssueConverter.to(todoFiles, csvFormat)
+    val issueObservable = CybozuConverter.to(todoFiles, csvFormat)
 
     val program = for {
       _ <- validationProgram(config, backlogApi)
-      _ <- AppDSL.fromDB(StoreDSL.writeDBStream(issueObservable.map(issue => StoreDSL.storeIssue(issue))))
+      issueId <- AppDSL.fromDB(StoreDSL.writeDBStream(issueObservable.map(issue => StoreDSL.storeIssue(issue._1))))
+      _ <- AppDSL.fromDB(
+        StoreDSL.writeDBStream {
+          issueObservable.map { data =>
+            val comments = CybozuConverter.to(issueId, data._2)
+            StoreDSL.storeIssueComments(comments)
+          }
+        }
+      )
     } yield ()
 
     val f = interpreter.run(program).runAsync

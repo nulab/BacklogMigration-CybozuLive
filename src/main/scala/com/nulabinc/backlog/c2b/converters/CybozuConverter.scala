@@ -3,6 +3,7 @@ package com.nulabinc.backlog.c2b.converters
 import java.io.File
 import java.nio.charset.Charset
 
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.parsers.CSVRecordParser
 import monix.reactive.Observable
@@ -10,9 +11,9 @@ import org.apache.commons.csv.{CSVFormat, CSVParser}
 
 import scala.collection.JavaConverters._
 
-object CybozuIssueConverter {
+object CybozuConverter {
 
-  def to(files: Array[File], csvFormat: CSVFormat): Observable[CybozuIssue] =
+  def to(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuIssue, Seq[CybozuCSVComment])] =
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
@@ -20,8 +21,12 @@ object CybozuIssueConverter {
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
-            case Right(csvIssue) => CybozuIssue.from(csvIssue)
+            case Right(csvIssue) => (CybozuIssue.from(csvIssue), csvIssue.comments)
             case Left(error) => throw new RuntimeException(error.toString)
           }.headL
       }
+
+  def to(parentIssueId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
+    comments.map(c => CybozuComment.from(parentIssueId, c))
+
 }
