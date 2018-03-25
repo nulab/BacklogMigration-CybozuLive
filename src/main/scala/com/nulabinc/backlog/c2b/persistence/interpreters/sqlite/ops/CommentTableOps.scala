@@ -12,9 +12,9 @@ private[sqlite] case class CommentTableOps()(implicit exc: Scheduler) extends Ba
 
   protected val tableQuery = TableQuery[CommentTable]
 
-  def save(comment: CybozuComment): DBIOWrite[AnyId] =
+  def save(comment: CybozuComment): DBIOWrite =
     tableQuery
-      .filter(_.id === comment.id)
+//      .filter(_.id === comment.id)
       .insertOrUpdate(comment)
       .transactionally
 
