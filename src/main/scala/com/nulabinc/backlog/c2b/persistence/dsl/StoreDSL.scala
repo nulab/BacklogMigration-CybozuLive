@@ -33,6 +33,9 @@ object StoreDSL {
   def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
     Free.liftF(StoreComment(comment))
 
+  def storeComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
+    Free.liftF(StoreComments(comments))
+
 //  def getPriorities: StoreProgram[Observable[CybozuCSVPriority]] =
 //    Free.liftF(GetPriorities)
 //
@@ -52,5 +55,8 @@ object StoreDSL {
 
   def storeForum(forum: CybozuForum): StoreProgram[AnyId] =
     Free.liftF(StoreForum(forum))
+
+  def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[AnyId] =
+    Free.liftF[StoreADT, AnyId](WriteDBStream(stream))
 
 }

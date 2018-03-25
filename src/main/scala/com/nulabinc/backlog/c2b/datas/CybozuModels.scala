@@ -45,10 +45,24 @@ object CybozuIssue {
 case class CybozuComment(
   id: AnyId,
   parentId: AnyId,
-  creatorId: AnyId,
+  creator: CybozuUser,
   createdAt: DateTime,
   content: String
 ) extends Entity
+
+object CybozuComment {
+
+  val tupled = (this.apply _).tupled
+
+  def from(parentIssueId: AnyId, comment: CybozuCSVComment): CybozuComment =
+    new CybozuComment(
+      id = 0,
+      parentId = parentIssueId,
+      creator = CybozuUser(comment.creator.value),
+      createdAt = comment.createdAt,
+      content = comment.content
+    )
+}
 
 case class CybozuEvent(
   id: AnyId,
@@ -57,15 +71,47 @@ case class CybozuEvent(
   menu: String,
   title: String,
   memo: String,
-  creatorId: AnyId
+  creator: CybozuUser
 ) extends Entity
+
+object CybozuEvent {
+
+  val tupled = (this.apply _).tupled
+
+  def from(event: CybozuCSVEvent): CybozuEvent =
+    new CybozuEvent(
+      id = 0,
+      startDateTime = event.startDateTime,
+      endDateTime = event.endDateTime,
+      menu = event.menu,
+      title = event.title,
+      memo = event.memo,
+      creator = CybozuUser(event.creator.value)
+    )
+}
 
 case class CybozuForum(
   id: AnyId,
   title: String,
   content: String,
-  creatorId: AnyId,
+  creator: CybozuUser,
   createdAt: DateTime,
-  updaterId: AnyId,
+  updater: CybozuUser,
   updatedAt: DateTime
 ) extends Entity
+
+object CybozuForum {
+
+  val tupled = (this.apply _).tupled
+
+  def from(forum: CybozuCSVForum): CybozuForum =
+    new CybozuForum(
+      id = 0,
+      title = forum.title,
+      content = forum.content,
+      creator = CybozuUser(forum.creator.value),
+      createdAt = forum.createdAt,
+      updater = CybozuUser(forum.updater.value),
+      updatedAt = forum.updatedAt
+    )
+}

@@ -5,12 +5,11 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
 import monix.eval.Task
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops.AllTableOps
+import monix.execution.Scheduler
 import monix.reactive.Observable
 import slick.jdbc.SQLiteProfile.api._
 
-import scala.concurrent.Future
-
-class SQLiteInterpreter(configPath: String) extends DBInterpreter {
+class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBInterpreter {
 
   val allTableOps = AllTableOps()
 
@@ -58,8 +57,16 @@ class SQLiteInterpreter(configPath: String) extends DBInterpreter {
         )
       }
       case StoreComment(comment) => Task.deferFuture {
-        db.run(commentTableOps.save(comment))
+        val a = commentTableOps.save(comment)
+        db.run(a)
       }
+      case StoreComments(comments) => Task.deferFuture {
+        db.run(commentTableOps.save(comments))
+          .map(_.map(_.id))
+      }
+      case WriteDBStream(stream) =>
+        stream.map(_.asInstanceOf[StoreProgram[A]]).mapTask[A](run).headL
+
     }
   }
 
