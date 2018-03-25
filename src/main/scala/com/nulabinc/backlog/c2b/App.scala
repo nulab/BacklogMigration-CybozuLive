@@ -14,7 +14,7 @@ import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser}
-import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
+import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
@@ -32,6 +32,7 @@ import scala.concurrent.duration.Duration
 object App extends Logger {
 
   val DATA_PATHS: Path = Paths.get("./data")
+  val DB_PATH: Path = Paths.get("./data/data.db")
 
   def main(args: Array[String]): Unit = {
 
@@ -43,7 +44,7 @@ object App extends Logger {
     val language      = appConfig.getString("language")
 
     // start
-    Console.printBanner(appName)
+    Console.printBanner(appName, appVersion)
 
     // ------------------------------------------------------------------------
     // initialize
@@ -108,6 +109,8 @@ object App extends Logger {
     val program = for {
       // Validation
       _ <- validationProgram(config, backlogApi)
+      // Delete database
+      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(DB_PATH))
       // Create database
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read from CSV - Issue

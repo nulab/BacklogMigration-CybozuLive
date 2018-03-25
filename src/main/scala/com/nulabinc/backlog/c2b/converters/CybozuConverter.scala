@@ -13,11 +13,13 @@ import scala.collection.JavaConverters._
 
 object CybozuConverter {
 
+  val charset: Charset = Charset.forName("UTF-8")
+
   def toIssue(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuIssue, Seq[CybozuCSVComment])] =
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
-        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+        Observable.fromIterator(CSVParser.parse(file, charset, csvFormat).iterator().asScala)
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
@@ -26,14 +28,14 @@ object CybozuConverter {
           }.headL
       }
 
-  def toComments(parentIssueId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
-    comments.map(c => CybozuComment.from(parentIssueId, c))
+  def toComments(parentId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
+    comments.map(c => CybozuComment.from(parentId, c))
 
   def toEvent(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuEvent, Seq[CybozuCSVComment])] =
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
-        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+        Observable.fromIterator(CSVParser.parse(file, charset, csvFormat).iterator().asScala)
           .drop(1)
           .map(CSVRecordParser.event)
           .map {
@@ -46,7 +48,7 @@ object CybozuConverter {
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
-        Observable.fromIterator(CSVParser.parse(file, Charset.forName("UTF-8"), csvFormat).iterator().asScala)
+        Observable.fromIterator(CSVParser.parse(file, charset, csvFormat).iterator().asScala)
           .drop(1)
           .map(CSVRecordParser.forum)
           .map {
