@@ -18,12 +18,9 @@ private[sqlite] case class CommentTableOps()(implicit exc: Scheduler) extends Ba
       .insertOrUpdate(comment)
       .transactionally
 
-  def save(comments: Seq[CybozuComment]): DBIOWrites[CybozuComment] =
+  def save(comments: Seq[CybozuComment]): DBIOWrites[AnyId] =
     DBIO.sequence(comments.map { current =>
-      tableQuery.filter(_.id === current.id).result.headOption.flatMap {
-        case Some(category) => DBIO.successful(category)
-        case None => tableQuery.returning(tableQuery) += current
-      }
+      tableQuery.insertOrUpdate(current)
     })
 
   def streamByParentId(id: AnyId): DBIOStream[CybozuComment] =

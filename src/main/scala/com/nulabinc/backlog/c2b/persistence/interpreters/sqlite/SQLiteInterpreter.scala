@@ -71,7 +71,6 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       }
       case StoreComments(comments) => Task.deferFuture {
         db.run(commentTableOps.save(comments))
-          .map(_.map(_.id))
       }
       case WriteDBStream(stream) =>
         stream.map(_.asInstanceOf[StoreProgram[A]]).mapTask[A](run).headL
