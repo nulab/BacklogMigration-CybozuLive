@@ -26,6 +26,11 @@ case class StoreForum(forum: CybozuForum) extends StoreADT[AnyId]
 
 case class WriteDBStream[A](stream: Observable[StoreProgram[A]]) extends StoreADT[AnyId]
 
+case object GetBacklogUsers extends StoreADT[Observable[BacklogUser]]
 case class StoreBacklogUser(user: BacklogUser) extends StoreADT[AnyId]
+
+case object GetBacklogPriorities extends StoreADT[Observable[BacklogPriority]]
 case class StoreBacklogPriorities(priorities: Seq[BacklogPriority]) extends StoreADT[Seq[AnyId]]
+
+case object GetBacklogStatuses extends StoreADT[Observable[BacklogStatus]]
 case class StoreBacklogStatuses(statuses: Seq[BacklogStatus]) extends StoreADT[Seq[AnyId]]

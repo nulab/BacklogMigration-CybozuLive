@@ -78,11 +78,26 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       case StoreBacklogUser(user) => Task.deferFuture {
         db.run(backlogUserTableOps.save(user))
       }
+      case GetBacklogUsers => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(backlogUserTableOps.stream)
+        )
+      }
       case StoreBacklogPriorities(priority) => Task.deferFuture {
         db.run(backlogPriorityTableOps.save(priority))
       }
+      case GetBacklogPriorities => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(backlogPriorityTableOps.stream)
+        )
+      }
       case StoreBacklogStatuses(statuses) => Task.deferFuture {
         db.run(backlogStatusTableOps.save(statuses))
+      }
+      case GetBacklogStatuses => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(backlogStatusTableOps.stream)
+        )
       }
       case WriteDBStream(stream) =>
         stream.map(_.asInstanceOf[StoreProgram[A]]).mapTask[A](run).headL
