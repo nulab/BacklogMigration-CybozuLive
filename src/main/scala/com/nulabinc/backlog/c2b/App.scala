@@ -174,17 +174,7 @@ object App extends Logger {
         users.map { user =>
           for {
             _ <- AppDSL.pure(user)
-            _ <- AppDSL.fromDB(
-              StoreDSL.storeBacklogUser(
-                BacklogUser(
-                  id = 0,
-                  key = user.id.value,
-                  userId = user.userId,
-                  name = user.name,
-                  emailAddress = user.mailAddress
-                )
-              )
-            )
+            _ <- AppDSL.fromDB(StoreDSL.storeBacklogUser(BacklogUser.from(user)))
           } yield ()
         }
       }
