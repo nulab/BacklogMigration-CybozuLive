@@ -11,7 +11,7 @@ import backlog4s.streaming.ApiStream
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.converters.CybozuConverter
 import com.nulabinc.backlog.c2b.core.Logger
-import com.nulabinc.backlog.c2b.datas.{BacklogPriority, BacklogUser}
+import com.nulabinc.backlog.c2b.datas.{BacklogPriority, BacklogStatus, BacklogUser}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.TaskUtils.Suspend
 import com.nulabinc.backlog.c2b.interpreters._
@@ -153,6 +153,15 @@ object App extends Logger {
         case Right(data) =>
           val items = data.map(p => BacklogPriority(0, p.name))
           AppDSL.fromDB(StoreDSL.storeBacklogPriorities(items))
+        case Left(error) =>
+          AppDSL.exit(error.toString, 1)
+      }
+      // Collect Backlog statuses
+      backlogStatuses <- AppDSL.fromBacklog(backlogApi.statusApi.all)
+      _ <- backlogStatuses match {
+        case Right(data) =>
+          val items = data.map(p => BacklogStatus(0, p.name))
+          AppDSL.fromDB(StoreDSL.storeBacklogStatuses(items))
         case Left(error) =>
           AppDSL.exit(error.toString, 1)
       }

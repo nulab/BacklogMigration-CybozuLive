@@ -34,7 +34,8 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
           eventTableOps.createTable,
           forumTableOps.createTable,
           backlogUserTableOps.createTable,
-          backlogPriorityTableOps.createTable
+          backlogPriorityTableOps.createTable,
+          backlogStatusTableOps.createTable
         )
         db.run(sqls)
       }
@@ -79,6 +80,9 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       }
       case StoreBacklogPriorities(priority) => Task.deferFuture {
         db.run(backlogPriorityTableOps.save(priority))
+      }
+      case StoreBacklogStatuses(statuses) => Task.deferFuture {
+        db.run(backlogStatusTableOps.save(statuses))
       }
       case WriteDBStream(stream) =>
         stream.map(_.asInstanceOf[StoreProgram[A]]).mapTask[A](run).headL

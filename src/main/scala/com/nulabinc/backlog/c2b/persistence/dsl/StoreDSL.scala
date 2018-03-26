@@ -68,4 +68,7 @@ object StoreDSL {
   def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Seq[AnyId]] =
     Free.liftF(StoreBacklogPriorities(priorities))
 
+  def storeBacklogStatuses(statuses: Seq[BacklogStatus]): StoreProgram[Seq[AnyId]] =
+    Free.liftF(StoreBacklogStatuses(statuses))
+
 }

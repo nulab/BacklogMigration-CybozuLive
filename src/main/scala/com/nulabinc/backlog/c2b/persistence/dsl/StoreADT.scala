@@ -18,13 +18,6 @@ case class GetIssueComments(issue: CybozuIssue) extends StoreADT[Observable[Cybo
 case class StoreComment(comment: CybozuComment) extends StoreADT[AnyId]
 case class StoreComments(comments: Seq[CybozuComment]) extends StoreADT[Seq[AnyId]]
 
-// TODO: Add later
-//case object GetPriorities extends StoreADT[Observable[Seq[CybozuPriority]]]
-//case class StorePriority(priority: CybozuPriority) extends StoreADT[Unit]
-//
-//case object GetStatuses extends StoreADT[Observable[Seq[CybozuStatus]]]
-//case class StoreStatus(status: CybozuStatus) extends StoreADT[Unit]
-
 case object GetEvents extends StoreADT[Observable[CybozuEvent]]
 case class StoreEvent(event: CybozuEvent) extends StoreADT[AnyId]
 
@@ -35,3 +28,4 @@ case class WriteDBStream[A](stream: Observable[StoreProgram[A]]) extends StoreAD
 
 case class StoreBacklogUser(user: BacklogUser) extends StoreADT[AnyId]
 case class StoreBacklogPriorities(priorities: Seq[BacklogPriority]) extends StoreADT[Seq[AnyId]]
+case class StoreBacklogStatuses(statuses: Seq[BacklogStatus]) extends StoreADT[Seq[AnyId]]

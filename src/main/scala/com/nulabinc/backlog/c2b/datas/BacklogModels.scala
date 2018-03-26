@@ -14,3 +14,8 @@ case class BacklogPriority(
   id: AnyId,
   name: String
 ) extends Entity
+
+case class BacklogStatus(
+  id: AnyId,
+  name: String
+) extends Entity
