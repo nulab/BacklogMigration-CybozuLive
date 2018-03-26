@@ -10,6 +10,12 @@ private[sqlite] case class IssueTableOps() extends BaseTableOps[CybozuIssue, Iss
 
   protected def tableQuery = TableQuery[IssueTable]
 
+  lazy val distinctPriorities =
+    tableQuery
+      .map(_.priority)
+      .distinct
+      .result
+
   def save(issue: CybozuIssue): DBIOWrite =
     tableQuery
       .insertOrUpdate(issue)

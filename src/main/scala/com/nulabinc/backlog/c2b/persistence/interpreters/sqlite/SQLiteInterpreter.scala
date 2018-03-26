@@ -99,6 +99,9 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
           db.stream(backlogStatusTableOps.stream)
         )
       }
+      case GetCybozuPriorities => Task.deferFuture {
+        db.run(issueTableOps.distinctPriorities)
+      }
       case WriteDBStream(stream) =>
         stream.map(_.asInstanceOf[StoreProgram[A]]).mapTask[A](run).headL
     }

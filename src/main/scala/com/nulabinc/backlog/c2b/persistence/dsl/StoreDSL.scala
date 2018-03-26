@@ -27,6 +27,9 @@ object StoreDSL {
   lazy val getForums: StoreProgram[Observable[CybozuForum]] =
     Free.liftF(GetForums)
 
+  lazy val getCybozuPriorities: StoreProgram[Seq[CybozuPriority]] =
+    Free.liftF(GetCybozuPriorities)
+
   lazy val getBacklogUsers: StoreProgram[Observable[BacklogUser]] =
     Free.liftF(GetBacklogUsers)
 
