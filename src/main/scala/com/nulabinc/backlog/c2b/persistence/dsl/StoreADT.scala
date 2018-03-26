@@ -32,3 +32,5 @@ case object GetForums extends StoreADT[Observable[CybozuForum]]
 case class StoreForum(forum: CybozuForum) extends StoreADT[AnyId]
 
 case class WriteDBStream[A](stream: Observable[StoreProgram[A]]) extends StoreADT[AnyId]
+
+case class StoreBacklogUser(user: BacklogUser) extends StoreADT[AnyId]

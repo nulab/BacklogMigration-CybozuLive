@@ -62,4 +62,7 @@ object StoreDSL {
   def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[AnyId] =
     Free.liftF[StoreADT, AnyId](WriteDBStream(stream))
 
+  def storeBacklogUser(user: BacklogUser): StoreProgram[AnyId] =
+    Free.liftF(StoreBacklogUser(user))
+
 }
