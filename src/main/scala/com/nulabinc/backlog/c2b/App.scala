@@ -8,10 +8,12 @@ import akka.stream.ActorMaterializer
 import backlog4s.apis.AllApi
 import backlog4s.interpreters.AkkaHttpInterpret
 import backlog4s.streaming.ApiStream
+import better.files.File
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.converters.CybozuConverter
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas.{BacklogPriority, BacklogStatus, BacklogUser}
+import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.TaskUtils.Suspend
 import com.nulabinc.backlog.c2b.interpreters._
@@ -84,8 +86,6 @@ object App extends Logger {
   }
 
   def init(config: Config): AppResult = {
-
-    import com.nulabinc.backlog.c2b.interpreters.syntax._
 
     implicit val system: ActorSystem = ActorSystem("init")
     implicit val mat: ActorMaterializer = ActorMaterializer()
@@ -178,6 +178,15 @@ object App extends Logger {
           } yield ()
         }
       }
+      // Write mapping files
+      _ <- for {
+        user <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
+        _ <- AppDSL.fromStorage(StorageDSL.writeFile(File("data/users.json").path, CSVRecordGenerator.userToByteArray(user)))
+        priorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
+        _ <- AppDSL.fromStorage(StorageDSL.writeFile(File("data/priorities.json").path, CSVRecordGenerator.priorityToByteArray(priorities)))
+        statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
+        _ <- AppDSL.fromStorage(StorageDSL.writeFile(File("data/statuses.json").path, CSVRecordGenerator.statusToByteArray(statuses)))
+      } yield ()
     } yield stream
 
     val f = interpreter.run(program).flatMap { userStream =>
