@@ -1,6 +1,5 @@
 package com.nulabinc.backlog.c2b
 
-import java.nio.charset.Charset
 import java.nio.file.{Path, Paths}
 import java.util.Locale
 
@@ -8,21 +7,23 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import backlog4s.apis.AllApi
 import backlog4s.interpreters.AkkaHttpInterpret
+import backlog4s.streaming.ApiStream
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.converters.CybozuConverter
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
-import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, ConfigParser}
+import com.nulabinc.backlog.c2b.interpreters.TaskUtils.Suspend
+import com.nulabinc.backlog.c2b.interpreters._
+import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
+import monix.eval.Task
 import monix.execution.Scheduler
-import monix.reactive.Observable
-import org.apache.commons.csv.{CSVFormat, CSVParser}
+import org.apache.commons.csv.CSVFormat
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
@@ -143,9 +144,34 @@ object App extends Logger {
 //          }
 //        }
 //      )
-    } yield ()
+      // Collect Backlog users
+      userStream = ApiStream.sequential(Int.MaxValue) (
+        (index, count) => backlogApi.userApi.all(offset = index, limit = count)
+      )
+      streamUsers <- AppDSL.fromBacklogStream(userStream)
+      stream = streamUsers.map { users =>
+        users.map { user =>
+          for {
+            _ <- AppDSL.pure(user)
+            _ <- AppDSL.fromConsole(ConsoleDSL.print(user.toString))
+          } yield ()
+        }
+      }
+    } yield stream
 
-    val f = interpreter.run(program).runAsync
+    val f = interpreter.run(program).flatMap { userStream =>
+      val future = userStream.mapTask { prgs =>
+        TaskUtils.sequential(
+          prgs.map { prg =>
+            Suspend(() => interpreter.run(prg))
+          }
+        )
+      }
+      Task.deferFuture {
+        future.runAsyncGetFirst
+      }
+    }.runAsync
+
 
     Await.result(f, Duration.Inf)
 
