@@ -11,7 +11,7 @@ import backlog4s.streaming.ApiStream
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.converters.CybozuConverter
 import com.nulabinc.backlog.c2b.core.Logger
-import com.nulabinc.backlog.c2b.datas.BacklogUser
+import com.nulabinc.backlog.c2b.datas.{BacklogPriority, BacklogUser}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.TaskUtils.Suspend
 import com.nulabinc.backlog.c2b.interpreters._
@@ -85,6 +85,8 @@ object App extends Logger {
 
   def init(config: Config): AppResult = {
 
+    import com.nulabinc.backlog.c2b.interpreters.syntax._
+
     implicit val system: ActorSystem = ActorSystem("init")
     implicit val mat: ActorMaterializer = ActorMaterializer()
     implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
@@ -145,6 +147,15 @@ object App extends Logger {
 //          }
 //        }
 //      )
+      // Collect Backlog priorities
+      backlogPriorities <- AppDSL.fromBacklog(backlogApi.priorityApi.all)
+      _ <- backlogPriorities match {
+        case Right(data) =>
+          val items = data.map(p => BacklogPriority(0, p.name))
+          AppDSL.fromDB(StoreDSL.storeBacklogPriorities(items))
+        case Left(error) =>
+          AppDSL.exit(error.toString, 1)
+      }
       // Collect Backlog users
       userStream = ApiStream.sequential(Int.MaxValue) (
         (index, count) => backlogApi.userApi.all(offset = index, limit = count)

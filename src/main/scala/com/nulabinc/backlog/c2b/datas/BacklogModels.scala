@@ -9,3 +9,8 @@ case class BacklogUser(
   name: String,
   emailAddress: String
 ) extends Entity
+
+case class BacklogPriority(
+  id: AnyId,
+  name: String
+) extends Entity

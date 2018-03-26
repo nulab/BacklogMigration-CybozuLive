@@ -8,4 +8,5 @@ private[sqlite] case class AllTableOps()(implicit exc: Scheduler) {
   val forumTableOps = ForumTableOps()
   val issueTableOps = IssueTableOps()
   val backlogUserTableOps = BacklogUserTableOps()
+  val backlogPriorityTableOps = BacklogPriorityTableOps()
 }

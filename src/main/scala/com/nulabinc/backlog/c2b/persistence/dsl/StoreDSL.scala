@@ -65,4 +65,7 @@ object StoreDSL {
   def storeBacklogUser(user: BacklogUser): StoreProgram[AnyId] =
     Free.liftF(StoreBacklogUser(user))
 
+  def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Seq[AnyId]] =
+    Free.liftF(StoreBacklogPriorities(priorities))
+
 }
