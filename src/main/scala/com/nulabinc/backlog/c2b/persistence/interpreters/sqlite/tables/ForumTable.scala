@@ -11,9 +11,9 @@ private[sqlite] class ForumTable(tag: Tag) extends BaseTable[CybozuForum](tag, "
 
   def title: Rep[String] = column[String]("title")
   def content: Rep[String] = column[String]("content")
-  def creator: Rep[CybozuUser] = column[CybozuUser]("creator")
+  def creator: Rep[AnyId] = column[AnyId]("creator_id")
   def createdAt: Rep[DateTime] = column[DateTime]("created_at")
-  def updater: Rep[CybozuUser] = column[CybozuUser]("updater")
+  def updater: Rep[AnyId] = column[AnyId]("updater_id")
   def updatedAt: Rep[DateTime] = column[DateTime]("updated_at")
 
   override def * : ProvenShape[CybozuForum] =

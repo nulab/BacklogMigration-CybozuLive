@@ -14,7 +14,7 @@ private[sqlite] class EventTable(tag: Tag) extends BaseTable[CybozuEvent](tag, "
   def menu: Rep[String] = column[String]("menu")
   def title: Rep[String] = column[String]("title")
   def memo: Rep[String] = column[String]("memo")
-  def creator: Rep[CybozuUser] = column[CybozuUser]("creator")
+  def creator: Rep[AnyId] = column[AnyId]("creator_id")
 
   override def * :ProvenShape[CybozuEvent] =
     (id, startDateTime, endDateTime, menu, title,

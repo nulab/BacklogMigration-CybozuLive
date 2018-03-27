@@ -18,9 +18,4 @@ private[sqlite] case class IssueTableOps() extends BaseTableOps[CybozuIssue, Iss
       .distinct
       .result
 
-  def save(issue: CybozuIssue): DBIOWrite =
-    tableQuery
-      .returning(tableQuery.map(_.id))
-      .insertOrUpdate(issue)
-
 }

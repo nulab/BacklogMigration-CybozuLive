@@ -10,9 +10,4 @@ private[sqlite] case class BacklogUserTableOps()(implicit exc: Scheduler) extend
 
   protected val tableQuery = TableQuery[BacklogUserTable]
 
-  def save(user: BacklogUser): DBIOWrite =
-    tableQuery
-      .returning(tableQuery.map(_.id))
-      .insertOrUpdate(user)
-
 }

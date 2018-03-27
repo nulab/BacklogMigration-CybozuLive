@@ -1,5 +1,6 @@
 package com.nulabinc.backlog.c2b.interpreters
 
+
 import backlog4s.dsl.ApiDsl.ApiPrg
 import backlog4s.dsl.BacklogHttpInterpret
 import backlog4s.streaming.ApiStream.ApiStream
@@ -12,7 +13,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
 import monix.eval.Task
 import monix.execution.Scheduler
-import monix.reactive.Observable
+import monix.reactive.{Consumer, Observable}
 import org.fusesource.jansi.AnsiConsole
 import org.reactivestreams.Subscriber
 
@@ -27,6 +28,7 @@ case class FromConsole[A](prg: ConsoleProgram[A]) extends AppADT[A]
 case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq[A]]]
 case class Exit(exitCode: Int) extends AppADT[Unit]
+case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
 
 object AppDSL {
 
@@ -34,6 +36,9 @@ object AppDSL {
 
   def pure[A](a: A): AppProgram[A] =
     Free.liftF(Pure(a))
+
+  def consumeStream[A](prgs: Observable[AppProgram[Unit]]): AppProgram[Unit] =
+    Free.liftF[AppADT, Unit](ConsumeStream(prgs))
 
   def fromDB[A](dbProgram: StoreProgram[A]): AppProgram[A] =
     Free.liftF(FromDB(dbProgram))
@@ -95,6 +100,12 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
         }
       )
     }
+    case ConsumeStream(prgs) =>
+      prgs.consumeWith(
+        Consumer.foreachParallelTask[AppProgram[Unit]](1) { prg =>
+          prg.foldMap(this).map(_ => ())
+        }
+      )
     case Exit(statusCode) => Task {
       AnsiConsole.systemUninstall()
       sys.exit(statusCode)

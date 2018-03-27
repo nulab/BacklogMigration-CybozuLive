@@ -8,13 +8,13 @@ class BacklogUserConverter()(implicit ctx: MappingContext) extends Converter[Cyb
 
   def to(user: CybozuUser): Either[ConvertError, BacklogUser] =
     for {
-      converted <- ctx.getUserName(user.value)
+      converted <- ctx.getUserName(user.userId)
     } yield {
       BacklogUser(
         optId = None,
         optUserId = Some(converted), // mapping.dst
         optPassword = None,
-        name = user.value, // mapping.src
+        name = user.userId, // mapping.src
         optMailAddress = None,
         roleType = BacklogConstantValue.USER_ROLE
       )
