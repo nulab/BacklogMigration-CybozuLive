@@ -1,10 +1,12 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
+import java.nio.file.Files
+
 import com.nulabinc.backlog.c2b.persistence.dsl.{DeleteFile, ReadFile, StorageADT, WriteFile}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
-import monix.nio.file._
+import monix.reactive.Observable
 
 class LocalStorageInterpreter extends StorageInterpreter {
 
@@ -17,14 +19,20 @@ class LocalStorageInterpreter extends StorageInterpreter {
     case ReadFile(path) => {
       Task.deferAction { implicit scheduler =>
         Task.eval {
-          readAsync(path, chunckSize)
+          val is = Files.newInputStream(path)
+
+          Observable.fromInputStream(is)
         }
       }
     }
     case WriteFile(path, writeStream) =>
       Task.deferAction { implicit scheduler =>
         Task.fromFuture {
-          writeStream.consumeWith(writeAsync(path)).runAsync
+          val os = Files.newOutputStream(path)
+
+          writeStream.foreach { bytes =>
+            os.write(bytes)
+          }
         }.map(_ => ())
       }
     case DeleteFile(path) => Task {
