@@ -1,13 +1,13 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
-import com.nulabinc.backlog.c2b.interpreters.ConsumeStream
+import com.nulabinc.backlog.c2b.datas.{CybozuUser, Id}
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
 import monix.eval.Task
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops.AllTableOps
 import monix.execution.Scheduler
-import monix.reactive.{Consumer, Observable}
+import monix.reactive.Observable
 import slick.jdbc.SQLiteProfile.api._
 
 class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBInterpreter {
@@ -72,16 +72,17 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
         )
       }
       case StoreComment(comment, writeType) => Task.deferFuture {
-        val a = commentTableOps.write(comment, writeType)
-        db.run(a)
+        db.run(commentTableOps.write(comment, writeType))
       }
       case StoreComments(comments, writeType) => Task.deferFuture {
         db.run(commentTableOps.write(comments, writeType))
       }
+      case GetCybozuUserBykey(key) => Task.deferFuture {
+        db.run(cybozuUserTableOps.findByKey(key))
+      }
       case StoreCybozuUser(user, writeType) => Task.deferFuture {
         db.run(cybozuUserTableOps.write(user, writeType))
       }
-
       case StoreBacklogUser(user, writeType) => Task.deferFuture {
         db.run(backlogUserTableOps.write(user, writeType))
       }

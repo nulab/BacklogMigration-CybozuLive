@@ -29,6 +29,7 @@ case object GetForums extends StoreADT[Observable[CybozuForum]]
 case class StoreForum(forum: CybozuForum, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case object GetCybozuUsers extends StoreADT[Observable[CybozuUser]]
+case class GetCybozuUserBykey(key: String) extends StoreADT[Option[CybozuUser]]
 case class StoreCybozuUser(user: CybozuUser, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case object GetCybozuPriorities extends StoreADT[Seq[CybozuPriority]]

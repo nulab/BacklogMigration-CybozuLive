@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
 import com.nulabinc.backlog.c2b.datas.CybozuUser
-import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIOWrite
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOWrite}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.exceptions.{SQLiteError, SQLiteException}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.CybozuUserTable
 import monix.execution.Scheduler
@@ -18,5 +18,11 @@ private[sqlite] case class CybozuUserTableOps()(implicit exc: Scheduler) extends
       .returning(tableQuery.map(_.id))
       .insertOrUpdate(user)
       .map(optId => optId.getOrElse(throw SQLiteException(SQLiteError.IdNotGenerated)))
+
+  def findByKey(key: String): DBIORead[Option[CybozuUser]] =
+    tableQuery
+    .filter(_.userId === key)
+    .result
+    .headOption
 
 }

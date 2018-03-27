@@ -19,7 +19,7 @@ import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.TaskUtils.Suspend
 import com.nulabinc.backlog.c2b.interpreters._
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
-import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
+import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreDSL, Update}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
@@ -184,24 +184,42 @@ object App extends Logger {
   }
 
   def readIssueCSVtoStoreDB(observable: Observable[(CybozuCSVIssue, Seq[CybozuCSVComment])]): AppProgram[Unit] = {
+
+    def insertOrUpdateUser(cybozuUser: CybozuUser) = {
+      for {
+        optId <- StoreDSL.getCybozuUserByKey(cybozuUser.userId)
+        id <- optId match {
+          case Some(existUser) => StoreDSL.pure(existUser.id)
+          case None => StoreDSL.storeCybozuUser(cybozuUser, Insert)
+        }
+      } yield id
+    }
+
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
         observable.map { data =>
           val creator = CybozuUser.from(data._1.creator)
-
+          val updater = CybozuUser.from(data._1.updater)
           for {
-            creatorId <- StoreDSL.storeCybozuUser(creator)
+            creatorId <- insertOrUpdateUser(creator)
+            updaterId <- insertOrUpdateUser(updater)
             issueId <- {
               val issue = CybozuIssue.from(
                 issue = data._1,
                 creatorId = creatorId,
-                updaterId = 0 // TODO
+                updaterId = updaterId
               )
               StoreDSL.storeIssue(issue)
             }
-            _ <- {
-              val comments = data._2.map(c => CybozuComment.from(issueId, c, 0)) // TODO
-              StoreDSL.storeComments(comments)
+            _ = {
+              data._2.map { comment =>
+                val commentCreator = CybozuUser.from(comment.creator)
+                for {
+                  creatorId <- insertOrUpdateUser(commentCreator)
+                  c = CybozuComment.from(issueId, comment, creatorId)
+                  _ <- StoreDSL.storeIssueComment(c)
+                } yield ()
+              }
             }
           } yield ()
         }
