@@ -193,8 +193,8 @@ object App extends Logger {
       } yield id
     }
 
-    def sequential(prgs: Seq[StoreProgram[CybozuComment]]): StoreProgram[Seq[CybozuComment]] =
-      prgs.foldLeft(StoreDSL.pure(Seq.empty[CybozuComment])) {
+    def sequential[A](prgs: Seq[StoreProgram[A]]): StoreProgram[Seq[A]] =
+      prgs.foldLeft(StoreDSL.pure(Seq.empty[A])) {
         case (newPrg, prg) =>
           newPrg.flatMap { results =>
             prg.map { result =>
@@ -204,13 +204,16 @@ object App extends Logger {
       }
 
     val dbProgram = for {
-      commentStream <- StoreDSL.writeDBStream(
+      _ <- StoreDSL.writeDBStream(
         observable.map { data =>
           val creator = CybozuUser.from(data._1.creator)
           val updater = CybozuUser.from(data._1.updater)
+          val assignees = data._1.assignees.map(u => CybozuUser.from(u))
           for {
             creatorId <- insertOrUpdateUser(creator)
             updaterId <- insertOrUpdateUser(updater)
+            assigneeIdsProgram = assignees.map(insertOrUpdateUser)
+            assigneePrograms <- sequential(assigneeIdsProgram)
             issueId <- {
               val issue = CybozuIssue.from(
                 issue = data._1,
@@ -219,18 +222,18 @@ object App extends Logger {
               )
               StoreDSL.storeIssue(issue)
             }
-            commentsPrgs = data._2.map { comment =>
+            commentsPrograms = data._2.map { comment =>
               val commentCreator = CybozuUser.from(comment.creator)
               for {
                 creatorId <- insertOrUpdateUser(commentCreator)
               } yield CybozuComment.from(issueId, comment, creatorId)
             }
-            comments <- sequential(commentsPrgs)
+            comments <- sequential(commentsPrograms)
             _ <- StoreDSL.storeComments(comments)
           } yield ()
         }
       )
-    } yield commentStream
+    } yield ()
 
     AppDSL.fromDB(dbProgram)
   }
