@@ -16,7 +16,7 @@ case class StoreIssue(issue: CybozuIssue) extends StoreADT[AnyId]
 
 case class GetIssueComments(issue: CybozuIssue) extends StoreADT[Observable[CybozuComment]]
 case class StoreComment(comment: CybozuComment) extends StoreADT[AnyId]
-case class StoreComments(comments: Seq[CybozuComment]) extends StoreADT[Seq[AnyId]]
+case class StoreComments(comments: Seq[CybozuComment]) extends StoreADT[Int]
 
 case object GetEvents extends StoreADT[Observable[CybozuEvent]]
 case class StoreEvent(event: CybozuEvent) extends StoreADT[AnyId]
@@ -32,7 +32,7 @@ case object GetBacklogUsers extends StoreADT[Observable[BacklogUser]]
 case class StoreBacklogUser(user: BacklogUser) extends StoreADT[AnyId]
 
 case object GetBacklogPriorities extends StoreADT[Observable[BacklogPriority]]
-case class StoreBacklogPriorities(priorities: Seq[BacklogPriority]) extends StoreADT[Seq[AnyId]]
+case class StoreBacklogPriorities(priorities: Seq[BacklogPriority]) extends StoreADT[Int]
 
 case object GetBacklogStatuses extends StoreADT[Observable[BacklogStatus]]
-case class StoreBacklogStatuses(statuses: Seq[BacklogStatus]) extends StoreADT[Seq[AnyId]]
+case class StoreBacklogStatuses(statuses: Seq[BacklogStatus]) extends StoreADT[Int]

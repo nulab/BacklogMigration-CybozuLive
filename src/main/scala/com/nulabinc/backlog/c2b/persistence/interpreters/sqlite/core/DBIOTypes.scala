@@ -8,8 +8,8 @@ import slick.dbio.{DBIOAction, NoStream, StreamingDBIO}
 object DBIOTypes {
 
   type DBIORead[X] = DBIOAction[X, NoStream, Read]
-  type DBIOWrite = DBIOAction[AnyId, NoStream, All]
-  type DBIOWrites = DBIOAction[Seq[AnyId], NoStream, All]
+  type DBIOWrite = DBIOAction[Int, NoStream, All]
+  type DBIOWrites = DBIOAction[Int, NoStream, All]
   type DBIOStream[A] = StreamingDBIO[Seq[A], A]
 
 }

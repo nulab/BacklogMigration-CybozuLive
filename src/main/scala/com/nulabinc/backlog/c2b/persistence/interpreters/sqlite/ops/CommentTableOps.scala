@@ -20,7 +20,7 @@ private[sqlite] case class CommentTableOps()(implicit exc: Scheduler) extends Ba
   def save(comments: Seq[CybozuComment]): DBIOWrites =
     DBIO.sequence(comments.map { current =>
       tableQuery.insertOrUpdate(current)
-    })
+    }).map(_.sum)
 
   def streamByParentId(id: AnyId): DBIOStream[CybozuComment] =
     tableQuery.filter(_.parentId === id).result

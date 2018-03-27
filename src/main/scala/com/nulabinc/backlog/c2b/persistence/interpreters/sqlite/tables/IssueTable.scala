@@ -7,6 +7,8 @@ import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] class IssueTable(tag: Tag) extends BaseTable[CybozuIssue](tag, "cybozu_issues") {
 
+  import JdbcMapper._
+
   def title: Rep[String] = column[String]("title")
   def content: Rep[String] = column[String]("content")
   def creator: Rep[CybozuUser] = column[CybozuUser]("creator")
