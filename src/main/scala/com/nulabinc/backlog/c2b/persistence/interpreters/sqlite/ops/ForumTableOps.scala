@@ -12,8 +12,7 @@ private[sqlite] case class ForumTableOps() extends BaseTableOps[CybozuForum, For
 
   def save(forum: CybozuForum): DBIOWrite =
     tableQuery
-//      .filter(_.id === forum.id)
+      .returning(tableQuery.map(_.id))
       .insertOrUpdate(forum)
-      .transactionally
 
 }

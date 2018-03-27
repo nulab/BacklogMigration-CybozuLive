@@ -13,9 +13,8 @@ private[sqlite] case class CommentTableOps()(implicit exc: Scheduler) extends Ba
 
   def save(comment: CybozuComment): DBIOWrite =
     tableQuery
-//      .filter(_.id === comment.id)
+      .returning(tableQuery.map(_.id))
       .insertOrUpdate(comment)
-      .transactionally
 
   def save(comments: Seq[CybozuComment]): DBIOWrites =
     DBIO.sequence(comments.map { current =>

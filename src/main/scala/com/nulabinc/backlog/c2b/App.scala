@@ -122,7 +122,7 @@ object App extends Logger {
       // Create database
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read from CSV - Issue
-//      _ <- readIssueCSVtoStoreDB(issueObservable)
+      _ <- readIssueCSVtoStoreDB(issueObservable)
       // Read from CSV - Event
 //      _ <- readEventCSVtoStoreDB(eventObservable)
       // Read from CSV - Forum
@@ -197,12 +197,13 @@ object App extends Logger {
 
   def readIssueCSVtoStoreDB(observable: Observable[(CybozuIssue, Seq[CybozuCSVComment])]): AppProgram[Unit] =
     for {
-      issueId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(issue => StoreDSL.storeIssue(issue._1))))
+      optIssueId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(issue => StoreDSL.storeIssue(issue._1))))
       _ <- AppDSL.fromDB(
         StoreDSL.writeDBStream {
           observable.map { data =>
-            val comments = CybozuConverter.toComments(issueId, data._2)
-            StoreDSL.storeComments(comments)
+            val comments = CybozuConverter.toComments(optIssueId.getOrElse(throw new RuntimeException("optIssueId is null")), data._2)
+            StoreDSL.storeIssue(data._1)
+              .flatMap(_ => StoreDSL.storeComments(comments))
           }
         }
       )
@@ -210,11 +211,11 @@ object App extends Logger {
 
   def readEventCSVtoStoreDB(observable: Observable[(CybozuEvent, Seq[CybozuCSVComment])]): AppProgram[Unit] =
     for {
-      eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(event => StoreDSL.storeEvent(event._1))))
+      optEventId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(event => StoreDSL.storeEvent(event._1))))
       _ <- AppDSL.fromDB(
         StoreDSL.writeDBStream {
           observable.map { data =>
-            val comments = CybozuConverter.toComments(eventId, data._2)
+            val comments = CybozuConverter.toComments(optEventId.getOrElse(throw new Exception("optEventId is null")), data._2)
             StoreDSL.storeComments(comments)
           }
         }
@@ -223,11 +224,11 @@ object App extends Logger {
 
   def readForumCSVtoStoreDB(observable: Observable[(CybozuForum, Seq[CybozuCSVComment])]): AppProgram[Unit] =
     for {
-      forumId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(forum => StoreDSL.storeForum(forum._1))))
+      optForumId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(forum => StoreDSL.storeForum(forum._1))))
       _ <- AppDSL.fromDB(
         StoreDSL.writeDBStream {
           observable.map { data =>
-            val comments = CybozuConverter.toComments(forumId, data._2)
+            val comments = CybozuConverter.toComments(optForumId.getOrElse(throw new Exception("optForumId is null")), data._2)
             StoreDSL.storeComments(comments)
           }
         }
