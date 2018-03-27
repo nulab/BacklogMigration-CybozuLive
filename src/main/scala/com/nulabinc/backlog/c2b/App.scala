@@ -5,27 +5,25 @@ import java.util.Locale
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import backlog4s.apis.{AllApi, PriorityApi, StatusApi, UserApi}
+import backlog4s.apis.{AllApi, PriorityApi, StatusApi}
 import backlog4s.datas.User
 import backlog4s.interpreters.AkkaHttpInterpret
 import better.files.File
-import cats.free.Free
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.converters.CybozuCSVReader
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.TaskUtils.Suspend
 import com.nulabinc.backlog.c2b.interpreters._
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
-import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreDSL, Update}
+import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
+import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
-import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.Observable
 import org.apache.commons.csv.CSVFormat
@@ -195,8 +193,18 @@ object App extends Logger {
       } yield id
     }
 
+    def sequential(prgs: Seq[StoreProgram[CybozuComment]]): StoreProgram[Seq[CybozuComment]] =
+      prgs.foldLeft(StoreDSL.pure(Seq.empty[CybozuComment])) {
+        case (newPrg, prg) =>
+          newPrg.flatMap { results =>
+            prg.map { result =>
+              results :+ result
+            }
+          }
+      }
+
     val dbProgram = for {
-      _ <- StoreDSL.writeDBStream(
+      commentStream <- StoreDSL.writeDBStream(
         observable.map { data =>
           val creator = CybozuUser.from(data._1.creator)
           val updater = CybozuUser.from(data._1.updater)
@@ -211,20 +219,18 @@ object App extends Logger {
               )
               StoreDSL.storeIssue(issue)
             }
-            _ = {
-              data._2.map { comment =>
-                val commentCreator = CybozuUser.from(comment.creator)
-                for {
-                  creatorId <- insertOrUpdateUser(commentCreator)
-                  c = CybozuComment.from(issueId, comment, creatorId)
-                  _ <- StoreDSL.storeIssueComment(c)
-                } yield ()
-              }
+            commentsPrgs = data._2.map { comment =>
+              val commentCreator = CybozuUser.from(comment.creator)
+              for {
+                creatorId <- insertOrUpdateUser(commentCreator)
+              } yield CybozuComment.from(issueId, comment, creatorId)
             }
+            comments <- sequential(commentsPrgs)
+            _ <- StoreDSL.storeComments(comments)
           } yield ()
         }
       )
-    } yield ()
+    } yield commentStream
 
     AppDSL.fromDB(dbProgram)
   }
