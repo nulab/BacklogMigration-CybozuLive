@@ -7,6 +7,8 @@ import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] class EventTable(tag: Tag) extends BaseTable[CybozuEvent](tag, "cybozu_events") {
 
+  import JdbcMapper._
+
   def startDateTime: Rep[DateTime] = column[DateTime]("start_date_time")
   def endDateTime: Rep[DateTime] = column[DateTime]("end_date_time")
   def menu: Rep[String] = column[String]("menu")
