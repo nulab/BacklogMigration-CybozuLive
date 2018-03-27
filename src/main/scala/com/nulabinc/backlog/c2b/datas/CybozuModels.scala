@@ -2,16 +2,6 @@ package com.nulabinc.backlog.c2b.datas
 
 import com.nulabinc.backlog.c2b.datas.Types._
 
-case class Id[T] private(value: AnyId) extends AnyVal
-
-object Id {
-  def userId(id: AnyId): Id[CybozuUser] = Id[CybozuUser](id)
-}
-
-trait Entity {
-  def id: AnyId
-}
-
 case class CybozuStatus(value: String) extends AnyVal
 case class CybozuPriority(value: String) extends AnyVal
 case class CybozuUser(value: String) extends AnyVal
