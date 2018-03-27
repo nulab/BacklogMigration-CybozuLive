@@ -10,5 +10,6 @@ private[sqlite] case class AllTableOps()(implicit exc: Scheduler) {
   val backlogUserTableOps = BacklogUserTableOps()
   val backlogPriorityTableOps = BacklogPriorityTableOps()
   val backlogStatusTableOps = BacklogStatusTableOps()
+  val cybozuUserTableOps = CybozuUserTableOps()
   val cybozuIssueUserTableOps = CybozuIssueUserTableOps()
 }

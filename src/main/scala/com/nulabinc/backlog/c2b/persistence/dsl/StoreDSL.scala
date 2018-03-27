@@ -57,6 +57,9 @@ object StoreDSL {
   def storeForum(forum: CybozuForum): StoreProgram[Option[AnyId]] =
     Free.liftF(StoreForum(forum))
 
+  def storeCybozuUser(user: CybozuUser): StoreProgram[Option[AnyId]] =
+    Free.liftF(StoreCybozuUser(user))
+
   def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[A] =
     Free.liftF[StoreADT, A](WriteDBStream(stream))
 

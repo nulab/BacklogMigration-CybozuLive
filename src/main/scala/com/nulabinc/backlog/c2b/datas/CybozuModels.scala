@@ -10,6 +10,14 @@ case class CybozuUser(
   userId: String
 ) extends Entity
 
+object CybozuUser {
+
+  val tupled = (this.apply _).tupled
+
+  def from(user: CybozuCSVUser): CybozuUser =
+    new CybozuUser(0, user.value)
+}
+
 case class CybozuIssue(
   id: AnyId,
   title: String,

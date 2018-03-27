@@ -199,9 +199,19 @@ object App extends Logger {
     for {
        _ <- AppDSL.fromDB(
         for {
+          creatorId <- StoreDSL.writeDBStream(
+            observable.map { data =>
+              val creator = CybozuUser.from(data._1.creator)
+              StoreDSL.storeCybozuUser(creator)
+            }
+          )
           optIssueId <- StoreDSL.writeDBStream(
             observable.map { data =>
-              val issue = CybozuIssue.from(data._1, 0, 0) // TODO
+              val issue = CybozuIssue.from(
+                issue = data._1,
+                creatorId = creatorId.getOrElse(throw new RuntimeException("issue creator id is null")),
+                updaterId = 0 // TODO
+              )
               StoreDSL.storeIssue(issue)
             }
           )

@@ -25,7 +25,7 @@ case object GetForums extends StoreADT[Observable[CybozuForum]]
 case class StoreForum(forum: CybozuForum) extends StoreADT[Option[AnyId]]
 
 case object GetCybozuUsers extends StoreADT[Observable[CybozuUser]]
-case class StoreCybozuUser(user: CybozuUser) extends StoreADT[AnyId]
+case class StoreCybozuUser(user: CybozuUser) extends StoreADT[Option[AnyId]]
 
 case object GetCybozuPriorities extends StoreADT[Seq[CybozuPriority]]
 
