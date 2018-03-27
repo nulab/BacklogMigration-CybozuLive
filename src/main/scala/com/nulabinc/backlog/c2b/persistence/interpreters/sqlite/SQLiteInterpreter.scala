@@ -35,7 +35,8 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
           forumTableOps.createTable,
           backlogUserTableOps.createTable,
           backlogPriorityTableOps.createTable,
-          backlogStatusTableOps.createTable
+          backlogStatusTableOps.createTable,
+          cybozuIssueUserTableOps.createTable
         )
         db.run(sqls)
       }
@@ -75,6 +76,8 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       case StoreComments(comments) => Task.deferFuture {
         db.run(commentTableOps.save(comments))
       }
+      case StoreCybozuUser(user) => ???
+
       case StoreBacklogUser(user) => Task.deferFuture {
         db.run(backlogUserTableOps.save(user))
       }

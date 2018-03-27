@@ -15,12 +15,6 @@ object JdbcMapper {
       epoch => ZonedDateTime.ofInstant(Instant.ofEpochSecond(epoch), ZoneId.systemDefault())
     )
 
-  implicit val userMapper: JdbcType[CybozuUser] with BaseTypedType[CybozuUser] =
-    MappedColumnType.base[CybozuUser, String](
-      src => src.value,
-      dst => CybozuUser(dst)
-    )
-
   implicit val statusMapper: JdbcType[CybozuStatus] with BaseTypedType[CybozuStatus] =
     MappedColumnType.base[CybozuStatus, String](
       src => src.value,

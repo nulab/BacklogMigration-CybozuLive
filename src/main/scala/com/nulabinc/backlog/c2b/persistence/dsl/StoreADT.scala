@@ -24,6 +24,9 @@ case class StoreEvent(event: CybozuEvent) extends StoreADT[AnyId]
 case object GetForums extends StoreADT[Observable[CybozuForum]]
 case class StoreForum(forum: CybozuForum) extends StoreADT[AnyId]
 
+case object GetCybozuUsers extends StoreADT[Observable[CybozuUser]]
+case class StoreCybozuUser(user: CybozuUser) extends StoreADT[AnyId]
+
 case object GetCybozuPriorities extends StoreADT[Seq[CybozuPriority]]
 
 case class WriteDBStream[A](stream: Observable[StoreProgram[A]]) extends StoreADT[AnyId]

@@ -13,7 +13,7 @@ import backlog4s.streaming.ApiStream.ApiStream
 import better.files.File
 import cats.free.Free
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.converters.CybozuConverter
+import com.nulabinc.backlog.c2b.converters.CybozuCSVReader
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
@@ -110,9 +110,9 @@ object App extends Logger {
     val eventFiles = csvFiles.filter(_.getName.contains("live_Events_"))
     val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_"))
 
-    val issueObservable = CybozuConverter.toIssue(todoFiles, csvFormat)
-    val eventObservable = CybozuConverter.toEvent(eventFiles, csvFormat)
-    val forumObservable = CybozuConverter.toForum(forumFiles, csvFormat)
+    val issueObservable = CybozuCSVReader.toCybozuIssue(todoFiles, csvFormat)
+    val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles, csvFormat)
+    val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles, csvFormat)
 
     val program = for {
       // Validation
@@ -195,44 +195,44 @@ object App extends Logger {
     } yield ()
   }
 
-  def readIssueCSVtoStoreDB(observable: Observable[(CybozuIssue, Seq[CybozuCSVComment])]): AppProgram[Unit] =
-    for {
-      issueId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(issue => StoreDSL.storeIssue(issue._1))))
-      _ <- AppDSL.fromDB(
-        StoreDSL.writeDBStream {
-          observable.map { data =>
-            val comments = CybozuConverter.toComments(issueId, data._2)
-            StoreDSL.storeComments(comments)
-          }
-        }
-      )
-    } yield ()
-
-  def readEventCSVtoStoreDB(observable: Observable[(CybozuEvent, Seq[CybozuCSVComment])]): AppProgram[Unit] =
-    for {
-      eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(event => StoreDSL.storeEvent(event._1))))
-      _ <- AppDSL.fromDB(
-        StoreDSL.writeDBStream {
-          observable.map { data =>
-            val comments = CybozuConverter.toComments(eventId, data._2)
-            StoreDSL.storeComments(comments)
-          }
-        }
-      )
-    } yield ()
-
-  def readForumCSVtoStoreDB(observable: Observable[(CybozuForum, Seq[CybozuCSVComment])]): AppProgram[Unit] =
-    for {
-      forumId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(forum => StoreDSL.storeForum(forum._1))))
-      _ <- AppDSL.fromDB(
-        StoreDSL.writeDBStream {
-          observable.map { data =>
-            val comments = CybozuConverter.toComments(forumId, data._2)
-            StoreDSL.storeComments(comments)
-          }
-        }
-      )
-    } yield ()
+//  def readIssueCSVtoStoreDB(observable: Observable[(CybozuIssue, Seq[CybozuCSVComment])]): AppProgram[Unit] =
+//    for {
+//      issueId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(issue => StoreDSL.storeIssue(issue._1))))
+//      _ <- AppDSL.fromDB(
+//        StoreDSL.writeDBStream {
+//          observable.map { data =>
+//            val comments = CybozuCSVReader.toComments(issueId, data._2)
+//            StoreDSL.storeComments(comments)
+//          }
+//        }
+//      )
+//    } yield ()
+//
+//  def readEventCSVtoStoreDB(observable: Observable[(CybozuEvent, Seq[CybozuCSVComment])]): AppProgram[Unit] =
+//    for {
+//      eventId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(event => StoreDSL.storeEvent(event._1))))
+//      _ <- AppDSL.fromDB(
+//        StoreDSL.writeDBStream {
+//          observable.map { data =>
+//            val comments = CybozuCSVReader.toComments(eventId, data._2)
+//            StoreDSL.storeComments(comments)
+//          }
+//        }
+//      )
+//    } yield ()
+//
+//  def readForumCSVtoStoreDB(observable: Observable[(CybozuForum, Seq[CybozuCSVComment])]): AppProgram[Unit] =
+//    for {
+//      forumId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(forum => StoreDSL.storeForum(forum._1))))
+//      _ <- AppDSL.fromDB(
+//        StoreDSL.writeDBStream {
+//          observable.map { data =>
+//            val comments = CybozuCSVReader.toComments(forumId, data._2)
+//            StoreDSL.storeComments(comments)
+//          }
+//        }
+//      )
+//    } yield ()
 
   def getBacklogPrioritiesToStoreDB(api: PriorityApi): AppProgram[Unit] =
     for {

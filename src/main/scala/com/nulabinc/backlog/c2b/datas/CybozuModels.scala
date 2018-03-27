@@ -4,19 +4,22 @@ import com.nulabinc.backlog.c2b.datas.Types._
 
 case class CybozuStatus(value: String) extends AnyVal
 case class CybozuPriority(value: String) extends AnyVal
-case class CybozuUser(value: String) extends AnyVal
+
+case class CybozuUser(
+  id: AnyId,
+  userId: String
+) extends Entity
 
 case class CybozuIssue(
   id: AnyId,
   title: String,
   content: String,
-  creator: CybozuUser,
+  creator: AnyId,
   createdAt: DateTime,
-  updater: CybozuUser,
+  updater: AnyId,
   updatedAt: DateTime,
   status: CybozuStatus,
   priority: CybozuPriority,
-  assignee: Option[CybozuUser],
   dueDate: Option[DateTime]
 ) extends Entity
 
@@ -24,18 +27,25 @@ object CybozuIssue {
 
   val tupled = (this.apply _).tupled
 
-  def from(issue: CybozuCSVIssue): CybozuIssue =
+  def from(issue: CybozuCSVIssue, creatorId: AnyId, updaterId: AnyId): CybozuIssue =
     new CybozuIssue(
-      0, issue.title, issue.content, CybozuUser(issue.creator.value), issue.createdAt,
-      CybozuUser(issue.updater.value), issue.updatedAt, CybozuStatus(issue.status.value),
-      CybozuPriority(issue.priority.value), issue.assignee.map(u => CybozuUser(u.value)), issue.dueDate
+      id = 0,
+      title = issue.title,
+      content = issue.content,
+      creator = creatorId,
+      createdAt = issue.createdAt,
+      updater = updaterId,
+      updatedAt = issue.updatedAt,
+      status = CybozuStatus(issue.status.value),
+      priority = CybozuPriority(issue.priority.value),
+      dueDate = issue.dueDate
     )
 }
 
 case class CybozuComment(
   id: AnyId,
   parentId: AnyId,
-  creator: CybozuUser,
+  creator: AnyId,
   createdAt: DateTime,
   content: String
 ) extends Entity
@@ -44,11 +54,11 @@ object CybozuComment {
 
   val tupled = (this.apply _).tupled
 
-  def from(parentIssueId: AnyId, comment: CybozuCSVComment): CybozuComment =
+  def from(parentIssueId: AnyId, comment: CybozuCSVComment, creatorId: AnyId): CybozuComment =
     new CybozuComment(
       id = 0,
       parentId = parentIssueId,
-      creator = CybozuUser(comment.creator.value),
+      creator = creatorId,
       createdAt = comment.createdAt,
       content = comment.content
     )
@@ -61,14 +71,14 @@ case class CybozuEvent(
   menu: String,
   title: String,
   memo: String,
-  creator: CybozuUser
+  creator: AnyId
 ) extends Entity
 
 object CybozuEvent {
 
   val tupled = (this.apply _).tupled
 
-  def from(event: CybozuCSVEvent): CybozuEvent =
+  def from(event: CybozuCSVEvent, creatorId: AnyId): CybozuEvent =
     new CybozuEvent(
       id = 0,
       startDateTime = event.startDateTime,
@@ -76,7 +86,7 @@ object CybozuEvent {
       menu = event.menu,
       title = event.title,
       memo = event.memo,
-      creator = CybozuUser(event.creator.value)
+      creator = creatorId
     )
 }
 
@@ -84,9 +94,9 @@ case class CybozuForum(
   id: AnyId,
   title: String,
   content: String,
-  creator: CybozuUser,
+  creator: AnyId,
   createdAt: DateTime,
-  updater: CybozuUser,
+  updater: AnyId,
   updatedAt: DateTime
 ) extends Entity
 
@@ -94,14 +104,14 @@ object CybozuForum {
 
   val tupled = (this.apply _).tupled
 
-  def from(forum: CybozuCSVForum): CybozuForum =
+  def from(forum: CybozuCSVForum, creatorId: AnyId, updaterId: AnyId): CybozuForum =
     new CybozuForum(
       id = 0,
       title = forum.title,
       content = forum.content,
-      creator = CybozuUser(forum.creator.value),
+      creator = creatorId,
       createdAt = forum.createdAt,
-      updater = CybozuUser(forum.updater.value),
+      updater = updaterId,
       updatedAt = forum.updatedAt
     )
 }

@@ -10,7 +10,7 @@ private[sqlite] class CommentTable(tag: Tag) extends BaseTable[CybozuComment](ta
   import JdbcMapper._
 
   def parentId: Rep[AnyId] = column[AnyId]("parent_id")
-  def creator: Rep[CybozuUser] = column[CybozuUser]("creator")
+  def creator: Rep[AnyId] = column[AnyId]("creator_id")
   def createdAt: Rep[DateTime] = column[DateTime]("created_at")
   def content: Rep[String] = column[String]("content")
 

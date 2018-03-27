@@ -11,11 +11,11 @@ import org.apache.commons.csv.{CSVFormat, CSVParser}
 
 import scala.collection.JavaConverters._
 
-object CybozuConverter {
+object CybozuCSVReader {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  def toIssue(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuIssue, Seq[CybozuCSVComment])] =
+  def toCybozuIssue(files: Array[File], csvFormat: CSVFormat): Observable[CybozuCSVIssue] =
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
@@ -23,15 +23,15 @@ object CybozuConverter {
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
-            case Right(csvIssue) => (CybozuIssue.from(csvIssue), csvIssue.comments)
+            case Right(csvIssue) => csvIssue
             case Left(error) => throw new RuntimeException(error.toString)
           }.headL
       }
 
-  def toComments(parentId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
-    comments.map(c => CybozuComment.from(parentId, c))
+//  def toComments(parentId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
+//    comments.map(c => CybozuComment.from(parentId, c))
 
-  def toEvent(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuEvent, Seq[CybozuCSVComment])] =
+  def toCybozuEvent(files: Array[File], csvFormat: CSVFormat): Observable[CybozuCSVEvent] =
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
@@ -39,12 +39,12 @@ object CybozuConverter {
           .drop(1)
           .map(CSVRecordParser.event)
           .map {
-            case Right(csvEvent) => (CybozuEvent.from(csvEvent), csvEvent.comments)
+            case Right(csvEvent) => csvEvent
             case Left(error) => throw new RuntimeException(error.toString)
           }.headL
       }
 
-  def toForum(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuForum, Seq[CybozuCSVComment])] =
+  def toCybozuForum(files: Array[File], csvFormat: CSVFormat): Observable[CybozuCSVForum] =
     Observable
       .fromIterable(files)
       .mapParallelUnordered(files.length) { file =>
@@ -52,7 +52,7 @@ object CybozuConverter {
           .drop(1)
           .map(CSVRecordParser.forum)
           .map {
-            case Right(csvForum) => (CybozuForum.from(csvForum), csvForum.comments)
+            case Right(csvForum) => csvForum
             case Left(error) => throw new RuntimeException(error.toString)
           }.headL
       }

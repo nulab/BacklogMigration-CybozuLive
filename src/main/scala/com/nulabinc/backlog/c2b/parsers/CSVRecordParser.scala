@@ -57,7 +57,7 @@ object CSVRecordParser {
           updatedAt = updatedAt,
           status    = CybozuCSVStatus(record.get(STATUS_FIELD_INDEX)),
           priority  = CybozuCSVPriority(record.get(PRIORITY_FIELD_INDEX)),
-          assignee  = if (assignee.isEmpty) None else Some(CybozuCSVUser(assignee)),
+          assignee  = assignee.split(",").map(u => CybozuCSVUser(u)),
           dueDate   = dueDate,
           comments  = comments
         )

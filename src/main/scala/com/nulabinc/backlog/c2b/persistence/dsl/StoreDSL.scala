@@ -39,6 +39,9 @@ object StoreDSL {
   lazy val getBacklogStatuses: StoreProgram[Observable[BacklogStatus]] =
     Free.liftF(GetBacklogStatuses)
 
+  lazy val getCybozuUsers: StoreProgram[Observable[CybozuUser]] =
+    Free.liftF(GetCybozuUsers)
+
   def storeIssue(issue: CybozuIssue): StoreProgram[AnyId] =
     Free.liftF(StoreIssue(issue))
 

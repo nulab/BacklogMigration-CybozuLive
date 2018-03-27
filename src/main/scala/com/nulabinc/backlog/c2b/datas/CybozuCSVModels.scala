@@ -12,7 +12,7 @@ case class CybozuCSVIssue(
   updatedAt: DateTime,
   status: CybozuCSVStatus,
   priority: CybozuCSVPriority,
-  assignee: Option[CybozuCSVUser],
+  assignee: Seq[CybozuCSVUser],
   dueDate: Option[DateTime],
   comments: Seq[CybozuCSVComment]
 )
