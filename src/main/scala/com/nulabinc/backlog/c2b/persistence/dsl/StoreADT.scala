@@ -22,6 +22,8 @@ case class GetIssueComments(issue: CybozuIssue) extends StoreADT[Observable[Cybo
 case class StoreComment(comment: CybozuComment, writeType: WriteType = Insert) extends StoreADT[AnyId]
 case class StoreComments(comments: Seq[CybozuComment], writeType: WriteType = Insert) extends StoreADT[Seq[AnyId]]
 
+case class StoreIssueAssignees(issueId: AnyId, assigneeIds: Seq[AnyId]) extends StoreADT[Int]
+
 case object GetEvents extends StoreADT[Observable[CybozuEvent]]
 case class StoreEvent(event: CybozuEvent, writeType: WriteType = Insert) extends StoreADT[AnyId]
 

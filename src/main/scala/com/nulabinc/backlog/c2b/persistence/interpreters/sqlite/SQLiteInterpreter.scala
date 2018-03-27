@@ -77,6 +77,9 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       case StoreComments(comments, writeType) => Task.deferFuture {
         db.run(commentTableOps.write(comments, writeType))
       }
+      case StoreIssueAssignees(issueId, assigneeIds) => Task.deferFuture {
+        db.run(cybozuIssueUserTableOps.write(issueId, assigneeIds))
+      }
       case GetCybozuUserBykey(key) => Task.deferFuture {
         db.run(cybozuUserTableOps.findByKey(key))
       }

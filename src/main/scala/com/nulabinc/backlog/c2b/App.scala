@@ -210,10 +210,9 @@ object App extends Logger {
           val updater = CybozuUser.from(data._1.updater)
           val assignees = data._1.assignees.map(u => CybozuUser.from(u))
           for {
+            // Save issues
             creatorId <- insertOrUpdateUser(creator)
             updaterId <- insertOrUpdateUser(updater)
-            assigneeIdsProgram = assignees.map(insertOrUpdateUser)
-            assigneePrograms <- sequential(assigneeIdsProgram)
             issueId <- {
               val issue = CybozuIssue.from(
                 issue = data._1,
@@ -222,6 +221,11 @@ object App extends Logger {
               )
               StoreDSL.storeIssue(issue)
             }
+            // Save assignees
+            assigneeIdsProgram = assignees.map(insertOrUpdateUser)
+            assigneeIds <- sequential(assigneeIdsProgram)
+            _ <- StoreDSL.storeIssueAssignees(issueId, assigneeIds)
+            // Save comments
             commentsPrograms = data._2.map { comment =>
               val commentCreator = CybozuUser.from(comment.creator)
               for {
@@ -229,7 +233,7 @@ object App extends Logger {
               } yield CybozuComment.from(issueId, comment, creatorId)
             }
             comments <- sequential(commentsPrograms)
-            _ <- StoreDSL.storeComments(comments)
+            _ <- StoreDSL.storeIssueComments(comments)
           } yield ()
         }
       )

@@ -9,7 +9,7 @@ import slick.sql.FixedSqlAction
 object DBIOTypes {
 
   type DBIORead[X] = DBIOAction[X, NoStream, Read]
-  type DBIOWrite = DBIOAction[AnyId, NoStream, Write]
+  type DBIOWrite = DBIOAction[Int, NoStream, Write]
   type DBIOWrites = DBIOAction[Seq[AnyId], NoStream, All]
   type DBIOStream[A] = StreamingDBIO[Seq[A], A]
 
