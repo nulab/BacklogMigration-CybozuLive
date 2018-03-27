@@ -10,10 +10,4 @@ private[sqlite] case class EventTableOps() extends BaseTableOps[CybozuEvent, Eve
 
   protected def tableQuery = TableQuery[EventTable]
 
-  def save(event: CybozuEvent): DBIOWrite[CybozuEvent] =
-    tableQuery
-      .filter(_.id === event.id)
-      .insertOrUpdate(event)
-      .transactionally
-
 }

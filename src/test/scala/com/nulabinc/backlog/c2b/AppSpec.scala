@@ -13,6 +13,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.{DBInterpreter, StorageInterpreter}
 import monix.eval.Task
+import monix.execution.Scheduler
 import org.scalatest.{FlatSpec, Matchers}
 import spray.json.JsonFormat
 
@@ -20,6 +21,8 @@ import scala.concurrent.Future
 import scala.util.Try
 
 class AppSpec extends FlatSpec with Matchers {
+
+  implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
 
   val backlogApi = AllApi.accessKey("https://test.com/api/v2/", "someapikey")
   val config = Config()

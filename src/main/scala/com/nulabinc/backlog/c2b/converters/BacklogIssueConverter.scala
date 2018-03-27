@@ -143,7 +143,7 @@ class IssueConverter()(implicit ctx: MappingContext) extends Converter[IssueFrom
       attachments = Seq.empty[BacklogAttachment],
       sharedFiles = Seq.empty[BacklogSharedFile],
       customFields = Seq.empty[BacklogCustomField],
-      notifiedUsers = Seq.empty[BacklogUser],
+      notifiedUsers = Seq.empty[com.nulabinc.backlog.migration.common.domain.BacklogUser],
       operation = BacklogOperation(
         optCreatedUser = None,
         optCreated = None,
