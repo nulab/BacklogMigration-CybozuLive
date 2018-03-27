@@ -15,7 +15,7 @@ object CybozuCSVReader {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  def toCybozuIssue(files: Array[File], csvFormat: CSVFormat): Observable[CybozuCSVIssue] =
+  def toCybozuIssue(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuCSVIssue, Seq[CybozuCSVComment])] =
     Observable
       .fromIterable(files)
       .flatMap { file =>
@@ -23,8 +23,7 @@ object CybozuCSVReader {
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
-            case Right(csvIssue) =>
-              (CybozuIssue.from(csvIssue), csvIssue.comments)
+            case Right(csvIssue) => (csvIssue, csvIssue.comments)
             case Left(error) => throw new RuntimeException(error.toString)
           }
       }
