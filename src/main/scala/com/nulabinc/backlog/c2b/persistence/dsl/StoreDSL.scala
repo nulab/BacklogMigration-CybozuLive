@@ -39,31 +39,28 @@ object StoreDSL {
   lazy val getBacklogStatuses: StoreProgram[Observable[BacklogStatus]] =
     Free.liftF(GetBacklogStatuses)
 
-  lazy val getCybozuUsers: StoreProgram[Observable[CybozuUser]] =
-    Free.liftF(GetCybozuUsers)
-
-  def storeIssue(issue: CybozuIssue): StoreProgram[AnyId] =
+  def storeIssue(issue: CybozuIssue): StoreProgram[Option[AnyId]] =
     Free.liftF(StoreIssue(issue))
 
   def getIssueComments(issue: CybozuIssue): StoreProgram[Observable[CybozuComment]] =
     Free.liftF(GetIssueComments(issue))
 
-  def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
+  def storeIssueComment(comment: CybozuComment): StoreProgram[Option[AnyId]] =
     Free.liftF(StoreComment(comment))
 
   def storeComments(comments: Seq[CybozuComment]): StoreProgram[Int] =
     Free.liftF(StoreComments(comments))
 
-  def storeEvent(event: CybozuEvent): StoreProgram[AnyId] =
+  def storeEvent(event: CybozuEvent): StoreProgram[Option[AnyId]] =
     Free.liftF(StoreEvent(event))
 
-  def storeForum(forum: CybozuForum): StoreProgram[AnyId] =
+  def storeForum(forum: CybozuForum): StoreProgram[Option[AnyId]] =
     Free.liftF(StoreForum(forum))
 
-  def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[AnyId] =
-    Free.liftF[StoreADT, AnyId](WriteDBStream(stream))
+  def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[A] =
+    Free.liftF[StoreADT, A](WriteDBStream(stream))
 
-  def storeBacklogUser(user: BacklogUser): StoreProgram[AnyId] =
+  def storeBacklogUser(user: BacklogUser): StoreProgram[Option[AnyId]] =
     Free.liftF(StoreBacklogUser(user))
 
   def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Int] =

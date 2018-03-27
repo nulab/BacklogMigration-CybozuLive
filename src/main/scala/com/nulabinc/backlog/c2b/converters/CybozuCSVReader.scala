@@ -18,14 +18,15 @@ object CybozuCSVReader {
   def toCybozuIssue(files: Array[File], csvFormat: CSVFormat): Observable[CybozuCSVIssue] =
     Observable
       .fromIterable(files)
-      .mapParallelUnordered(files.length) { file =>
+      .flatMap { file =>
         Observable.fromIterator(CSVParser.parse(file, charset, csvFormat).iterator().asScala)
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
-            case Right(csvIssue) => csvIssue
+            case Right(csvIssue) =>
+              (CybozuIssue.from(csvIssue), csvIssue.comments)
             case Left(error) => throw new RuntimeException(error.toString)
-          }.headL
+          }
       }
 
 //  def toComments(parentId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =

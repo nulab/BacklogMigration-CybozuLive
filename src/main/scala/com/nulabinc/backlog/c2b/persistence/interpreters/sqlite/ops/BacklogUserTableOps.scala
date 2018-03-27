@@ -12,7 +12,7 @@ private[sqlite] case class BacklogUserTableOps()(implicit exc: Scheduler) extend
 
   def save(user: BacklogUser): DBIOWrite =
     tableQuery
+      .returning(tableQuery.map(_.id))
       .insertOrUpdate(user)
-      .transactionally
 
 }
