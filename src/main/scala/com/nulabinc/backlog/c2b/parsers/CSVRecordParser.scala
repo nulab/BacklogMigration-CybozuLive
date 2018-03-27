@@ -44,7 +44,7 @@ object CSVRecordParser {
       (for {
         createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CREATED_AT_FIELD_INDEX))
         updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(UPDATED_AT_FIELD_INDEX))
-        dueDate <- ZonedDateTimeParser.toMaybeZonedDate(record.get(DUE_DATE_FIELD_INDEX))
+        dueDate <- ZonedDateTimeParser.toMaybeZonedDateTime(record.get(DUE_DATE_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENTS_FIELD_INDEX)))
       } yield {
         CybozuCSVIssue(
