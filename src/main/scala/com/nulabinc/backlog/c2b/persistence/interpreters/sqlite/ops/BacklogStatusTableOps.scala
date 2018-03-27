@@ -13,6 +13,6 @@ private[sqlite] case class BacklogStatusTableOps()(implicit exc: Scheduler) exte
   def save(statuses: Seq[BacklogStatus]): DBIOWrites =
     DBIO.sequence(statuses.map { current =>
       tableQuery.insertOrUpdate(current)
-    })
+    }).map(_.sum)
 
 }

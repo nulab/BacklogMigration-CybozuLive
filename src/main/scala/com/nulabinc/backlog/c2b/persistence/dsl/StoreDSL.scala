@@ -48,7 +48,7 @@ object StoreDSL {
   def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
     Free.liftF(StoreComment(comment))
 
-  def storeComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
+  def storeComments(comments: Seq[CybozuComment]): StoreProgram[Int] =
     Free.liftF(StoreComments(comments))
 
   def storeEvent(event: CybozuEvent): StoreProgram[AnyId] =
@@ -63,10 +63,10 @@ object StoreDSL {
   def storeBacklogUser(user: BacklogUser): StoreProgram[AnyId] =
     Free.liftF(StoreBacklogUser(user))
 
-  def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Seq[AnyId]] =
+  def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Int] =
     Free.liftF(StoreBacklogPriorities(priorities))
 
-  def storeBacklogStatuses(statuses: Seq[BacklogStatus]): StoreProgram[Seq[AnyId]] =
+  def storeBacklogStatuses(statuses: Seq[BacklogStatus]): StoreProgram[Int] =
     Free.liftF(StoreBacklogStatuses(statuses))
 
 }
