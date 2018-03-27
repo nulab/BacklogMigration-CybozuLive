@@ -39,37 +39,37 @@ object StoreDSL {
   lazy val getBacklogStatuses: StoreProgram[Observable[BacklogStatus]] =
     Free.liftF(GetBacklogStatuses)
 
-  def storeIssue(issue: CybozuIssue): StoreProgram[Option[AnyId]] =
+  def storeIssue(issue: CybozuIssue): StoreProgram[AnyId] =
     Free.liftF(StoreIssue(issue))
 
   def getIssueComments(issue: CybozuIssue): StoreProgram[Observable[CybozuComment]] =
     Free.liftF(GetIssueComments(issue))
 
-  def storeIssueComment(comment: CybozuComment): StoreProgram[Option[AnyId]] =
+  def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
     Free.liftF(StoreComment(comment))
 
-  def storeComments(comments: Seq[CybozuComment]): StoreProgram[Int] =
+  def storeComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
     Free.liftF(StoreComments(comments))
 
-  def storeEvent(event: CybozuEvent): StoreProgram[Option[AnyId]] =
+  def storeEvent(event: CybozuEvent): StoreProgram[AnyId] =
     Free.liftF(StoreEvent(event))
 
-  def storeForum(forum: CybozuForum): StoreProgram[Option[AnyId]] =
+  def storeForum(forum: CybozuForum): StoreProgram[AnyId] =
     Free.liftF(StoreForum(forum))
 
-  def storeCybozuUser(user: CybozuUser): StoreProgram[Option[AnyId]] =
+  def storeCybozuUser(user: CybozuUser): StoreProgram[AnyId] =
     Free.liftF(StoreCybozuUser(user))
 
-  def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[A] =
-    Free.liftF[StoreADT, A](WriteDBStream(stream))
+  def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[Unit] =
+    Free.liftF[StoreADT, Unit](WriteDBStream(stream))
 
-  def storeBacklogUser(user: BacklogUser): StoreProgram[Option[AnyId]] =
+  def storeBacklogUser(user: BacklogUser): StoreProgram[AnyId] =
     Free.liftF(StoreBacklogUser(user))
 
-  def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Int] =
+  def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Seq[AnyId]] =
     Free.liftF(StoreBacklogPriorities(priorities))
 
-  def storeBacklogStatuses(statuses: Seq[BacklogStatus]): StoreProgram[Int] =
+  def storeBacklogStatuses(statuses: Seq[BacklogStatus]): StoreProgram[Seq[AnyId]] =
     Free.liftF(StoreBacklogStatuses(statuses))
 
 }

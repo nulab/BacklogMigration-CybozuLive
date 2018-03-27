@@ -10,9 +10,4 @@ private[sqlite] case class BacklogPriorityTableOps()(implicit exc: Scheduler) ex
 
   protected val tableQuery = TableQuery[BacklogPriorityTable]
 
-  def save(priorities: Seq[BacklogPriority]): DBIOWrites =
-    DBIO.sequence(priorities.map { current =>
-      tableQuery.insertOrUpdate(current)
-    }).map(_.sum)
-
 }

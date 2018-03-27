@@ -23,7 +23,8 @@ object CybozuCSVReader {
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
-            case Right(csvIssue) => (csvIssue, csvIssue.comments)
+            case Right(csvIssue) =>
+              (csvIssue, csvIssue.comments)
             case Left(error) => throw new RuntimeException(error.toString)
           }
       }
