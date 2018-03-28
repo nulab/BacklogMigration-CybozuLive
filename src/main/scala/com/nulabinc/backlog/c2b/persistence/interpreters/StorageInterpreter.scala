@@ -5,7 +5,6 @@ import java.nio.file.Path
 import cats.~>
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageADT
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
-import monix.eval.Task
 import monix.reactive.Observable
 
 
@@ -15,7 +14,11 @@ trait StorageInterpreter[F[_]] extends (StorageADT ~> F) {
 
   def read(path: Path): F[Observable[Array[Byte]]]
 
-  def write(path: Path, writeStream: Observable[Array[Byte]]): F[Unit]
+  def writeNew(path: Path, writeStream: Observable[Array[Byte]]): F[Unit]
+
+  def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): F[Unit]
 
   def delete(path: Path): F[Boolean]
+
+  def exists(path: Path): F[Boolean]
 }

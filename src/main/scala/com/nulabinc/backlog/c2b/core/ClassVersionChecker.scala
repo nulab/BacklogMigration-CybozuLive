@@ -1,6 +1,5 @@
-package com.nulabinc.backlog.c2b.utils
+package com.nulabinc.backlog.c2b.core
 
-import com.nulabinc.backlog.c2b.core.Logger
 import com.osinka.i18n.Messages
 
 import scala.util.{Failure, Success, Try}
