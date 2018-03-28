@@ -1,14 +1,10 @@
 package com.nulabinc.backlog.c2b
 
-import java.nio.file.{Path, Paths, StandardOpenOption}
-import java.util.Locale
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import backlog4s.apis.{AllApi, PriorityApi, StatusApi}
 import backlog4s.datas.User
 import backlog4s.interpreters.AkkaHttpInterpret
-import better.files.File
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
@@ -34,8 +30,6 @@ import scala.concurrent.duration.Duration
 
 object App extends Logger {
 
-
-
   def main(args: Array[String]): Unit = {
 
     // config
@@ -47,12 +41,6 @@ object App extends Logger {
 
     // start
     Console.printBanner(appName, appVersion)
-
-    // ------------------------------------------------------------------------
-    // initialize
-    // ------------------------------------------------------------------------
-    AnsiConsole.systemInstall()
-    setLanguage(language)
 
     // ------------------------------------------------------------------------
     // check
@@ -67,23 +55,17 @@ object App extends Logger {
     }
     // TODO: check release version
 
-    val result = ConfigParser(appName, appVersion).parse(args) match {
+    ConfigParser(appName, appVersion).parse(args) match {
       case Some(config) => config.commandType match {
-        case Init => init(config)
-        case Import => `import`(config)
-        case _ => ConfigError
+        case Init => init(config, language)
+        case Import => `import`(config, language)
+        case _ => throw new RuntimeException("It never happens")
       }
-      case None => ConfigError
-    }
-
-    result match {
-      case Success => exit(0)
-      case ConfigError => exit(1)
-      case Error(ex) => exit(1, ex)
+      case None => throw new RuntimeException("It never happens")
     }
   }
 
-  def init(config: Config): AppResult = {
+  def init(config: Config, language: String): Unit = {
     import backlog4s.dsl.syntax._
 
     implicit val system: ActorSystem = ActorSystem("init")
@@ -116,6 +98,9 @@ object App extends Logger {
     val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles, csvFormat)
 
     val program = for {
+      // Initialize
+      _ <- AppDSL.pure(AnsiConsole.systemInstall())
+      _ <- AppDSL.setLanguage(language)
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       // Delete database
@@ -147,20 +132,9 @@ object App extends Logger {
     Await.result(f, Duration.Inf)
 
     system.terminate()
-
-    //    val writer = new FileWriter("mapping/users.json")
-    //    val printer = new CSVPrinter(writer, CSVFormat.DEFAULT)
-
-    //    val mappingFileProgram = for {
-    //      user <- fromDB(StoreDSL.getUsers)
-    ////      _ <- fromStorage(StorageDSL.writeFile(File("mapping/users.json").path, CSVRecordGenerator.to(user)))
-    //      _ <- pure(user.map(u => printer.printRecord(u.key, "")))
-    //    } yield ()
-
-    Success
   }
 
-  def `import`(config: Config): AppResult = {
+  def `import`(config: Config, language: String): Unit = {
 
     implicit val system: ActorSystem = ActorSystem("import")
     implicit val mat: ActorMaterializer = ActorMaterializer()
@@ -176,6 +150,9 @@ object App extends Logger {
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
     val program = for {
+      // Initialize
+      _ <- AppDSL.pure(AnsiConsole.systemInstall())
+      _ <- AppDSL.setLanguage(language)
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       _ <- Validations.dbExistsProgram(config.DB_PATH)
@@ -187,8 +164,6 @@ object App extends Logger {
     Await.result(f, Duration.Inf)
 
     system.terminate()
-
-    Success
   }
 
   def sequential[A](prgs: Seq[StoreProgram[A]]): StoreProgram[Seq[A]] =
@@ -367,12 +342,6 @@ object App extends Logger {
       statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
       _ <- AppDSL.fromStorage(StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(statuses)))
     } yield ()
-  }
-
-  private def setLanguage(language: String): Unit = language match {
-    case "ja" => Locale.setDefault(Locale.JAPAN)
-    case "en" => Locale.setDefault(Locale.US)
-    case _    => ()
   }
 
   private def exit(exitCode: Int): Unit = {
