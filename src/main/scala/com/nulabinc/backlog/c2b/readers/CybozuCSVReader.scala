@@ -1,9 +1,8 @@
-package com.nulabinc.backlog.c2b.converters
+package com.nulabinc.backlog.c2b.readers
 
 import java.io.File
 import java.nio.charset.Charset
 
-import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.parsers.CSVRecordParser
 import monix.reactive.Observable

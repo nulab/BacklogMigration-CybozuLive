@@ -9,9 +9,7 @@ import backlog4s.apis.{AllApi, PriorityApi, StatusApi}
 import backlog4s.datas.User
 import backlog4s.interpreters.AkkaHttpInterpret
 import better.files.File
-import cats.free.Free
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.converters.{CybozuCSVReader, ReadResult}
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
@@ -20,9 +18,10 @@ import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters._
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreADT, StoreDSL}
+import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
+import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, ReadResult}
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
