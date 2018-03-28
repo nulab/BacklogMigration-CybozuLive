@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{Path, Paths, StandardOpenOption}
 import java.util.Locale
 
 import akka.actor.ActorSystem
@@ -22,8 +22,6 @@ import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, ReadResult}
-import com.nulabinc.backlog.c2b.utils.DisableSSLCertificateChecker
-import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
 import monix.reactive.Observable
@@ -103,7 +101,10 @@ object App extends Logger {
 
     val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
     val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
-    val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
+    val todoFiles = {
+      csvFiles.filter(_.getName.contains("live_ToDo")) ++
+      csvFiles.filter(_.getName.contains("live_To-Do List"))
+    }
     val eventFiles = {
       csvFiles.filter(_.getName.contains("live_Events_")) ++
       csvFiles.filter(_.getName.contains("live_イベント_"))
@@ -342,17 +343,29 @@ object App extends Logger {
   def writeMappingFiles(config: Config): AppProgram[Unit] = {
 
     for {
-      user <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
+      backlogUser <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
       _ <- AppDSL.fromStorage(
         for {
-          _ <- StorageDSL.writeFile(config.USERS_PATH, CSVRecordGenerator.userToByteArray(user))
-//          _ <- StorageDSL.writeFile(usersPath, CSVRecordGenerator.splitToByteArray())
+          _ <- StorageDSL.writeNewFile(config.USERS_PATH, CSVRecordGenerator.userToByteArray(backlogUser))
+          _ <- StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.splitToByteArray())
         } yield ()
       )
-      priorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
-      _ <- AppDSL.fromStorage(StorageDSL.writeFile(config.PRIORITIES_PATH, CSVRecordGenerator.priorityToByteArray(priorities)))
+      backlogPriorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
+      _ <- AppDSL.fromStorage(
+        for {
+          _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.backlogPriorityToByteArray(backlogPriorities))
+          _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.splitToByteArray())
+        } yield ()
+      )
+      cybozuPriorities <- AppDSL.fromDB(StoreDSL.getCybozuPriorities)
+      _ <- AppDSL.fromStorage(
+        for {
+          _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.cybozuPriorityToByteArray(cybozuPriorities))
+        } yield ()
+      )
+
       statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
-      _ <- AppDSL.fromStorage(StorageDSL.writeFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(statuses)))
+      _ <- AppDSL.fromStorage(StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(statuses)))
     } yield ()
   }
 
