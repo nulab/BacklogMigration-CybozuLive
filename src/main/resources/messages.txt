@@ -12,3 +12,6 @@ validation.access.error=The accessing {0} failed. Please check the url or api ac
 validation.admin=Checking for the presence of admin role ...
 validation.admin.ok=That is OK!
 validation.admin.error={0} API key is not administrator authority. Please use API key of administrator authority.
+validation.db.exists=Checking whether DB file exists ...
+validation.db.exists.ok=DB file exists.
+validation.db.exists.error=DB file does not exist. Did you run the init command?

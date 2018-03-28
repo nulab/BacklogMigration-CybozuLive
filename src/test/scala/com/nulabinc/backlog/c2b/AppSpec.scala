@@ -38,7 +38,7 @@ class AppSpec extends FlatSpec with Matchers {
 
   "App" should "validationProgram" in {
 
-    val program = App.validationProgram(config, backlogApi)
+    val program = Validations.backlogProgram(config, backlogApi)
 
     appInterpreter.run(program)
   }
@@ -65,6 +65,7 @@ class AppSpec extends FlatSpec with Matchers {
     override def read(path: Path): Task[Observable[Array[Byte]]] = ???
     override def write(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
     override def delete(path: Path): Task[Boolean] = ???
+    override def exists(path: Path): Task[Boolean] = ???
   }
 
   class TestDBInterpreter extends DBInterpreter {

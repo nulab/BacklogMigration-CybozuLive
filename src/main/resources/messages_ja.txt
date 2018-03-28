@@ -12,3 +12,6 @@ validation.access.error={0}にアクセスできませんでした。URLまた�
 validation.admin=管理者権限の有無をチェックしています...
 validation.admin.ok=管理者権限があります。
 validation.admin.error={0}のAPIキーが管理者権限ではありません。管理者権限のAPIキーを使用してください。
+validation.db.exists=DBファイルが存在するかチェックしています ...
+validation.db.exists.ok=DBファイルが存在します。
+validation.db.exists.error=DBファイルが存在しません。initコマンドを実行しましたか？

@@ -117,7 +117,7 @@ object App extends Logger {
 
     val program = for {
       // Validation
-      _ <- validationProgram(config, backlogApi)
+      _ <- Validations.backlogProgram(config, backlogApi)
       // Delete database
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(DB_PATH))
       // Create database
@@ -160,29 +160,34 @@ object App extends Logger {
     Success
   }
 
-  def `import`(config: Config): AppResult = ???
+  def `import`(config: Config): AppResult = {
 
-  def validationProgram(config: Config, backlogApi: AllApi): AppProgram[Unit] = {
+    implicit val system: ActorSystem = ActorSystem("import")
+    implicit val mat: ActorMaterializer = ActorMaterializer()
+    implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
 
-    import com.nulabinc.backlog.c2b.interpreters.AppDSL._
-    import com.nulabinc.backlog.c2b.interpreters.syntax._
+    val interpreter = new AppInterpreter(
+      backlogInterpreter = new AkkaHttpInterpret,
+      storageInterpreter = new LocalStorageInterpreter,
+      dbInterpreter = new SQLiteInterpreter("db.main"),
+      consoleInterpreter = new ConsoleInterpreter
+    )
 
-    for {
-      // Access check
-      _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
-      apiAccess <- fromBacklog(backlogApi.spaceApi.logo)
-      _ <- apiAccess.orExit(
-        Messages("validation.access.ok", Messages("name.backlog")),
-        Messages("validation.access.error", Messages("name.backlog"))
-      )
-      // Admin check
-      _ <- fromConsole(ConsoleDSL.print(Messages("validation.admin", Messages("name.backlog"))))
-      adminCheck <- fromBacklog(backlogApi.spaceApi.diskUsage)
-      _ <- adminCheck.orExit(
-        Messages("validation.admin.ok", Messages("name.backlog")),
-        Messages("validation.admin.error", Messages("name.backlog"))
-      )
+    val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
+
+    val program = for {
+      // Validation
+      _ <- Validations.backlogProgram(config, backlogApi)
+      _ <- Validations.dbExistsProgram(DB_PATH)
     } yield ()
+
+    val f = interpreter.run(program).runAsync
+
+    Await.result(f, Duration.Inf)
+
+    system.terminate()
+
+    Success
   }
 
   def sequential[A](prgs: Seq[StoreProgram[A]]): StoreProgram[Seq[A]] =
