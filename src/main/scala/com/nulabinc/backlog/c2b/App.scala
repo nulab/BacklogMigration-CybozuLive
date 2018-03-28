@@ -10,8 +10,8 @@ import backlog4s.datas.User
 import backlog4s.interpreters.AkkaHttpInterpret
 import better.files.File
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.converters.CybozuCSVReader
 import com.nulabinc.backlog.c2b.core.Logger
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
@@ -21,6 +21,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
+import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, ReadResult}
 import com.nulabinc.backlog.c2b.utils.{ClassVersionChecker, DisableSSLCertificateChecker}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
@@ -121,9 +122,9 @@ object App extends Logger {
       // Read from CSV - Issue
       _ <- readIssueCSVtoStoreDB(issueObservable)
       // Read from CSV - Event
-      //      _ <- readEventCSVtoStoreDB(eventObservable)
+      _ <- readEventCSVtoStoreDB(eventObservable)
       // Read from CSV - Forum
-      //      _ <- readForumCSVtoStoreDB(forumObservable)
+      _ <- readForumCSVtoStoreDB(forumObservable)
       // Collect Backlog priorities
       _ <- getBacklogPrioritiesToStoreDB(backlogApi.priorityApi)
       // Collect Backlog statuses
@@ -181,41 +182,53 @@ object App extends Logger {
     } yield ()
   }
 
-  def readIssueCSVtoStoreDB(observable: Observable[(CybozuCSVIssue, Seq[CybozuCSVComment])]): AppProgram[Unit] = {
-
-    def insertOrUpdateUser(cybozuUser: CybozuUser) = {
-      for {
-        optId <- StoreDSL.getCybozuUserByKey(cybozuUser.userId)
-        id <- optId match {
-          case Some(existUser) => StoreDSL.pure(existUser.id)
-          case None => StoreDSL.storeCybozuUser(cybozuUser, Insert)
+  def sequential[A](prgs: Seq[StoreProgram[A]]): StoreProgram[Seq[A]] =
+    prgs.foldLeft(StoreDSL.pure(Seq.empty[A])) {
+      case (newPrg, prg) =>
+        newPrg.flatMap { results =>
+          prg.map { result =>
+            results :+ result
+          }
         }
-      } yield id
     }
 
-    def sequential[A](prgs: Seq[StoreProgram[A]]): StoreProgram[Seq[A]] =
-      prgs.foldLeft(StoreDSL.pure(Seq.empty[A])) {
-        case (newPrg, prg) =>
-          newPrg.flatMap { results =>
-            prg.map { result =>
-              results :+ result
-            }
-          }
+  def insertOrUpdateUser(cybozuUser: CybozuUser): StoreProgram[AnyId] =
+    for {
+      optId <- StoreDSL.getCybozuUserByKey(cybozuUser.userId)
+      id <- optId match {
+        case Some(existUser) => StoreDSL.pure(existUser.id)
+        case None => StoreDSL.storeCybozuUser(cybozuUser, Insert)
       }
+    } yield id
+
+  def storeCommentsProgram(issueId: AnyId, csvComments: Seq[CybozuCSVComment]): StoreProgram[Unit] = {
+    val commentsPrograms = csvComments.map { comment =>
+      val commentCreator = CybozuUser.from(comment.creator)
+      for {
+        creatorId <- insertOrUpdateUser(commentCreator)
+      } yield CybozuComment.from(issueId, comment, creatorId)
+    }
+    for {
+      comments <- sequential(commentsPrograms)
+      _ <- StoreDSL.storeIssueComments(comments)
+    } yield ()
+  }
+
+  def readIssueCSVtoStoreDB(observable: Observable[ReadResult[CybozuCSVIssue]]): AppProgram[Unit] = {
 
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
-        observable.map { data =>
-          val creator = CybozuUser.from(data._1.creator)
-          val updater = CybozuUser.from(data._1.updater)
-          val assignees = data._1.assignees.map(u => CybozuUser.from(u))
+        observable.map { result =>
+          val creator = CybozuUser.from(result.data.creator)
+          val updater = CybozuUser.from(result.data.updater)
+          val assignees = result.data.assignees.map(u => CybozuUser.from(u))
           for {
             // Save issues
             creatorId <- insertOrUpdateUser(creator)
             updaterId <- insertOrUpdateUser(updater)
             issueId <- {
               val issue = CybozuIssue.from(
-                issue = data._1,
+                issue = result.data,
                 creatorId = creatorId,
                 updaterId = updaterId
               )
@@ -226,14 +239,7 @@ object App extends Logger {
             assigneeIds <- sequential(assigneeIdsProgram)
             _ <- StoreDSL.storeIssueAssignees(issueId, assigneeIds)
             // Save comments
-            commentsPrograms = data._2.map { comment =>
-              val commentCreator = CybozuUser.from(comment.creator)
-              for {
-                creatorId <- insertOrUpdateUser(commentCreator)
-              } yield CybozuComment.from(issueId, comment, creatorId)
-            }
-            comments <- sequential(commentsPrograms)
-            _ <- StoreDSL.storeIssueComments(comments)
+            _ <- storeCommentsProgram(issueId, result.comments)
           } yield ()
         }
       )
@@ -242,31 +248,56 @@ object App extends Logger {
     AppDSL.fromDB(dbProgram)
   }
 
-  //  def readEventCSVtoStoreDB(observable: Observable[(CybozuEvent, Seq[CybozuCSVComment])]): AppProgram[Unit] =
-  //    for {
-  //      optEventId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(event => StoreDSL.storeEvent(event._1))))
-  //      _ <- AppDSL.fromDB(
-  //        StoreDSL.writeDBStream {
-  //          observable.map { data =>
-  //            val comments = CybozuConverter.toComments(optEventId.getOrElse(throw new Exception("optEventId is null")), data._2)
-  //            StoreDSL.storeComments(comments)
-  //          }
-  //        }
-  //      )
-  //    } yield ()
+  def readEventCSVtoStoreDB(observable: Observable[ReadResult[CybozuCSVEvent]]): AppProgram[Unit] = {
+    val dbProgram = for {
+      _ <- StoreDSL.writeDBStream(
+        observable.map { result =>
+          val creator = CybozuUser.from(result.data.creator)
+          for {
+            // Save event
+            creatorId <- insertOrUpdateUser(creator)
+            eventId <- {
+              val issue = CybozuEvent.from(
+                event = result.data,
+                creatorId = creatorId
+              )
+              StoreDSL.storeEvent(issue)
+            }
+            // Save comments
+            _ <- storeCommentsProgram(eventId, result.comments)
+          } yield ()
+        }
+      )
+    } yield ()
+    AppDSL.fromDB(dbProgram)
+  }
 
-  //  def readForumCSVtoStoreDB(observable: Observable[(CybozuForum, Seq[CybozuCSVComment])]): AppProgram[Unit] =
-  //    for {
-  //      optForumId <- AppDSL.fromDB(StoreDSL.writeDBStream(observable.map(forum => StoreDSL.storeForum(forum._1))))
-  //      _ <- AppDSL.fromDB(
-  //        StoreDSL.writeDBStream {
-  //          observable.map { data =>
-  //            val comments = CybozuConverter.toComments(optForumId.getOrElse(throw new Exception("optForumId is null")), data._2)
-  //            StoreDSL.storeComments(comments)
-  //          }
-  //        }
-  //      )
-  //    } yield ()
+  def readForumCSVtoStoreDB(observable: Observable[ReadResult[CybozuCSVForum]]): AppProgram[Unit] = {
+    val dbProgram = for {
+      _ <- StoreDSL.writeDBStream(
+        observable.map { result =>
+          val creator = CybozuUser.from(result.data.creator)
+          val updater = CybozuUser.from(result.data.updater)
+          for {
+            // Save event
+            creatorId <- insertOrUpdateUser(creator)
+            updaterId <- insertOrUpdateUser(updater)
+            forumId <- {
+              val forum = CybozuForum.from(
+                forum = result.data,
+                creatorId = creatorId,
+                updaterId = updaterId
+              )
+              StoreDSL.storeForum(forum)
+            }
+            // Save comments
+            _ <- storeCommentsProgram(forumId, result.comments)
+          } yield ()
+        }
+      )
+    } yield ()
+    AppDSL.fromDB(dbProgram)
+  }
 
   def getBacklogPrioritiesToStoreDB(api: PriorityApi): AppProgram[Unit] =
     for {
@@ -300,16 +331,24 @@ object App extends Logger {
       } yield ()
     }
 
-
-  def writeMappingFiles(): AppProgram[Unit] =
+  def writeMappingFiles(): AppProgram[Unit] = {
+    val usersPath = File("data/users.csv").path
+    val prioritiesPath = File("data/priorities.csv").path
+    val statusesPath = File("data/statuses.csv").path
     for {
       user <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
-      _ <- AppDSL.fromStorage(StorageDSL.writeFile(File("data/users.json").path, CSVRecordGenerator.userToByteArray(user)))
+      _ <- AppDSL.fromStorage(
+        for {
+          _ <- StorageDSL.writeFile(usersPath, CSVRecordGenerator.userToByteArray(user))
+//          _ <- StorageDSL.writeFile(usersPath, CSVRecordGenerator.splitToByteArray())
+        } yield ()
+      )
       priorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
-      _ <- AppDSL.fromStorage(StorageDSL.writeFile(File("data/priorities.json").path, CSVRecordGenerator.priorityToByteArray(priorities)))
+      _ <- AppDSL.fromStorage(StorageDSL.writeFile(prioritiesPath, CSVRecordGenerator.priorityToByteArray(priorities)))
       statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
-      _ <- AppDSL.fromStorage(StorageDSL.writeFile(File("data/statuses.json").path, CSVRecordGenerator.statusToByteArray(statuses)))
+      _ <- AppDSL.fromStorage(StorageDSL.writeFile(statusesPath, CSVRecordGenerator.statusToByteArray(statuses)))
     } yield ()
+  }
 
   private def setLanguage(language: String): Unit = language match {
     case "ja" => Locale.setDefault(Locale.JAPAN)
