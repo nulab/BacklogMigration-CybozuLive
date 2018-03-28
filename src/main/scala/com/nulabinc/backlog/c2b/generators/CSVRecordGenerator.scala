@@ -11,24 +11,24 @@ object CSVRecordGenerator {
 
   def userToByteArray(user: Observable[BacklogUser]): Observable[Array[Byte]] =
     user.map { item =>
-      s"""
-         |"${item.userId.getOrElse("")}",""\n
-      """.stripMargin.getBytes(charset)
+      s""""${item.userId.getOrElse("")}",""\n""".stripMargin.getBytes(charset)
     }
 
   def priorityToByteArray(priority: Observable[BacklogPriority]): Observable[Array[Byte]] =
     priority.map { u =>
-      s"""
-         |"${u.name}",""\n
-      """.stripMargin.getBytes(charset)
+      s""""${u.name}",""\n""".stripMargin.getBytes(charset)
     }
 
   def statusToByteArray(status: Observable[BacklogStatus]): Observable[Array[Byte]] =
     status.map { u =>
-      s"""
-         |"${u.name}",""\n
-      """.stripMargin.getBytes(charset)
+      s""""${u.name}",""\n""".stripMargin.getBytes(charset)
     }
+
+  def splitToByteArray(): Observable[Array[Byte]] =
+    Observable {
+      s""""----------------------","----------------------"\n""".stripMargin.getBytes(charset)
+    }
+
 }
 
 /*

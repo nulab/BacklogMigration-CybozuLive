@@ -11,11 +11,13 @@ import org.apache.commons.csv.{CSVFormat, CSVParser}
 
 import scala.collection.JavaConverters._
 
+case class ReadResult[A](data: A, comments: Seq[CybozuCSVComment])
+
 object CybozuCSVReader {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  def toCybozuIssue(files: Array[File], csvFormat: CSVFormat): Observable[(CybozuCSVIssue, Seq[CybozuCSVComment])] =
+  def toCybozuIssue(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVIssue]] =
     Observable
       .fromIterable(files)
       .flatMap { file =>
@@ -23,38 +25,34 @@ object CybozuCSVReader {
           .drop(1)
           .map(CSVRecordParser.issue)
           .map {
-            case Right(csvIssue) =>
-              (csvIssue, csvIssue.comments)
+            case Right(csvIssue) => ReadResult(csvIssue, csvIssue.comments)
             case Left(error) => throw new RuntimeException(error.toString)
           }
       }
 
-//  def toComments(parentId: AnyId, comments: Seq[CybozuCSVComment]): Seq[CybozuComment] =
-//    comments.map(c => CybozuComment.from(parentId, c))
-
-  def toCybozuEvent(files: Array[File], csvFormat: CSVFormat): Observable[CybozuCSVEvent] =
+  def toCybozuEvent(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVEvent]] =
     Observable
       .fromIterable(files)
-      .mapParallelUnordered(files.length) { file =>
+      .flatMap { file =>
         Observable.fromIterator(CSVParser.parse(file, charset, csvFormat).iterator().asScala)
           .drop(1)
           .map(CSVRecordParser.event)
           .map {
-            case Right(csvEvent) => csvEvent
+            case Right(csvEvent) => ReadResult(csvEvent, csvEvent.comments)
             case Left(error) => throw new RuntimeException(error.toString)
-          }.headL
+          }
       }
 
-  def toCybozuForum(files: Array[File], csvFormat: CSVFormat): Observable[CybozuCSVForum] =
+  def toCybozuForum(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVForum]] =
     Observable
       .fromIterable(files)
-      .mapParallelUnordered(files.length) { file =>
+      .flatMap { file =>
         Observable.fromIterator(CSVParser.parse(file, charset, csvFormat).iterator().asScala)
           .drop(1)
           .map(CSVRecordParser.forum)
           .map {
-            case Right(csvForum) => csvForum
+            case Right(csvForum) => ReadResult(csvForum, csvForum.comments)
             case Left(error) => throw new RuntimeException(error.toString)
-          }.headL
+          }
       }
 }
