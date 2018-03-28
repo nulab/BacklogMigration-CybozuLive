@@ -42,12 +42,12 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
         )
         db.run(sqls)
       }
-      case GetIssues => Task.eval {
+      case GetTodos => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(issueTableOps.stream)
         )
       }
-      case StoreIssue(issue, writeType) => Task.deferFuture {
+      case StoreTodo(issue, writeType) => Task.deferFuture {
         db.run(issueTableOps.write(issue, writeType))
       }
       case GetForums => Task.eval {
@@ -66,7 +66,7 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       case StoreEvent(event, writeType) => Task.deferFuture {
         db.run(eventTableOps.write(event, writeType))
       }
-      case GetIssueComments(issue) => Task.eval {
+      case GetComments(issue) => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(commentTableOps.streamByParentId(issue.id))
         )
@@ -77,7 +77,7 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       case StoreComments(comments, writeType) => Task.deferFuture {
         db.run(commentTableOps.write(comments, writeType))
       }
-      case StoreIssueAssignees(issueId, assigneeIds) => Task.deferFuture {
+      case StoreTodoAssignees(issueId, assigneeIds) => Task.deferFuture {
         db.run(cybozuIssueUserTableOps.write(issueId, assigneeIds))
       }
       case GetCybozuUserBykey(key) => Task.deferFuture {

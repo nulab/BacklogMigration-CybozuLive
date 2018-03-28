@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b.datas
 
 import com.nulabinc.backlog.c2b.datas.Types.DateTime
 
-case class CybozuCSVIssue(
+case class CybozuCSVTodo(
   id: String,
   title: String,
   content: String,
@@ -17,7 +17,7 @@ case class CybozuCSVIssue(
   comments: Seq[CybozuCSVComment]
 )
 
-object CybozuCSVIssue {
+object CybozuCSVTodo {
   val fieldSize = 12
 }
 

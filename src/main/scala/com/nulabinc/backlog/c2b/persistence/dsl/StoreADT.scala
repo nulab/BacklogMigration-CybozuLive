@@ -15,14 +15,14 @@ case class Pure[A](a: A) extends StoreADT[A]
 
 case object CreateDatabase extends StoreADT[Unit]
 
-case object GetIssues extends StoreADT[Observable[CybozuIssue]]
-case class StoreIssue(issue: CybozuIssue, writeType: WriteType = Insert) extends StoreADT[AnyId]
+case object GetTodos extends StoreADT[Observable[CybozuTodo]]
+case class StoreTodo(todo: CybozuTodo, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
-case class GetIssueComments(issue: CybozuIssue) extends StoreADT[Observable[CybozuComment]]
+case class GetComments(todo: CybozuTodo) extends StoreADT[Observable[CybozuComment]]
 case class StoreComment(comment: CybozuComment, writeType: WriteType = Insert) extends StoreADT[AnyId]
 case class StoreComments(comments: Seq[CybozuComment], writeType: WriteType = Insert) extends StoreADT[Seq[AnyId]]
 
-case class StoreIssueAssignees(issueId: AnyId, assigneeIds: Seq[AnyId]) extends StoreADT[Int]
+case class StoreTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]) extends StoreADT[Int]
 
 case object GetEvents extends StoreADT[Observable[CybozuEvent]]
 case class StoreEvent(event: CybozuEvent, writeType: WriteType = Insert) extends StoreADT[AnyId]

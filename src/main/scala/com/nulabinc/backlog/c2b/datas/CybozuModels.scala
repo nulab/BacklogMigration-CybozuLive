@@ -18,7 +18,7 @@ object CybozuUser {
     new CybozuUser(0, user.value)
 }
 
-case class CybozuIssue(
+case class CybozuTodo(
   id: AnyId,
   title: String,
   content: String,
@@ -31,22 +31,22 @@ case class CybozuIssue(
   dueDate: Option[DateTime]
 ) extends Entity
 
-object CybozuIssue {
+object CybozuTodo {
 
   val tupled = (this.apply _).tupled
 
-  def from(issue: CybozuCSVIssue, creatorId: AnyId, updaterId: AnyId): CybozuIssue =
-    new CybozuIssue(
+  def from(todo: CybozuCSVTodo, creatorId: AnyId, updaterId: AnyId): CybozuTodo =
+    new CybozuTodo(
       id = 0,
-      title = issue.title,
-      content = issue.content,
+      title = todo.title,
+      content = todo.content,
       creator = creatorId,
-      createdAt = issue.createdAt,
+      createdAt = todo.createdAt,
       updater = updaterId,
-      updatedAt = issue.updatedAt,
-      status = CybozuStatus(issue.status.value),
-      priority = CybozuPriority(issue.priority.value),
-      dueDate = issue.dueDate
+      updatedAt = todo.updatedAt,
+      status = CybozuStatus(todo.status.value),
+      priority = CybozuPriority(todo.priority.value),
+      dueDate = todo.dueDate
     )
 }
 

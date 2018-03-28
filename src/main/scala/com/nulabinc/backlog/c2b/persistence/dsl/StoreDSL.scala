@@ -18,8 +18,8 @@ object StoreDSL {
   lazy val createDatabase: StoreProgram[Unit] =
     Free.liftF(CreateDatabase)
 
-  lazy val getIssues: StoreProgram[Observable[CybozuIssue]] =
-    Free.liftF(GetIssues)
+  lazy val getTodos: StoreProgram[Observable[CybozuTodo]] =
+    Free.liftF(GetTodos)
 
   lazy val getEvents: StoreProgram[Observable[CybozuEvent]] =
     Free.liftF(GetEvents)
@@ -39,20 +39,20 @@ object StoreDSL {
   lazy val getBacklogStatuses: StoreProgram[Observable[BacklogStatus]] =
     Free.liftF(GetBacklogStatuses)
 
-  def storeIssue(issue: CybozuIssue): StoreProgram[AnyId] =
-    Free.liftF(StoreIssue(issue))
+  def storeTodo(todo: CybozuTodo): StoreProgram[AnyId] =
+    Free.liftF(StoreTodo(todo))
 
-  def getIssueComments(issue: CybozuIssue): StoreProgram[Observable[CybozuComment]] =
-    Free.liftF(GetIssueComments(issue))
+  def getTodoComments(todo: CybozuTodo): StoreProgram[Observable[CybozuComment]] =
+    Free.liftF(GetComments(todo))
 
-  def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
+  def storeTodoComment(comment: CybozuComment): StoreProgram[AnyId] =
     Free.liftF(StoreComment(comment))
 
-  def storeIssueComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
+  def storeTodoComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
     Free.liftF(StoreComments(comments))
 
-  def storeIssueAssignees(issueId: AnyId, assigneeIds: Seq[AnyId]): StoreProgram[Int] =
-    Free.liftF(StoreIssueAssignees(issueId, assigneeIds))
+  def storeTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]): StoreProgram[Int] =
+    Free.liftF(StoreTodoAssignees(todoId, assigneeIds))
 
   def storeEvent(event: CybozuEvent): StoreProgram[AnyId] =
     Free.liftF(StoreEvent(event))

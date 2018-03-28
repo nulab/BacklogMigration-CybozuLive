@@ -23,7 +23,7 @@ object CSVRecordParser {
 //  }
 
   // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","ステータス","優先度","担当者","期日","コメント"
-  def issue(record: CSVRecord): Either[ParseError[CybozuCSVIssue], CybozuCSVIssue] = {
+  def issue(record: CSVRecord): Either[ParseError[CybozuCSVTodo], CybozuCSVTodo] = {
 
     val ID_FIELD_INDEX          = 0
     val TITLE_FIELD_INDEX       = 1
@@ -40,14 +40,14 @@ object CSVRecordParser {
 
     val assignee = record.get(ASSIGNEE_FIELD_INDEX)
 
-    if (record.size() >= CybozuCSVIssue.fieldSize) {
+    if (record.size() >= CybozuCSVTodo.fieldSize) {
       (for {
         createdAt <- ZonedDateTimeParser.toZonedDateTime(record.get(CREATED_AT_FIELD_INDEX))
         updatedAt <- ZonedDateTimeParser.toZonedDateTime(record.get(UPDATED_AT_FIELD_INDEX))
         dueDate <- ZonedDateTimeParser.toMaybeZonedDateTime(record.get(DUE_DATE_FIELD_INDEX))
         comments <- CommentParser.sequence(CommentParser.parse(record.get(COMMENTS_FIELD_INDEX)))
       } yield {
-        CybozuCSVIssue(
+        CybozuCSVTodo(
           id        = record.get(ID_FIELD_INDEX),
           title     = record.get(TITLE_FIELD_INDEX),
           content   = record.get(CONTENT_FIELD_INDEX),
@@ -63,10 +63,10 @@ object CSVRecordParser {
         )
       }) match {
         case Right(issue) => Right(issue)
-        case Left(error) => Left(CannotParseCSV(classOf[CybozuCSVIssue], error.toString, record))
+        case Left(error) => Left(CannotParseCSV(classOf[CybozuCSVTodo], error.toString, record))
       }
     } else {
-      Left(CannotParseCSV(classOf[CybozuCSVIssue], "Invalid record size: " + record.size(), record))
+      Left(CannotParseCSV(classOf[CybozuCSVTodo], "Invalid record size: " + record.size(), record))
     }
   }
 

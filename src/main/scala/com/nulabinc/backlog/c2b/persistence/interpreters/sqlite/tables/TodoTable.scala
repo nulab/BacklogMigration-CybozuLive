@@ -5,7 +5,7 @@ import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import slick.lifted.{ProvenShape, Tag}
 import slick.jdbc.SQLiteProfile.api._
 
-private[sqlite] class IssueTable(tag: Tag) extends BaseTable[CybozuIssue](tag, "cybozu_issues") {
+private[sqlite] class TodoTable(tag: Tag) extends BaseTable[CybozuTodo](tag, "cybozu_todos") {
 
   import JdbcMapper._
 
@@ -19,8 +19,8 @@ private[sqlite] class IssueTable(tag: Tag) extends BaseTable[CybozuIssue](tag, "
   def priority: Rep[CybozuPriority] = column[CybozuPriority]("priority")
   def dueDate: Rep[Option[DateTime]] = column[Option[DateTime]]("due_date")
 
-  override def * : ProvenShape[CybozuIssue] =
+  override def * : ProvenShape[CybozuTodo] =
     (id, title, content, creator, createdAt, updater, updatedAt,
-      status, priority, dueDate) <> (CybozuIssue.tupled, CybozuIssue.unapply)
+      status, priority, dueDate) <> (CybozuTodo.tupled, CybozuTodo.unapply)
 
 }

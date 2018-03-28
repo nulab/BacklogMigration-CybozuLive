@@ -10,13 +10,13 @@ import org.apache.commons.csv.{CSVFormat, CSVParser}
 
 import scala.collection.JavaConverters._
 
-case class ReadResult[A](data: A, comments: Seq[CybozuCSVComment])
+case class ReadResult[A](issue: A, comments: Seq[CybozuCSVComment])
 
 object CybozuCSVReader {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  def toCybozuIssue(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVIssue]] =
+  def toCybozuTodo(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVTodo]] =
     Observable
       .fromIterable(files)
       .flatMap { file =>

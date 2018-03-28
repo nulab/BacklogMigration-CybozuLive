@@ -108,7 +108,7 @@ object App extends Logger {
     val eventFiles = csvFiles.filter(_.getName.contains("live_Events_"))
     val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_"))
 
-    val issueObservable = CybozuCSVReader.toCybozuIssue(todoFiles, csvFormat)
+    val todoObservable = CybozuCSVReader.toCybozuTodo(todoFiles, csvFormat)
     val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles, csvFormat)
     val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles, csvFormat)
 
@@ -120,7 +120,7 @@ object App extends Logger {
       // Create database
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read from CSV - Issue
-      _ <- readIssueCSVtoStoreDB(issueObservable)
+      _ <- readTodoCSVtoStoreDB(todoObservable)
       // Read from CSV - Event
       _ <- readEventCSVtoStoreDB(eventObservable)
       // Read from CSV - Forum
@@ -210,34 +210,34 @@ object App extends Logger {
     }
     for {
       comments <- sequential(commentsPrograms)
-      _ <- StoreDSL.storeIssueComments(comments)
+      _ <- StoreDSL.storeTodoComments(comments)
     } yield ()
   }
 
-  def readIssueCSVtoStoreDB(observable: Observable[ReadResult[CybozuCSVIssue]]): AppProgram[Unit] = {
+  def readTodoCSVtoStoreDB(observable: Observable[ReadResult[CybozuCSVTodo]]): AppProgram[Unit] = {
 
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
         observable.map { result =>
-          val creator = CybozuUser.from(result.data.creator)
-          val updater = CybozuUser.from(result.data.updater)
-          val assignees = result.data.assignees.map(u => CybozuUser.from(u))
+          val creator = CybozuUser.from(result.issue.creator)
+          val updater = CybozuUser.from(result.issue.updater)
+          val assignees = result.issue.assignees.map(u => CybozuUser.from(u))
           for {
             // Save issues
             creatorId <- insertOrUpdateUser(creator)
             updaterId <- insertOrUpdateUser(updater)
             issueId <- {
-              val issue = CybozuIssue.from(
-                issue = result.data,
+              val issue = CybozuTodo.from(
+                todo = result.issue,
                 creatorId = creatorId,
                 updaterId = updaterId
               )
-              StoreDSL.storeIssue(issue)
+              StoreDSL.storeTodo(issue)
             }
             // Save assignees
             assigneeIdsProgram = assignees.map(insertOrUpdateUser)
             assigneeIds <- sequential(assigneeIdsProgram)
-            _ <- StoreDSL.storeIssueAssignees(issueId, assigneeIds)
+            _ <- StoreDSL.storeTodoAssignees(issueId, assigneeIds)
             // Save comments
             _ <- storeCommentsProgram(issueId, result.comments)
           } yield ()
@@ -252,13 +252,13 @@ object App extends Logger {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
         observable.map { result =>
-          val creator = CybozuUser.from(result.data.creator)
+          val creator = CybozuUser.from(result.issue.creator)
           for {
             // Save event
             creatorId <- insertOrUpdateUser(creator)
             eventId <- {
               val issue = CybozuEvent.from(
-                event = result.data,
+                event = result.issue,
                 creatorId = creatorId
               )
               StoreDSL.storeEvent(issue)
@@ -276,15 +276,15 @@ object App extends Logger {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
         observable.map { result =>
-          val creator = CybozuUser.from(result.data.creator)
-          val updater = CybozuUser.from(result.data.updater)
+          val creator = CybozuUser.from(result.issue.creator)
+          val updater = CybozuUser.from(result.issue.updater)
           for {
             // Save event
             creatorId <- insertOrUpdateUser(creator)
             updaterId <- insertOrUpdateUser(updater)
             forumId <- {
               val forum = CybozuForum.from(
-                forum = result.data,
+                forum = result.issue,
                 creatorId = creatorId,
                 updaterId = updaterId
               )
