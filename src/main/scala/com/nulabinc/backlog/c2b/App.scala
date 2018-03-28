@@ -34,8 +34,6 @@ import scala.concurrent.duration.Duration
 
 object App extends Logger {
 
-
-
   def main(args: Array[String]): Unit = {
 
     // config
@@ -47,13 +45,7 @@ object App extends Logger {
 
     // start
     Console.printBanner(appName, appVersion)
-
-    // ------------------------------------------------------------------------
-    // initialize
-    // ------------------------------------------------------------------------
-    AnsiConsole.systemInstall()
-    setLanguage(language)
-
+    
     // ------------------------------------------------------------------------
     // check
     // ------------------------------------------------------------------------
@@ -69,8 +61,8 @@ object App extends Logger {
 
     val result = ConfigParser(appName, appVersion).parse(args) match {
       case Some(config) => config.commandType match {
-        case Init => init(config)
-        case Import => `import`(config)
+        case Init => init(config, language)
+        case Import => `import`(config, language)
         case _ => ConfigError
       }
       case None => ConfigError
@@ -83,7 +75,7 @@ object App extends Logger {
     }
   }
 
-  def init(config: Config): AppResult = {
+  def init(config: Config, language: String): AppResult = {
     import backlog4s.dsl.syntax._
 
     implicit val system: ActorSystem = ActorSystem("init")
@@ -116,6 +108,9 @@ object App extends Logger {
     val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles, csvFormat)
 
     val program = for {
+      // Initialize
+      _ <- AppDSL.pure(AnsiConsole.systemInstall())
+      _ <- AppDSL.setLanguage(language)
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       // Delete database
@@ -160,7 +155,7 @@ object App extends Logger {
     Success
   }
 
-  def `import`(config: Config): AppResult = {
+  def `import`(config: Config, language: String): AppResult = {
 
     implicit val system: ActorSystem = ActorSystem("import")
     implicit val mat: ActorMaterializer = ActorMaterializer()
@@ -176,6 +171,9 @@ object App extends Logger {
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
     val program = for {
+      // Initialize
+      _ <- AppDSL.pure(AnsiConsole.systemInstall())
+      _ <- AppDSL.setLanguage(language)
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       _ <- Validations.dbExistsProgram(config.DB_PATH)
@@ -367,12 +365,6 @@ object App extends Logger {
       statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
       _ <- AppDSL.fromStorage(StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(statuses)))
     } yield ()
-  }
-
-  private def setLanguage(language: String): Unit = language match {
-    case "ja" => Locale.setDefault(Locale.JAPAN)
-    case "en" => Locale.setDefault(Locale.US)
-    case _    => ()
   }
 
   private def exit(exitCode: Int): Unit = {
