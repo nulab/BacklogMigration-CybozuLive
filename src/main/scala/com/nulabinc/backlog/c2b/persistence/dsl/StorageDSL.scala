@@ -18,4 +18,7 @@ object StorageDSL {
   def deleteFile(path: Path): StorageProgram[Boolean] =
     Free.liftF(DeleteFile(path))
 
+  def exists(path: Path): StorageProgram[Boolean] =
+    Free.liftF(Exists(path))
+
 }

@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
 import java.nio.file.{Files, Path}
 
-import com.nulabinc.backlog.c2b.persistence.dsl.{DeleteFile, ReadFile, StorageADT, WriteFile}
+import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
@@ -37,10 +37,14 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
     path.toFile.delete()
   }
 
+  override def exists(path: Path): Task[Boolean] = Task {
+    path.toFile.exists()
+  }
+
   override def apply[A](fa: StorageADT[A]): Task[A] = fa match {
     case ReadFile(path) => read(path)
     case WriteFile(path, writeStream) => write(path, writeStream)
     case DeleteFile(path) => delete(path)
+    case Exists(path) => exists(path)
   }
-
 }

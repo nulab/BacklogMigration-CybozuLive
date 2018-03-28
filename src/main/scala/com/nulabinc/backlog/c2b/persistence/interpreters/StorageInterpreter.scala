@@ -18,4 +18,6 @@ trait StorageInterpreter[F[_]] extends (StorageADT ~> F) {
   def write(path: Path, writeStream: Observable[Array[Byte]]): F[Unit]
 
   def delete(path: Path): F[Boolean]
+
+  def exists(path: Path): F[Boolean]
 }
