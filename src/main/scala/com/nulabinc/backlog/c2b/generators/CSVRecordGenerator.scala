@@ -39,6 +39,11 @@ object CSVRecordGenerator {
       s""""${u.value}",""\n""".stripMargin.getBytes(charset)
     }
 
+  def headerToByteArray: Observable[Array[Byte]] =
+    Observable {
+      """"CybozuLive","Backlog"\n""".stripMargin.getBytes(charset)
+    }
+
   def splitToByteArray(): Observable[Array[Byte]] =
     Observable {
       s""""----------------------","----------------------"\n""".stripMargin.getBytes(charset)
