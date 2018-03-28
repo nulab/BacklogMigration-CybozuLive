@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b
 
 import java.io.File
-import java.nio.file.Path
+import java.nio.file.{Path, StandardOpenOption}
 
 import backlog4s.apis.AllApi
 import backlog4s.dsl.BacklogHttpOp.HttpF
@@ -63,9 +63,10 @@ class AppSpec extends FlatSpec with Matchers {
     override def run[A](prg: StorageProgram[A]): Task[A] = ???
     override def apply[A](fa: StorageADT[A]): Task[A] = ???
     override def read(path: Path): Task[Observable[Array[Byte]]] = ???
-    override def write(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
     override def delete(path: Path): Task[Boolean] = ???
     override def exists(path: Path): Task[Boolean] = ???
+    override def writeNew(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
+    override def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
   }
 
   class TestDBInterpreter extends DBInterpreter {

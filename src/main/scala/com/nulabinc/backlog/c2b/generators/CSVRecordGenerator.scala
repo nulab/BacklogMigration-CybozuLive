@@ -14,9 +14,14 @@ object CSVRecordGenerator {
       s""""${item.userId.getOrElse("")}",""\n""".stripMargin.getBytes(charset)
     }
 
-  def priorityToByteArray(priority: Observable[BacklogPriority]): Observable[Array[Byte]] =
+  def backlogPriorityToByteArray(priority: Observable[BacklogPriority]): Observable[Array[Byte]] =
     priority.map { u =>
-      s""""${u.name}",""\n""".stripMargin.getBytes(charset)
+      s""""","${u.name}"\n""".stripMargin.getBytes(charset)
+    }
+
+  def cybozuPriorityToByteArray(priority: Observable[CybozuPriority]): Observable[Array[Byte]] =
+    priority.map { u =>
+      s""""${u.value}",""\n""".stripMargin.getBytes(charset)
     }
 
   def statusToByteArray(status: Observable[BacklogStatus]): Observable[Array[Byte]] =
