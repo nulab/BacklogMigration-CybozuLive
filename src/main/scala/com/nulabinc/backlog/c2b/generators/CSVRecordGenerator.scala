@@ -29,9 +29,14 @@ object CSVRecordGenerator {
       s""""${u.value}",""\n""".stripMargin.getBytes(charset)
     }
 
-  def statusToByteArray(status: Observable[BacklogStatus]): Observable[Array[Byte]] =
+  def backlogStatusToByteArray(status: Observable[BacklogStatus]): Observable[Array[Byte]] =
     status.map { u =>
       s""""${u.name}",""\n""".stripMargin.getBytes(charset)
+    }
+
+  def cybozuStatusToByteArray(status: Observable[CybozuStatus]): Observable[Array[Byte]] =
+    status.map { u =>
+      s""""${u.value}",""\n""".stripMargin.getBytes(charset)
     }
 
   def splitToByteArray(): Observable[Array[Byte]] =

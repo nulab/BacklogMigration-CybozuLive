@@ -119,6 +119,11 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
           db.stream(issueTableOps.distinctPriorities)
         )
       }
+      case GetCybozuStatuses => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(issueTableOps.distinctStatuses)
+        )
+      }
       case WriteDBStream(stream) =>
         Task.deferFuture {
           stream.map(_.asInstanceOf[StoreProgram[A]]).mapTask { prg =>
