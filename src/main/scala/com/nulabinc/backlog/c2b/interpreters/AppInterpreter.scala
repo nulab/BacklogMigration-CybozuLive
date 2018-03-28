@@ -64,7 +64,7 @@ object AppDSL {
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
-                     storageInterpreter: StorageInterpreter,
+                     storageInterpreter: StorageInterpreter[Task],
                      dbInterpreter: DBInterpreter,
                      consoleInterpreter: ConsoleInterpreter)
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
