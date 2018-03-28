@@ -317,30 +317,58 @@ object App extends Logger {
 
   def writeMappingFiles(config: Config): AppProgram[Unit] = {
 
-    for {
-      backlogUser <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
-      _ <- AppDSL.fromStorage(
-        for {
-          _ <- StorageDSL.writeNewFile(config.USERS_PATH, CSVRecordGenerator.userToByteArray(backlogUser))
-          _ <- StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.splitToByteArray())
-        } yield ()
-      )
-      backlogPriorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
-      _ <- AppDSL.fromStorage(
-        for {
-          _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.backlogPriorityToByteArray(backlogPriorities))
-          _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.splitToByteArray())
-        } yield ()
-      )
-      cybozuPriorities <- AppDSL.fromDB(StoreDSL.getCybozuPriorities)
-      _ <- AppDSL.fromStorage(
-        for {
-          _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.cybozuPriorityToByteArray(cybozuPriorities))
-        } yield ()
-      )
+    def writeUserMapping: AppProgram[Unit] =
+      for {
+        backlogUser <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
+        _ <- AppDSL.fromStorage(
+          for {
+            _ <- StorageDSL.writeNewFile(config.USERS_PATH, CSVRecordGenerator.headerToByteArray)
+            _ <- StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.backlogUserToByteArray(backlogUser))
+            _ <- StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.splitToByteArray())
+          } yield ()
+        )
+        cybozuUser <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
+        _ <- AppDSL.fromStorage(
+          StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.cybozuUserToByteArray(cybozuUser))
+        )
+      } yield ()
 
-      statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
-      _ <- AppDSL.fromStorage(StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(statuses)))
+    def writePriorityMapping: AppProgram[Unit] =
+      for {
+        backlogPriority <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
+        _ <- AppDSL.fromStorage(
+          for {
+            _ <- StorageDSL.writeNewFile(config.PRIORITIES_PATH, CSVRecordGenerator.headerToByteArray)
+            _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.backlogPriorityToByteArray(backlogPriority))
+            _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.splitToByteArray())
+          } yield ()
+        )
+        cybozuPrioritity <- AppDSL.fromDB(StoreDSL.getCybozuPriorities)
+        _ <- AppDSL.fromStorage(
+          StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.cybozuPriorityToByteArray(cybozuPrioritity))
+        )
+      } yield ()
+
+    def writeStatusMapping: AppProgram[Unit] =
+      for {
+        backlogStatus <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
+        _ <- AppDSL.fromStorage(
+          for {
+            _ <- StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.headerToByteArray)
+            _ <- StorageDSL.writeAppendFile (config.STATUSES_PATH, CSVRecordGenerator.backlogStatusToByteArray(backlogStatus))
+            _ <- StorageDSL.writeAppendFile(config.STATUSES_PATH, CSVRecordGenerator.splitToByteArray())
+          } yield ()
+        )
+        cybozuStatus <- AppDSL.fromDB(StoreDSL.getCybozuStatuses)
+        _ <- AppDSL.fromStorage(
+          StorageDSL.writeAppendFile(config.STATUSES_PATH, CSVRecordGenerator.cybozuStatusToByteArray(cybozuStatus))
+        )
+      } yield ()
+
+    for {
+      _ <- writeUserMapping
+      _ <- writePriorityMapping
+      _ <- writeStatusMapping
     } yield ()
   }
 
