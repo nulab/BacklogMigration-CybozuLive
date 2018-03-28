@@ -321,9 +321,13 @@ object App extends Logger {
       backlogUser <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
       _ <- AppDSL.fromStorage(
         for {
-          _ <- StorageDSL.writeNewFile(config.USERS_PATH, CSVRecordGenerator.userToByteArray(backlogUser))
+          _ <- StorageDSL.writeNewFile(config.USERS_PATH, CSVRecordGenerator.backlogUserToByteArray(backlogUser))
           _ <- StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.splitToByteArray())
         } yield ()
+      )
+      cybozuUser <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
+      _ <- AppDSL.fromStorage(
+        StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.cybozuUserToByteArray(cybozuUser))
       )
       backlogPriorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
       _ <- AppDSL.fromStorage(
@@ -338,9 +342,8 @@ object App extends Logger {
           _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.cybozuPriorityToByteArray(cybozuPriorities))
         } yield ()
       )
-
-      statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
-      _ <- AppDSL.fromStorage(StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(statuses)))
+      backlogStatuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
+      _ <- AppDSL.fromStorage(StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(backlogStatuses)))
     } yield ()
   }
 

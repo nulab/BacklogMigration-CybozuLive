@@ -9,9 +9,14 @@ object CSVRecordGenerator {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  def userToByteArray(user: Observable[BacklogUser]): Observable[Array[Byte]] =
+  def backlogUserToByteArray(user: Observable[BacklogUser]): Observable[Array[Byte]] =
     user.map { item =>
       s""""${item.userId.getOrElse("")}",""\n""".stripMargin.getBytes(charset)
+    }
+
+  def cybozuUserToByteArray(user: Observable[CybozuUser]): Observable[Array[Byte]] =
+    user.map { item =>
+      s""""","${item.userId}"\n""".stripMargin.getBytes(charset)
     }
 
   def backlogPriorityToByteArray(priority: Observable[BacklogPriority]): Observable[Array[Byte]] =

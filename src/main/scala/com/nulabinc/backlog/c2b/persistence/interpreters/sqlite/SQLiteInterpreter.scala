@@ -1,6 +1,5 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
-import com.nulabinc.backlog.c2b.datas.{CybozuUser, Id}
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
@@ -79,6 +78,11 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       }
       case StoreTodoAssignees(issueId, assigneeIds) => Task.deferFuture {
         db.run(cybozuIssueUserTableOps.write(issueId, assigneeIds))
+      }
+      case GetCybozuUsers => Task.eval {
+        Observable.fromReactivePublisher(
+          db.stream(cybozuUserTableOps.stream)
+        )
       }
       case GetCybozuUserBykey(key) => Task.deferFuture {
         db.run(cybozuUserTableOps.findByKey(key))
