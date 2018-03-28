@@ -36,8 +36,7 @@ import scala.concurrent.duration.Duration
 
 object App extends Logger {
 
-  val DATA_PATHS: Path = Paths.get("./data")
-  val DB_PATH: Path = Paths.get("./data/data.db")
+
 
   def main(args: Array[String]): Unit = {
 
@@ -103,7 +102,7 @@ object App extends Logger {
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
     val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
-    val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
+    val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
     val eventFiles = {
       csvFiles.filter(_.getName.contains("live_Events_")) ++
@@ -119,7 +118,7 @@ object App extends Logger {
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       // Delete database
-      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(DB_PATH))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       // Create database
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read from CSV - Issue
@@ -138,7 +137,7 @@ object App extends Logger {
           streamBacklogUsers(Observable.fromIterator(users.iterator))
         )
       // Write mapping files
-      _ <- writeMappingFiles()
+      _ <- writeMappingFiles(config)
     } yield ()
 
     val f = interpreter.run(program).runAsync
@@ -178,7 +177,8 @@ object App extends Logger {
     val program = for {
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
-      _ <- Validations.dbExistsProgram(DB_PATH)
+      _ <- Validations.dbExistsProgram(config.DB_PATH)
+      _ <- Validations.mappingFilesExistProgram(config)
     } yield ()
 
     val f = interpreter.run(program).runAsync
@@ -339,22 +339,20 @@ object App extends Logger {
       } yield ()
     }
 
-  def writeMappingFiles(): AppProgram[Unit] = {
-    val usersPath = File("data/users.csv").path
-    val prioritiesPath = File("data/priorities.csv").path
-    val statusesPath = File("data/statuses.csv").path
+  def writeMappingFiles(config: Config): AppProgram[Unit] = {
+
     for {
       user <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
       _ <- AppDSL.fromStorage(
         for {
-          _ <- StorageDSL.writeFile(usersPath, CSVRecordGenerator.userToByteArray(user))
+          _ <- StorageDSL.writeFile(config.USERS_PATH, CSVRecordGenerator.userToByteArray(user))
 //          _ <- StorageDSL.writeFile(usersPath, CSVRecordGenerator.splitToByteArray())
         } yield ()
       )
       priorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
-      _ <- AppDSL.fromStorage(StorageDSL.writeFile(prioritiesPath, CSVRecordGenerator.priorityToByteArray(priorities)))
+      _ <- AppDSL.fromStorage(StorageDSL.writeFile(config.PRIORITIES_PATH, CSVRecordGenerator.priorityToByteArray(priorities)))
       statuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
-      _ <- AppDSL.fromStorage(StorageDSL.writeFile(statusesPath, CSVRecordGenerator.statusToByteArray(statuses)))
+      _ <- AppDSL.fromStorage(StorageDSL.writeFile(config.STATUSES_PATH, CSVRecordGenerator.statusToByteArray(statuses)))
     } yield ()
   }
 

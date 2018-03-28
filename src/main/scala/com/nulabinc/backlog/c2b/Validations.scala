@@ -45,4 +45,26 @@ object Validations extends Logger {
       }
     } yield ()
   }
+
+  def mappingFilesExistProgram(config: Config): AppProgram[Unit] = {
+    for {
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists")))
+      user <- AppDSL.fromStorage(StorageDSL.exists(config.USERS_PATH))
+      _ <- if (user)
+        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists.ok", Messages("name.mapping.user"))))
+      else
+        AppDSL.exit(Messages("validation.mapping.exists.error", Messages("name.mapping.user")), 1)
+      priority <- AppDSL.fromStorage(StorageDSL.exists(config.PRIORITIES_PATH))
+      _ <- if (priority)
+        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists.ok", Messages("name.mapping.priority"))))
+      else
+        AppDSL.exit(Messages("validation.mapping.exists.error", Messages("name.mapping.priority")), 1)
+      status <- AppDSL.fromStorage(StorageDSL.exists(config.STATUSES_PATH))
+      _ <- if (status)
+        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists.ok", Messages("name.mapping.status"))))
+      else
+        AppDSL.exit(Messages("validation.mapping.exists.error", Messages("name.mapping.status")), 1)
+    } yield ()
+  }
+
 }
