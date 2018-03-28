@@ -105,7 +105,10 @@ object App extends Logger {
     val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
     val csvFiles = DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = csvFiles.filter(_.getName.contains("live_To-Do List"))
-    val eventFiles = csvFiles.filter(_.getName.contains("live_Events_"))
+    val eventFiles = {
+      csvFiles.filter(_.getName.contains("live_Events_")) ++
+      csvFiles.filter(_.getName.contains("live_イベント_"))
+    }
     val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_"))
 
     val todoObservable = CybozuCSVReader.toCybozuTodo(todoFiles, csvFormat)

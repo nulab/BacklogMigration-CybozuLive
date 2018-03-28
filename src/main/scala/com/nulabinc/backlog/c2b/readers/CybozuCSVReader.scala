@@ -14,7 +14,7 @@ case class ReadResult[A](issue: A, comments: Seq[CybozuCSVComment])
 
 object CybozuCSVReader {
 
-  val charset: Charset = Charset.forName("UTF-8")
+  val charset: Charset = Charset.forName("Shift_JIS")
 
   def toCybozuTodo(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVTodo]] =
     Observable
