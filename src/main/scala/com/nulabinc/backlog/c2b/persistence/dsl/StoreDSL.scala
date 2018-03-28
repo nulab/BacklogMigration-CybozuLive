@@ -15,11 +15,11 @@ object StoreDSL {
   def pure[A](a: A): StoreProgram[A] =
     Free.liftF(Pure(a))
 
-  lazy val getUsers: StoreProgram[Observable[CybozuUser]] =
-    Free.liftF(GetUsers)
+  lazy val createDatabase: StoreProgram[Unit] =
+    Free.liftF(CreateDatabase)
 
-  lazy val getIssues: StoreProgram[Observable[CybozuIssue]] =
-    Free.liftF(GetIssues)
+  lazy val getTodos: StoreProgram[Observable[CybozuTodo]] =
+    Free.liftF(GetTodos)
 
   lazy val getEvents: StoreProgram[Observable[CybozuEvent]] =
     Free.liftF(GetEvents)
@@ -27,39 +27,55 @@ object StoreDSL {
   lazy val getForums: StoreProgram[Observable[CybozuForum]] =
     Free.liftF(GetForums)
 
-  def getUser(userId: Id[CybozuUser]): StoreProgram[Option[CybozuUser]] =
-    Free.liftF(GetUser(userId))
+  lazy val getCybozuPriorities: StoreProgram[Seq[CybozuPriority]] =
+    Free.liftF(GetCybozuPriorities)
 
-  def storeUser(user: CybozuUser): StoreProgram[AnyId] =
-    Free.liftF(StoreUser(user))
+  lazy val getBacklogUsers: StoreProgram[Observable[BacklogUser]] =
+    Free.liftF(GetBacklogUsers)
 
-  def storeIssue(issue: CybozuIssue): StoreProgram[AnyId] =
-    Free.liftF(StoreIssue(issue))
+  lazy val getBacklogPriorities: StoreProgram[Observable[BacklogPriority]] =
+    Free.liftF(GetBacklogPriorities)
 
-  def getIssueComments(issue: CybozuIssue): StoreProgram[Observable[CybozuComment]] =
-    Free.liftF(GetIssueComments(issue))
+  lazy val getBacklogStatuses: StoreProgram[Observable[BacklogStatus]] =
+    Free.liftF(GetBacklogStatuses)
 
-  def storeIssueComment(comment: CybozuComment): StoreProgram[AnyId] =
+  def storeTodo(todo: CybozuTodo): StoreProgram[AnyId] =
+    Free.liftF(StoreTodo(todo))
+
+  def getTodoComments(todo: CybozuTodo): StoreProgram[Observable[CybozuComment]] =
+    Free.liftF(GetComments(todo))
+
+  def storeTodoComment(comment: CybozuComment): StoreProgram[AnyId] =
     Free.liftF(StoreComment(comment))
 
-//  def getPriorities: StoreProgram[Observable[CybozuCSVPriority]] =
-//    Free.liftF(GetPriorities)
-//
-//  def storePriority(priority: CybozuCSVPriority): StoreProgram[Unit] =
-//    Free.liftF(StorePriority(priority))
-//
-//  def getStatuses: StoreProgram[Observable[CybozuCSVStatus]] =
-//    Free.liftF(GetStatuses)
-//
-//  def storeStatus(status: CybozuCSVStatus): StoreProgram[Unit] =
-//    Free.liftF(StoreStatus(status))
+  def storeTodoComments(comments: Seq[CybozuComment]): StoreProgram[Seq[AnyId]] =
+    Free.liftF(StoreComments(comments))
 
-
+  def storeTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]): StoreProgram[Int] =
+    Free.liftF(StoreTodoAssignees(todoId, assigneeIds))
 
   def storeEvent(event: CybozuEvent): StoreProgram[AnyId] =
     Free.liftF(StoreEvent(event))
 
   def storeForum(forum: CybozuForum): StoreProgram[AnyId] =
     Free.liftF(StoreForum(forum))
+
+  def getCybozuUserByKey(key: String): StoreProgram[Option[CybozuUser]] =
+    Free.liftF(GetCybozuUserBykey(key))
+
+  def storeCybozuUser(user: CybozuUser, writeType: WriteType): StoreProgram[AnyId] =
+    Free.liftF(StoreCybozuUser(user, writeType))
+
+  def writeDBStream[A](stream: Observable[StoreProgram[A]]): StoreProgram[Unit] =
+    Free.liftF[StoreADT, Unit](WriteDBStream(stream))
+
+  def storeBacklogUser(user: BacklogUser): StoreProgram[AnyId] =
+    Free.liftF(StoreBacklogUser(user))
+
+  def storeBacklogPriorities(priorities: Seq[BacklogPriority]): StoreProgram[Seq[AnyId]] =
+    Free.liftF(StoreBacklogPriorities(priorities))
+
+  def storeBacklogStatuses(statuses: Seq[BacklogStatus]): StoreProgram[Seq[AnyId]] =
+    Free.liftF(StoreBacklogStatuses(statuses))
 
 }

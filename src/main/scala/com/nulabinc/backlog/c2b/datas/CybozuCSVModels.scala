@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b.datas
 
 import com.nulabinc.backlog.c2b.datas.Types.DateTime
 
-case class CybozuCSVIssue(
+case class CybozuCSVTodo(
   id: String,
   title: String,
   content: String,
@@ -12,12 +12,12 @@ case class CybozuCSVIssue(
   updatedAt: DateTime,
   status: CybozuCSVStatus,
   priority: CybozuCSVPriority,
-  assignee: Option[CybozuCSVUser],
+  assignees: Seq[CybozuCSVUser],
   dueDate: Option[DateTime],
   comments: Seq[CybozuCSVComment]
 )
 
-object CybozuCSVIssue {
+object CybozuCSVTodo {
   val fieldSize = 12
 }
 
@@ -61,27 +61,4 @@ case class CybozuCSVPriority(value: String) extends AnyVal
 
 case class CybozuCSVStatus(value: String) extends AnyVal
 
-case class CybozuCSVUser(
-  lastName: String,
-  firstName: String
-)
-
-object CybozuCSVUser {
-
-  val fieldSize = 3
-
-  def fromFullName(fullName: String): Option[CybozuCSVUser] = {
-    val pattern = """(.+?) (.+?)""".r
-    fullName match {
-      case pattern(firstName, lastName) =>
-        Some(
-          CybozuCSVUser(
-            firstName = firstName,
-            lastName = lastName
-          )
-        )
-      case _ => None
-    }
-  }
-
-}
+case class CybozuCSVUser(value: String) extends AnyVal

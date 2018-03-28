@@ -1,9 +1,8 @@
-package com.nulabinc.backlog.c2b.utils
+package com.nulabinc.backlog.c2b.core
 
 import java.security.cert.X509Certificate
-import javax.net.ssl._
 
-import com.nulabinc.backlog.c2b.core.Logger
+import javax.net.ssl._
 
 import scala.util.{Failure, Success, Try}
 

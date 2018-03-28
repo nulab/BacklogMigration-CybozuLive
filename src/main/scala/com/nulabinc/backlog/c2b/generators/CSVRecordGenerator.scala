@@ -2,19 +2,33 @@ package com.nulabinc.backlog.c2b.generators
 
 import java.nio.charset.Charset
 
-import com.nulabinc.backlog.c2b.datas.CybozuUser
+import com.nulabinc.backlog.c2b.datas._
 import monix.reactive.Observable
 
 object CSVRecordGenerator {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  def to(user: Observable[CybozuUser]): Observable[Array[Byte]] =
-    user.map { u =>
-      s"""
-        |"${u.key}",""\n
-      """.stripMargin.getBytes(charset)
+  def userToByteArray(user: Observable[BacklogUser]): Observable[Array[Byte]] =
+    user.map { item =>
+      s""""${item.userId.getOrElse("")}",""\n""".stripMargin.getBytes(charset)
     }
+
+  def priorityToByteArray(priority: Observable[BacklogPriority]): Observable[Array[Byte]] =
+    priority.map { u =>
+      s""""${u.name}",""\n""".stripMargin.getBytes(charset)
+    }
+
+  def statusToByteArray(status: Observable[BacklogStatus]): Observable[Array[Byte]] =
+    status.map { u =>
+      s""""${u.name}",""\n""".stripMargin.getBytes(charset)
+    }
+
+  def splitToByteArray(): Observable[Array[Byte]] =
+    Observable {
+      s""""----------------------","----------------------"\n""".stripMargin.getBytes(charset)
+    }
+
 }
 
 /*

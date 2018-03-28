@@ -1,2 +1,23 @@
 
+# Error messages
 error.require_java8=現在のJavaのバージョンは[{0}]です。Java8以上が必須になります。
+
+# Name
+name.backlog=Backlog
+name.mapping.user=ユーザー
+name.mapping.priority=優先度
+name.mapping.status=状態
+
+# Validation
+validation.access={0}にアクセス可能かチェックしています...
+validation.access.ok={0}にアクセス可能です。
+validation.access.error={0}にアクセスできませんでした。URLまたはAPIアクセスキーを確認してください。
+validation.admin=管理者権限の有無をチェックしています...
+validation.admin.ok=管理者権限があります。
+validation.admin.error={0}のAPIキーが管理者権限ではありません。管理者権限のAPIキーを使用してください。
+validation.db.exists=DBファイルが存在するかチェックしています ...
+validation.db.exists.ok=DBファイルが存在します。
+validation.db.exists.error=DBファイルが存在しません。initコマンドを実行しましたか？
+validation.mapping.exists=マッピングファイルが存在するかチェックしています ...
+validation.mapping.exists.ok={0}マッピングファイルが存在します.
+validation.mapping.exists.error={0}マッピングファイルが存在しません。initコマンドを実行しましたか？

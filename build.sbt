@@ -27,6 +27,13 @@ lazy val backlogMigrationCommon = (project in file("modules/common"))
     )
   )
 
+lazy val backlog4s_core = (project in file("modules/backlog4s/backlog4s-core"))
+  .settings(commonSettings)
+
+lazy val backlog4s_akka = (project in file("modules/backlog4s/backlog4s-akka"))
+  .settings(commonSettings)
+  .dependsOn(backlog4s_core)
+
 lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
@@ -40,11 +47,14 @@ lazy val root = (project in file("."))
         "com.github.scopt"      %% "scopt"            % "3.7.0",
         "com.typesafe.slick"    %% "slick"            % slickVersion,
         "com.typesafe.slick"    %% "slick-hikaricp"   % slickVersion,
-        "org.xerial"            %  "sqlite-jdbc"      % "3.8.7",
+        "org.xerial"            %  "sqlite-jdbc"      % "3.21.0",
+        "io.monix"              %% "monix"            % "3.0.0-RC1",
         "io.monix"              %% "monix-reactive"   % "3.0.0-RC1",
-        "io.monix"              %% "monix-nio"        % "0.0.3",
+        "io.monix"              %% "monix-execution"  % "3.0.0-RC1",
+        "io.monix"              %% "monix-eval"       % "3.0.0-RC1",
         "org.apache.commons"    %  "commons-csv"      % "1.5"
       )
     }
   )
   .dependsOn(backlogMigrationCommon)
+  .dependsOn(backlog4s_core, backlog4s_akka)

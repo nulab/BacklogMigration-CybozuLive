@@ -1,2 +1,23 @@
 
+# Error messages
 error.require_java8=The current version of Java is [{0}]. Java 8 is required for this program.
+
+# Name
+name.backlog=Backlog
+name.mapping.user=User
+name.mapping.priority=Priority
+name.mapping.status=Status
+
+# Validation
+validation.access=Checking whether the {0} is accessible ...
+validation.access.ok={0} is available.
+validation.access.error=The accessing {0} failed. Please check the url or api access key.
+validation.admin=Checking for the presence of admin role ...
+validation.admin.ok=That is OK!
+validation.admin.error={0} API key is not administrator authority. Please use API key of administrator authority.
+validation.db.exists=Checking whether DB file exists ...
+validation.db.exists.ok=DB file exists.
+validation.db.exists.error=DB file does not exist. Did you run the init command?
+validation.mapping.exists=Checking whether mapping-files exists ...
+validation.mapping.exists.ok={0} file exists.
+validation.mapping.exists.error={0} file does not exist. Did you run the init command?

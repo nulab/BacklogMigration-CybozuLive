@@ -1,31 +1,50 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
-import com.nulabinc.backlog.c2b.persistence.dsl.{ReadFile, StorageADT, WriteFile}
+import java.nio.file.{Files, Path}
+
+import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
-import monix.nio.file._
+import monix.reactive.Observable
 
-class LocalStorageInterpreter extends StorageInterpreter {
+class LocalStorageInterpreter extends StorageInterpreter[Task] {
 
   private val chunckSize = 8192
 
   override def run[A](prg: StorageProgram[A]): Task[A] =
     prg.foldMap(this)
 
-  override def apply[A](fa: StorageADT[A]): Task[A] = fa match {
-    case ReadFile(path) => {
-      Task.deferAction { implicit scheduler =>
-        Task.eval {
-          readAsync(path, chunckSize)
-        }
+  override def read(path: Path): Task[Observable[Array[Byte]]] =
+    Task.deferAction { implicit scheduler =>
+      Task.eval {
+        val is = Files.newInputStream(path)
+        Observable.fromInputStream(is)
       }
     }
-    case WriteFile(path, writeStream) =>
-      Task.deferAction { implicit scheduler =>
-        Task.fromFuture {
-          writeStream.consumeWith(writeAsync(path)).runAsync
-        }.map(_ => ())
-      }
+
+  override def write(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] =
+    Task.deferAction { implicit scheduler =>
+      Task.fromFuture {
+        val os = Files.newOutputStream(path)
+        writeStream.foreach { bytes =>
+          os.write(bytes)
+        }
+      }.map(_ => ())
+    }
+
+  override def delete(path: Path): Task[Boolean] = Task {
+    path.toFile.delete()
+  }
+
+  override def exists(path: Path): Task[Boolean] = Task {
+    path.toFile.exists()
+  }
+
+  override def apply[A](fa: StorageADT[A]): Task[A] = fa match {
+    case ReadFile(path) => read(path)
+    case WriteFile(path, writeStream) => write(path, writeStream)
+    case DeleteFile(path) => delete(path)
+    case Exists(path) => exists(path)
   }
 }

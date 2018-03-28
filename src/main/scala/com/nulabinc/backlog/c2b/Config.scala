@@ -1,5 +1,8 @@
 package com.nulabinc.backlog.c2b
 
+import java.nio.file.{Path, Paths}
+
+import better.files.File
 import com.nulabinc.backlog.c2b.Config._
 
 
@@ -8,7 +11,13 @@ case class Config(
   backlogKey: String = "",
   projectKey: String = "",
   commandType: CommandType = Undefined
-)
+) {
+  val DATA_PATHS: Path = Paths.get("./data")
+  val DB_PATH: Path = Paths.get("./data/data.db")
+  val USERS_PATH: Path = File("data/users.csv").path
+  val PRIORITIES_PATH: Path = File("data/priorities.csv").path
+  val STATUSES_PATH: Path = File("data/statuses.csv").path
+}
 
 object Config {
 
