@@ -18,11 +18,11 @@ object MappingFiles {
 
   import CSVRecordSerializer._
 
-  def write(config: Config): AppProgram[Unit] =
+  def write: AppProgram[Unit] =
     for {
-      _ <- writeUserMapping(config)
-      _ <- writePriorityMapping(config)
-      _ <- writeStatusMapping(config)
+      _ <- writeUserMapping
+      _ <- writePriorityMapping
+      _ <- writeStatusMapping
     } yield ()
 
   private def readCSVFile(is: InputStream): HashMap[String, String] = {
@@ -47,10 +47,10 @@ object MappingFiles {
       }
     } yield oldRecords
 
-  private def writeUserMapping(config: Config): AppProgram[Unit] = {
+  private def writeUserMapping: AppProgram[Unit] = {
     for {
       _ <- AppDSL.fromStorage(
-        StorageDSL.copy(config.USERS_PATH, config.USERS_TEMP_PATH)
+        StorageDSL.copy(Config.USERS_PATH, Config.USERS_TEMP_PATH)
       )
       cybozuUsersStream <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
       cybozuUsers <- AppDSL.streamAsSeq(cybozuUsersStream)
@@ -58,11 +58,11 @@ object MappingFiles {
         case (acc, cybozuUser) =>
           acc + (cybozuUser.userId -> "")
       }
-      oldCybozuUserMap <- getOldRecords(config.USERS_TEMP_PATH)
+      oldCybozuUserMap <- getOldRecords(Config.USERS_TEMP_PATH)
       mergedCybozuUserMap = DiffPatch.applyChanges(oldCybozuUserMap, newCybozuUsersMap)
       _ <- AppDSL.fromStorage(
         StorageDSL.writeAppendFile(
-          config.USERS_PATH,
+          Config.USERS_PATH,
           Observable(CSVRecordSerializer.header) ++
           Observable.fromIterator(
             CSVRecordSerializer.serializeMap(mergedCybozuUserMap).iterator
@@ -71,16 +71,16 @@ object MappingFiles {
       )
       backlogUserStream <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
       _ <- AppDSL.fromStorage(
-        StorageDSL.writeNewFile(config.BACKLOG_USER_PATH,
+        StorageDSL.writeNewFile(Config.BACKLOG_USER_PATH,
           backlogUserStream.map(user => CSVRecordSerializer.serialize(user))
         )
       )
     } yield ()
   }
 
-  private def writePriorityMapping(config: Config): AppProgram[Unit] = {
+  private def writePriorityMapping: AppProgram[Unit] = {
     for {
-      _ <- AppDSL.fromStorage(StorageDSL.copy(config.PRIORITIES_PATH, config.PRIORITIES_TEMP_PATH))
+      _ <- AppDSL.fromStorage(StorageDSL.copy(Config.PRIORITIES_PATH, Config.PRIORITIES_TEMP_PATH))
       backlogPriorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
       cybozuPriorities <- AppDSL.fromDB(StoreDSL.getCybozuPriorities)
       backlogPriorityStream = backlogPriorities.map { backlogPriority =>
@@ -90,7 +90,7 @@ object MappingFiles {
         CSVRecordSerializer.serialize(cybozuPriority)
       }
       _ <- AppDSL.fromStorage(
-        StorageDSL.writeAppendFile(config.PRIORITIES_PATH,
+        StorageDSL.writeAppendFile(Config.PRIORITIES_PATH,
           Observable(CSVRecordSerializer.header) ++
             backlogPriorityStream ++
             cybozuPriorityStream
@@ -99,9 +99,9 @@ object MappingFiles {
     } yield ()
   }
 
-  private def writeStatusMapping(config: Config): AppProgram[Unit] = {
+  private def writeStatusMapping: AppProgram[Unit] = {
     for {
-      _ <- AppDSL.fromStorage(StorageDSL.copy(config.STATUSES_PATH, config.STATUSES_TEMP_PATH))
+      _ <- AppDSL.fromStorage(StorageDSL.copy(Config.STATUSES_PATH, Config.STATUSES_TEMP_PATH))
       backlogStatuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
       cybozuStatuses <- AppDSL.fromDB(StoreDSL.getCybozuStatuses)
       backlogStatusStream = backlogStatuses.map { backlogStatus =>
@@ -111,7 +111,7 @@ object MappingFiles {
         CSVRecordSerializer.serialize(cybozuStatus)
       }
       _ <- AppDSL.fromStorage(
-        StorageDSL.writeAppendFile(config.STATUSES_PATH,
+        StorageDSL.writeAppendFile(Config.STATUSES_PATH,
           Observable(CSVRecordSerializer.header) ++
             backlogStatusStream ++
             cybozuStatusStream

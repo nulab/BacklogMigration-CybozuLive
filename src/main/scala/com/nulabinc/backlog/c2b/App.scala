@@ -75,7 +75,7 @@ object App extends Logger {
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
     val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
-    val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
+    val csvFiles = Config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = {
       csvFiles.filter(_.getName.contains("live_ToDo")) ++
       csvFiles.filter(_.getName.contains("live_To-Do List"))
@@ -94,11 +94,11 @@ object App extends Logger {
       // Initialize
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
-      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.MAPPING_PATHS))
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       // Delete operations
-      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(Config.DB_PATH))
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read CSV and to store
       _ <- CSVtoStore.todo(todoObservable)
@@ -109,7 +109,7 @@ object App extends Logger {
       _ <- BacklogToStore.status(backlogApi.statusApi)
       _ <- BacklogToStore.user(backlogApi.userApi)
       // Write mapping files
-      _ <- MappingFiles.write(config)
+      _ <- MappingFiles.write
     } yield ()
 
     val f = interpreter.run(program).runAsync
@@ -140,8 +140,8 @@ object App extends Logger {
       _ <- AppDSL.setLanguage(language)
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
-      _ <- Validations.dbExistsProgram(config.DB_PATH)
-      _ <- Validations.mappingFilesExistProgram(config)
+      _ <- Validations.dbExistsProgram(Config.DB_PATH)
+      _ <- Validations.mappingFilesExistProgram
     } yield ()
 
     val f = interpreter.run(program).runAsync

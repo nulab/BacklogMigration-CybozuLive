@@ -12,7 +12,12 @@ case class Config(
   backlogKey: String = "",
   projectKey: String = "",
   commandType: CommandType = Undefined
-) {
+)
+
+object Config {
+
+  val charset: Charset = Charset.forName("UTF-8")
+
   val DATA_PATHS: Path = Paths.get("./data")
   val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
 
@@ -26,11 +31,6 @@ case class Config(
   lazy val STATUSES_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/statuses.csv").path
   lazy val PRIORITIES_TEMP_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/priorities.temp.csv").path
   lazy val STATUSES_TEMP_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/statuses.temp.csv").path
-}
-
-object Config {
-
-  val charset: Charset = Charset.forName("UTF-8")
 
   sealed trait CommandType
 
