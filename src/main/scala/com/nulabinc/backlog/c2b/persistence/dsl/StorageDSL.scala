@@ -28,4 +28,7 @@ object StorageDSL {
   def copy(from: Path, to: Path): StorageProgram[Boolean] =
     Free.liftF(Copy(from, to))
 
+  def createDirectory(path: Path): StorageProgram[Unit] =
+    Free.liftF(CreateDirectory(path))
+
 }

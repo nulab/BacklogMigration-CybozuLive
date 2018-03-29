@@ -3,6 +3,7 @@ package com.nulabinc.backlog.c2b.persistence.interpreters.file
 import java.io.InputStream
 import java.nio.file.{Files, Path, StandardOpenOption}
 
+import better.files.File
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
@@ -66,6 +67,13 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
       }
     }
 
+  override def createDirectory(path: Path): Task[Unit] =
+    exists(path).map { result =>
+      if (!result) {
+        File(path).createDirectory()
+      }
+    }
+
   private def write(path: Path, writeStream: Observable[Array[Byte]], option: StandardOpenOption) =
     Task.deferAction { implicit scheduler =>
       Task.fromFuture {
@@ -80,5 +88,4 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
           }
       }.map(_ => ())
     }
-
 }

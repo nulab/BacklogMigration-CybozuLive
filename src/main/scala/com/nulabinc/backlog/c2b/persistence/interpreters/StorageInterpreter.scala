@@ -25,6 +25,8 @@ trait StorageInterpreter[F[_]] extends (StorageADT ~> F) {
 
   def copy(from: Path, to: Path): F[Boolean]
 
+  def createDirectory(path: Path): F[Unit]
+
   override def apply[A](fa: StorageADT[A]): F[A] = fa match {
     case ReadFile(path, f) => read(path, f)
     case WriteNewFile(path, writeStream) => writeNew(path, writeStream)
@@ -32,5 +34,6 @@ trait StorageInterpreter[F[_]] extends (StorageADT ~> F) {
     case DeleteFile(path) => delete(path)
     case Exists(path) => exists(path)
     case Copy(from, to) => copy(from, to)
+    case CreateDirectory(path) => createDirectory(path)
   }
 }
