@@ -31,6 +31,7 @@ case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq[A]]]
 case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
+private case class FromTask[A](task: Task[A]) extends AppADT[A]
 case class SetLanguage(lang: String) extends AppADT[Unit]
 
 object AppDSL {
@@ -42,6 +43,19 @@ object AppDSL {
 
   def consumeStream[A](prgs: Observable[AppProgram[Unit]]): AppProgram[Unit] =
     Free.liftF[AppADT, Unit](ConsumeStream(prgs))
+
+  private def fromTask[A](task: Task[A]): AppProgram[A] =
+    Free.liftF(FromTask(task))
+
+  def foldLeftStream[A, B](stream: Observable[A], zero: B)(f: (B, A) => B): AppProgram[B] =
+    fromTask(stream.foldLeftL(zero)(f))
+
+  def streamAsSeq[A](stream: Observable[A]): AppProgram[IndexedSeq[A]] = {
+    foldLeftStream(stream, IndexedSeq.empty[A]) {
+      case (acc, item) =>
+        acc :+ item
+    }
+  }
 
   def fromDB[A](dbProgram: StoreProgram[A]): AppProgram[A] =
     Free.liftF(FromDB(dbProgram))
@@ -120,6 +134,7 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
           prg.foldMap(this).map(_ => ())
         }
       )
+    case FromTask(task) => task
     case Exit(statusCode) => Task {
       AnsiConsole.systemUninstall()
       sys.exit(statusCode)
