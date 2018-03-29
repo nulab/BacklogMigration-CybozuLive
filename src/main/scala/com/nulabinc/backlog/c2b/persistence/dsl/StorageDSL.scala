@@ -24,4 +24,7 @@ object StorageDSL {
   def exists(path: Path): StorageProgram[Boolean] =
     Free.liftF(Exists(path))
 
+  def copy(from: Path, to: Path): StorageProgram[Boolean] =
+    Free.liftF(Copy(from, to))
+
 }

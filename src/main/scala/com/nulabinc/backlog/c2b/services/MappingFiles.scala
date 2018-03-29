@@ -11,8 +11,16 @@ object MappingFiles {
 
   import CSVRecordSerializer._
 
+  def write(config: Config): AppProgram[Unit] =
+    for {
+      _ <- writeUserMapping(config)
+      _ <- writePriorityMapping(config)
+      _ <- writeStatusMapping(config)
+    } yield ()
+
   private def writeUserMapping(config: Config): AppProgram[Unit] = {
     for {
+      _ <- AppDSL.fromStorage(StorageDSL.copy(config.USERS_PATH, config.USERS_TEMP_PATH))
       backlogUsers <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
       cybozuUsers <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
       backlogUserStream = backlogUsers.map { backlogUser =>
@@ -34,6 +42,7 @@ object MappingFiles {
 
   private def writePriorityMapping(config: Config): AppProgram[Unit] = {
     for {
+      _ <- AppDSL.fromStorage(StorageDSL.copy(config.PRIORITIES_PATH, config.PRIORITIES_TEMP_PATH))
       backlogPriorities <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
       cybozuPriorities <- AppDSL.fromDB(StoreDSL.getCybozuPriorities)
       backlogPriorityStream = backlogPriorities.map { backlogPriority =>
@@ -55,6 +64,7 @@ object MappingFiles {
 
   private def writeStatusMapping(config: Config): AppProgram[Unit] = {
     for {
+      _ <- AppDSL.fromStorage(StorageDSL.copy(config.STATUSES_PATH, config.STATUSES_TEMP_PATH))
       backlogStatuses <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
       cybozuStatuses <- AppDSL.fromDB(StoreDSL.getCybozuStatuses)
       backlogStatusStream = backlogStatuses.map { backlogStatus =>
@@ -74,11 +84,5 @@ object MappingFiles {
     } yield ()
   }
 
-  def write(config: Config): AppProgram[Unit] =
-    for {
-      _ <- writeUserMapping(config)
-      _ <- writePriorityMapping(config)
-      _ <- writeStatusMapping(config)
 
-    } yield ()
 }

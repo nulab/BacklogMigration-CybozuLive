@@ -10,3 +10,4 @@ case class WriteNewFile(path: Path, writeStream: Observable[Array[Byte]]) extend
 case class WriteAppendFile(path: Path, writeStream: Observable[Array[Byte]]) extends StorageADT[Unit]
 case class DeleteFile(path: Path) extends StorageADT[Boolean]
 case class Exists(path: Path) extends StorageADT[Boolean]
+case class Copy(from: Path, to: Path) extends StorageADT[Boolean]

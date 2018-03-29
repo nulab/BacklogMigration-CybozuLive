@@ -67,6 +67,7 @@ class AppSpec extends FlatSpec with Matchers {
     override def exists(path: Path): Task[Boolean] = ???
     override def writeNew(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
     override def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
+    override def copy(from: Path, to: Path): Task[Boolean] = ???
   }
 
   class TestDBInterpreter extends DBInterpreter {

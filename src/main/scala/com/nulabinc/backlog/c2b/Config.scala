@@ -17,6 +17,9 @@ case class Config(
   val USERS_PATH: Path = File("data/users.csv").path
   val PRIORITIES_PATH: Path = File("data/priorities.csv").path
   val STATUSES_PATH: Path = File("data/statuses.csv").path
+  val USERS_TEMP_PATH: Path = File("data/users.temp.csv").path
+  val PRIORITIES_TEMP_PATH: Path = File("data/priorities.temp.csv").path
+  val STATUSES_TEMP_PATH: Path = File("data/statuses.temp.csv").path
 }
 
 object Config {

@@ -2,14 +2,11 @@ package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
 import java.nio.file.{Files, Path, StandardOpenOption}
 
-import akka.actor.Status.Success
-import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
 import monix.reactive.Observable
 
-import scala.util.Failure
 import scala.util.control.NonFatal
 
 class LocalStorageInterpreter extends StorageInterpreter[Task] {
@@ -33,21 +30,30 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
   override def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] =
     write(path, writeStream, StandardOpenOption.APPEND)
 
-  override def delete(path: Path): Task[Boolean] = Task {
-    path.toFile.delete()
-  }
+  override def delete(path: Path): Task[Boolean] =
+    exists(path).map { result =>
+      if (result) {
+        path.toFile.delete()
+      } else {
+        false
+      }
+    }
 
   override def exists(path: Path): Task[Boolean] = Task {
     path.toFile.exists()
   }
 
-  override def apply[A](fa: StorageADT[A]): Task[A] = fa match {
-    case ReadFile(path) => read(path)
-    case WriteNewFile(path, writeStream) => writeNew(path, writeStream)
-    case WriteAppendFile(path, writeStream) => writeAppend(path, writeStream)
-    case DeleteFile(path) => delete(path)
-    case Exists(path) => exists(path)
-  }
+  override def copy(from: Path, to: Path): Task[Boolean] =
+    exists(from).flatMap { result =>
+      if (result) {
+        delete(to).map { _ =>
+          Files.move(from, to)
+          true
+        }
+      } else {
+        Task(false)
+      }
+    }
 
   private def write(path: Path, writeStream: Observable[Array[Byte]], option: StandardOpenOption) =
     Task.deferAction { implicit scheduler =>
