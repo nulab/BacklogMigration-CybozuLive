@@ -9,7 +9,7 @@ import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
-import com.nulabinc.backlog.c2b.generators.CSVRecordGenerator
+import com.nulabinc.backlog.c2b.generators.CSVRecordSerializer
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters._
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -18,6 +18,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, ReadResult}
+import com.nulabinc.backlog.c2b.services.MappingFiles
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
 import monix.reactive.Observable
@@ -123,7 +124,7 @@ object App extends Logger {
           streamBacklogUsers(Observable.fromIterator(users.iterator))
         )
       // Write mapping files
-      _ <- writeMappingFiles(config)
+      _ <- MappingFiles.write(config)
     } yield ()
 
     val f = interpreter.run(program).runAsync
@@ -314,63 +315,6 @@ object App extends Logger {
         _ <- AppDSL.fromDB(StoreDSL.storeBacklogUser(BacklogUser.from(user)))
       } yield ()
     }
-
-  def writeMappingFiles(config: Config): AppProgram[Unit] = {
-
-    def writeUserMapping: AppProgram[Unit] =
-      for {
-        backlogUser <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
-        _ <- AppDSL.fromStorage(
-          for {
-            _ <- StorageDSL.writeNewFile(config.USERS_PATH, CSVRecordGenerator.headerToByteArray)
-            _ <- StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.backlogUserToByteArray(backlogUser))
-            _ <- StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.splitToByteArray())
-          } yield ()
-        )
-        cybozuUser <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
-        _ <- AppDSL.fromStorage(
-          StorageDSL.writeAppendFile(config.USERS_PATH, CSVRecordGenerator.cybozuUserToByteArray(cybozuUser))
-        )
-      } yield ()
-
-    def writePriorityMapping: AppProgram[Unit] =
-      for {
-        backlogPriority <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
-        _ <- AppDSL.fromStorage(
-          for {
-            _ <- StorageDSL.writeNewFile(config.PRIORITIES_PATH, CSVRecordGenerator.headerToByteArray)
-            _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.backlogPriorityToByteArray(backlogPriority))
-            _ <- StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.splitToByteArray())
-          } yield ()
-        )
-        cybozuPrioritity <- AppDSL.fromDB(StoreDSL.getCybozuPriorities)
-        _ <- AppDSL.fromStorage(
-          StorageDSL.writeAppendFile(config.PRIORITIES_PATH, CSVRecordGenerator.cybozuPriorityToByteArray(cybozuPrioritity))
-        )
-      } yield ()
-
-    def writeStatusMapping: AppProgram[Unit] =
-      for {
-        backlogStatus <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
-        _ <- AppDSL.fromStorage(
-          for {
-            _ <- StorageDSL.writeNewFile(config.STATUSES_PATH, CSVRecordGenerator.headerToByteArray)
-            _ <- StorageDSL.writeAppendFile (config.STATUSES_PATH, CSVRecordGenerator.backlogStatusToByteArray(backlogStatus))
-            _ <- StorageDSL.writeAppendFile(config.STATUSES_PATH, CSVRecordGenerator.splitToByteArray())
-          } yield ()
-        )
-        cybozuStatus <- AppDSL.fromDB(StoreDSL.getCybozuStatuses)
-        _ <- AppDSL.fromStorage(
-          StorageDSL.writeAppendFile(config.STATUSES_PATH, CSVRecordGenerator.cybozuStatusToByteArray(cybozuStatus))
-        )
-      } yield ()
-
-    for {
-      _ <- writeUserMapping
-      _ <- writePriorityMapping
-      _ <- writeStatusMapping
-    } yield ()
-  }
 
   private def exit(exitCode: Int): Unit = {
     AnsiConsole.systemUninstall()
