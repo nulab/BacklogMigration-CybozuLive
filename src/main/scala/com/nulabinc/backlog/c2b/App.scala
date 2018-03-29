@@ -3,12 +3,9 @@ package com.nulabinc.backlog.c2b
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import backlog4s.apis.AllApi
-import backlog4s.datas.User
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
-import com.nulabinc.backlog.c2b.datas._
-import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters._
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
@@ -18,7 +15,6 @@ import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
 import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, MappingFiles}
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
-import monix.reactive.Observable
 import org.apache.commons.csv.CSVFormat
 import org.fusesource.jansi.AnsiConsole
 

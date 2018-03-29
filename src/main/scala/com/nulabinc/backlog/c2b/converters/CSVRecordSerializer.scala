@@ -1,16 +1,24 @@
-package com.nulabinc.backlog.c2b.generators
+package com.nulabinc.backlog.c2b.converters
 
 import java.nio.charset.Charset
 
+import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.datas._
+
+import scala.collection.immutable.HashMap
 
 trait Serializer[A, B] {
   def serialize(a: A): B
 }
 
+trait ToTuple[A, B, C, D] {
+  def toTuple(a: A, b: B): (C, D)
+}
+
 object CSVRecordSerializer {
 
-  val charset: Charset = Charset.forName("UTF-8")
+  private val charset = Config.charset
+
 
   implicit val backlogUserSerializer: Serializer[BacklogUser, Array[Byte]] =
     (user: BacklogUser) =>
@@ -36,8 +44,18 @@ object CSVRecordSerializer {
     (status: CybozuStatus) =>
       s""""${status.value}",""\n""".stripMargin.getBytes(charset)
 
+  implicit val stringTupleSerializer: Serializer[(String, String), Array[Byte]] =
+    (tuple) =>
+      s""""${tuple._1}","${tuple._2}"\n""".getBytes(charset)
+
   def serialize[A](a: A)(implicit serializer: Serializer[A, Array[Byte]]): Array[Byte] =
     serializer.serialize(a)
+
+  def serializeMap(mapping: Map[String, String]): IndexedSeq[Array[Byte]] =
+    mapping.foldLeft(IndexedSeq.empty[Array[Byte]]) {
+      case (acc, entry) =>
+        acc :+ CSVRecordSerializer.serialize(entry)
+    }
 
   def header: Array[Byte] =
     s""""CybozuLive","Backlog"\n""".stripMargin.getBytes(charset)
