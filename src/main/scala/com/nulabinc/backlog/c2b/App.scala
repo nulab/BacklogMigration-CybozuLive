@@ -74,7 +74,7 @@ object App extends Logger {
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
-    val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
+
     val csvFiles = Config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = {
       csvFiles.filter(_.getName.contains("live_ToDo")) ++
@@ -86,9 +86,9 @@ object App extends Logger {
     }
     val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_"))
 
-    val todoObservable = CybozuCSVReader.toCybozuTodo(todoFiles, csvFormat)
-    val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles, csvFormat)
-    val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles, csvFormat)
+    val todoObservable = CybozuCSVReader.toCybozuTodo(todoFiles)
+    val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles)
+    val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles)
 
     val program = for {
       // Initialize
@@ -143,6 +143,7 @@ object App extends Logger {
       _ <- Validations.backlogProgram(config, backlogApi)
       _ <- Validations.dbExistsProgram(Config.DB_PATH)
       _ <- Validations.mappingFilesExistProgram
+      _ <- Validations.mappingFileItems(backlogApi)
     } yield ()
 
     val f = interpreter.run(program).runAsync
