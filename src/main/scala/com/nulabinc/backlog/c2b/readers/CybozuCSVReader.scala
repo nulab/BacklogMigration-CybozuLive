@@ -3,10 +3,11 @@ package com.nulabinc.backlog.c2b.readers
 import java.io.File
 import java.nio.charset.Charset
 
+import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.parsers.CSVRecordParser
 import monix.reactive.Observable
-import org.apache.commons.csv.{CSVFormat, CSVParser}
+import org.apache.commons.csv.CSVParser
 
 import scala.collection.JavaConverters._
 
@@ -14,9 +15,10 @@ case class ReadResult[A](issue: A, comments: Seq[CybozuCSVComment])
 
 object CybozuCSVReader {
 
-  val charset: Charset = Charset.forName("Shift_JIS")
+  private val charset = Charset.forName("Shift_JIS")
+  private val csvFormat = Config.csvFormat
 
-  def toCybozuTodo(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVTodo]] =
+  def toCybozuTodo(files: Array[File]): Observable[ReadResult[CybozuCSVTodo]] =
     Observable
       .fromIterable(files)
       .flatMap { file =>
@@ -29,7 +31,7 @@ object CybozuCSVReader {
           }
       }
 
-  def toCybozuEvent(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVEvent]] =
+  def toCybozuEvent(files: Array[File]): Observable[ReadResult[CybozuCSVEvent]] =
     Observable
       .fromIterable(files)
       .flatMap { file =>
@@ -42,7 +44,7 @@ object CybozuCSVReader {
           }
       }
 
-  def toCybozuForum(files: Array[File], csvFormat: CSVFormat): Observable[ReadResult[CybozuCSVForum]] =
+  def toCybozuForum(files: Array[File]): Observable[ReadResult[CybozuCSVForum]] =
     Observable
       .fromIterable(files)
       .flatMap { file =>

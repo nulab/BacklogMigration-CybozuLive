@@ -5,6 +5,7 @@ import java.nio.file.{Path, Paths}
 
 import better.files.File
 import com.nulabinc.backlog.c2b.Config._
+import org.apache.commons.csv.CSVFormat
 
 
 case class Config(
@@ -17,6 +18,8 @@ case class Config(
 object Config {
 
   val charset: Charset = Charset.forName("UTF-8")
+
+  val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
 
   val DATA_PATHS: Path = Paths.get("./data")
   val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")

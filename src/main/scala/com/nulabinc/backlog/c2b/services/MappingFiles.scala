@@ -10,7 +10,7 @@ import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import monix.reactive.Observable
-import org.apache.commons.csv.{CSVFormat, CSVParser}
+import org.apache.commons.csv.CSVParser
 
 import scala.collection.immutable.HashMap
 
@@ -25,8 +25,15 @@ object MappingFiles {
       _ <- writeStatusMapping
     } yield ()
 
+  def read(path: Path): AppProgram[Observable[(String, String)]] =
+    AppDSL.pure(
+      Observable.fromIterator(CSVParser.parse(path.toFile, Config.charset, Config.csvFormat).iterator().asScala)
+        .drop(1)
+        .map(record => (record.get(0), record.get(1)))
+    )
+
   private def readCSVFile(is: InputStream): HashMap[String, String] = {
-    val parser = CSVParser.parse(is, Config.charset, CSVFormat.DEFAULT)
+    val parser = CSVParser.parse(is, Config.charset, Config.csvFormat)
     parser.getRecords.asScala.foldLeft(HashMap.empty[String, String]) {
       case (acc, record) =>
         acc + (record.get(0) -> record.get(1))
