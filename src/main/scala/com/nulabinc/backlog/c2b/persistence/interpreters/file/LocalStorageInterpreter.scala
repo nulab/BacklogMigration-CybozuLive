@@ -2,11 +2,15 @@ package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
 import java.nio.file.{Files, Path, StandardOpenOption}
 
+import akka.actor.Status.Success
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
 import monix.reactive.Observable
+
+import scala.util.Failure
+import scala.util.control.NonFatal
 
 class LocalStorageInterpreter extends StorageInterpreter[Task] {
 
@@ -51,7 +55,12 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
         val os = Files.newOutputStream(path, option)
         writeStream.foreach { bytes =>
           os.write(bytes)
-        }
+        }.map(_ => os.close())
+          .recover {
+            case NonFatal(ex) =>
+              ex.printStackTrace()
+              os.close()
+          }
       }.map(_ => ())
     }
 
