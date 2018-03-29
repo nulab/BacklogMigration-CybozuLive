@@ -1,5 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
+import java.io.InputStream
 import java.nio.file.{Files, Path, StandardOpenOption}
 
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
@@ -7,6 +8,7 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
 import monix.reactive.Observable
 
+import scala.util.Try
 import scala.util.control.NonFatal
 
 class LocalStorageInterpreter extends StorageInterpreter[Task] {
@@ -16,11 +18,20 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
   override def run[A](prg: StorageProgram[A]): Task[A] =
     prg.foldMap(this)
 
-  override def read(path: Path): Task[Observable[Array[Byte]]] =
+  override def read[A](path: Path, f: InputStream => A): Task[A] =
     Task.deferAction { implicit scheduler =>
       Task.eval {
         val is = Files.newInputStream(path)
-        Observable.fromInputStream(is)
+        Try(f(is))
+          .map { result =>
+            is.close()
+            result
+          }
+          .recover {
+          case NonFatal(ex) =>
+            is.close()
+            throw ex
+        }.get
       }
     }
 

@@ -1,5 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters
 
+import java.io.InputStream
 import java.nio.file.Path
 
 import cats.~>
@@ -12,7 +13,7 @@ trait StorageInterpreter[F[_]] extends (StorageADT ~> F) {
 
   def run[A](prg: StorageProgram[A]): F[A]
 
-  def read(path: Path): F[Observable[Array[Byte]]]
+  def read[A](path: Path, f: InputStream => A): F[A]
 
   def writeNew(path: Path, writeStream: Observable[Array[Byte]]): F[Unit]
 
@@ -25,7 +26,7 @@ trait StorageInterpreter[F[_]] extends (StorageADT ~> F) {
   def copy(from: Path, to: Path): F[Boolean]
 
   override def apply[A](fa: StorageADT[A]): F[A] = fa match {
-    case ReadFile(path) => read(path)
+    case ReadFile(path, f) => read(path, f)
     case WriteNewFile(path, writeStream) => writeNew(path, writeStream)
     case WriteAppendFile(path, writeStream) => writeAppend(path, writeStream)
     case DeleteFile(path) => delete(path)

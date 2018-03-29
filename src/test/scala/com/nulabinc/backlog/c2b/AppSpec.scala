@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b
 
-import java.io.File
+import java.io.{File, InputStream}
 import java.nio.file.{Path, StandardOpenOption}
 
 import backlog4s.apis.AllApi
@@ -62,7 +62,7 @@ class AppSpec extends FlatSpec with Matchers {
   class TestStorageInterpreter extends StorageInterpreter[Task] {
     override def run[A](prg: StorageProgram[A]): Task[A] = ???
     override def apply[A](fa: StorageADT[A]): Task[A] = ???
-    override def read(path: Path): Task[Observable[Array[Byte]]] = ???
+    override def read[A](path: Path, f: InputStream => A): Task[A] = ???
     override def delete(path: Path): Task[Boolean] = ???
     override def exists(path: Path): Task[Boolean] = ???
     override def writeNew(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
