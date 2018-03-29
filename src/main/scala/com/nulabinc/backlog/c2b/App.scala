@@ -95,6 +95,7 @@ object App extends Logger {
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.MAPPING_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.TEMP_PATHS))
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       // Delete operations
