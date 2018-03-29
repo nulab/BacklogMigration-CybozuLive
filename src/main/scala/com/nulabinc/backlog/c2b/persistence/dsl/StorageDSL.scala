@@ -1,5 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.dsl
 
+import java.io.InputStream
 import java.nio.file.Path
 
 import cats.free.Free
@@ -9,8 +10,8 @@ object StorageDSL {
 
   type StorageProgram[A] = Free[StorageADT, A]
 
-  def readFile(path: Path): StorageProgram[Observable[Array[Byte]]] =
-    Free.liftF(ReadFile(path))
+  def readFile[A](path: Path, f: InputStream => A): StorageProgram[A] =
+    Free.liftF(ReadFile(path, f))
 
   def writeNewFile(path: Path, writeStream: Observable[Array[Byte]]): StorageProgram[Unit] =
     Free.liftF(WriteNewFile(path, writeStream))
@@ -23,5 +24,11 @@ object StorageDSL {
 
   def exists(path: Path): StorageProgram[Boolean] =
     Free.liftF(Exists(path))
+
+  def copy(from: Path, to: Path): StorageProgram[Boolean] =
+    Free.liftF(Copy(from, to))
+
+  def createDirectory(path: Path): StorageProgram[Unit] =
+    Free.liftF(CreateDirectory(path))
 
 }

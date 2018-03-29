@@ -1,6 +1,8 @@
 package com.nulabinc.backlog.c2b.interpreters
 
 
+import java.util.Locale
+
 import backlog4s.dsl.ApiDsl.ApiPrg
 import backlog4s.dsl.BacklogHttpInterpret
 import backlog4s.streaming.ApiStream.ApiStream
@@ -29,6 +31,8 @@ case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq[A]]]
 case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
+private case class FromTask[A](task: Task[A]) extends AppADT[A]
+case class SetLanguage(lang: String) extends AppADT[Unit]
 
 object AppDSL {
 
@@ -39,6 +43,19 @@ object AppDSL {
 
   def consumeStream[A](prgs: Observable[AppProgram[Unit]]): AppProgram[Unit] =
     Free.liftF[AppADT, Unit](ConsumeStream(prgs))
+
+  private def fromTask[A](task: Task[A]): AppProgram[A] =
+    Free.liftF(FromTask(task))
+
+  def foldLeftStream[A, B](stream: Observable[A], zero: B)(f: (B, A) => B): AppProgram[B] =
+    fromTask(stream.foldLeftL(zero)(f))
+
+  def streamAsSeq[A](stream: Observable[A]): AppProgram[IndexedSeq[A]] = {
+    foldLeftStream(stream, IndexedSeq.empty[A]) {
+      case (acc, item) =>
+        acc :+ item
+    }
+  }
 
   def fromDB[A](dbProgram: StoreProgram[A]): AppProgram[A] =
     Free.liftF(FromDB(dbProgram))
@@ -61,6 +78,9 @@ object AppDSL {
       _ <- Free.liftF(Exit(exitCode))
     } yield ()
   }
+
+  def setLanguage(lang: String): AppProgram[Unit] =
+    Free.liftF(SetLanguage(lang))
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -71,6 +91,14 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
 
   def run[A](appProgram: AppProgram[A]): Task[A] =
     appProgram.foldMap(this)
+
+  def setLanguage(lang: String): Task[Unit] = Task {
+    lang match {
+      case "ja" => Locale.setDefault(Locale.JAPAN)
+      case "en" => Locale.setDefault(Locale.US)
+      case _ => ()
+    }
+  }
 
   override def apply[A](fa: AppADT[A]): Task[A] = fa match {
     case Pure(a) => Task(a)
@@ -106,9 +134,11 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
           prg.foldMap(this).map(_ => ())
         }
       )
+    case FromTask(task) => task
     case Exit(statusCode) => Task {
       AnsiConsole.systemUninstall()
       sys.exit(statusCode)
     }
+    case SetLanguage(lang: String) => setLanguage(lang)
   }
 }
