@@ -1,12 +1,16 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.file
 
+import java.io.InputStream
 import java.nio.file.{Files, Path, StandardOpenOption}
 
-import com.nulabinc.backlog.c2b.persistence.dsl._
+import better.files.File
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.StorageInterpreter
 import monix.eval.Task
 import monix.reactive.Observable
+
+import scala.util.Try
+import scala.util.control.NonFatal
 
 class LocalStorageInterpreter extends StorageInterpreter[Task] {
 
@@ -15,35 +19,63 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
   override def run[A](prg: StorageProgram[A]): Task[A] =
     prg.foldMap(this)
 
-  override def read(path: Path): Task[Observable[Array[Byte]]] =
+  override def read[A](path: Path, f: InputStream => A): Task[A] =
     Task.deferAction { implicit scheduler =>
       Task.eval {
         val is = Files.newInputStream(path)
-        Observable.fromInputStream(is)
+        Try(f(is))
+          .map { result =>
+            is.close()
+            result
+          }
+          .recover {
+          case NonFatal(ex) =>
+            is.close()
+            throw ex
+        }.get
       }
     }
 
   override def writeNew(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] =
-    write(path, writeStream, StandardOpenOption.CREATE)
+    for {
+      _ <- delete(path)
+      _ <- write(path, writeStream, StandardOpenOption.CREATE)
+    } yield ()
 
   override def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] =
     write(path, writeStream, StandardOpenOption.APPEND)
 
-  override def delete(path: Path): Task[Boolean] = Task {
-    path.toFile.delete()
-  }
+  override def delete(path: Path): Task[Boolean] =
+    exists(path).map { result =>
+      if (result) {
+        path.toFile.delete()
+      } else {
+        false
+      }
+    }
 
   override def exists(path: Path): Task[Boolean] = Task {
     path.toFile.exists()
   }
 
-  override def apply[A](fa: StorageADT[A]): Task[A] = fa match {
-    case ReadFile(path) => read(path)
-    case WriteNewFile(path, writeStream) => writeNew(path, writeStream)
-    case WriteAppendFile(path, writeStream) => writeAppend(path, writeStream)
-    case DeleteFile(path) => delete(path)
-    case Exists(path) => exists(path)
-  }
+  override def copy(from: Path, to: Path): Task[Boolean] =
+    exists(from).flatMap { result =>
+      if (result) {
+        delete(to).map { _ =>
+          Files.move(from, to)
+          true
+        }
+      } else {
+        Task(false)
+      }
+    }
+
+  override def createDirectory(path: Path): Task[Unit] =
+    exists(path).map { result =>
+      if (!result) {
+        File(path).createDirectory()
+      }
+    }
 
   private def write(path: Path, writeStream: Observable[Array[Byte]], option: StandardOpenOption) =
     Task.deferAction { implicit scheduler =>
@@ -51,8 +83,12 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
         val os = Files.newOutputStream(path, option)
         writeStream.foreach { bytes =>
           os.write(bytes)
-        }
+        }.map(_ => os.close())
+          .recover {
+            case NonFatal(ex) =>
+              ex.printStackTrace()
+              os.close()
+          }
       }.map(_ => ())
     }
-
 }
