@@ -3,8 +3,8 @@ import java.nio.charset.Charset
 import java.nio.file.Paths
 
 import better.files.File
+import com.nulabinc.backlog.c2b.converters.CSVRecordSerializer
 import com.nulabinc.backlog.c2b.datas.{CybozuCSVUser, CybozuUser}
-import com.nulabinc.backlog.c2b.generators.CSVRecordSerializer
 import com.nulabinc.backlog.c2b.parsers.{CSVRecordParser, CommentParser, ParseError, ZonedDateTimeParser}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
