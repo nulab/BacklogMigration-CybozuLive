@@ -107,7 +107,7 @@ object App extends Logger {
       _ <- CSVtoStore.todo(todoObservable)
       _ <- CSVtoStore.event(eventObservable)
       _ <- CSVtoStore.forum(forumObservable)
-      // Collect Backlog datas to store
+      // Collect Backlog data to store
       _ <- BacklogToStore.priority(backlogApi.priorityApi)
       _ <- BacklogToStore.status(backlogApi.statusApi)
       _ <- BacklogToStore.user(backlogApi.userApi)
@@ -121,14 +121,6 @@ object App extends Logger {
 
     system.terminate()
   }
-
-  def streamBacklogUsers(userStream: Observable[User]): Observable[AppProgram[Unit]] =
-    userStream.map { user =>
-      for {
-        _ <- AppDSL.pure(user)
-        _ <- AppDSL.fromDB(StoreDSL.storeBacklogUser(BacklogUser.from(user)))
-      } yield ()
-    }
 
   def `import`(config: Config, language: String): Unit = {
 
