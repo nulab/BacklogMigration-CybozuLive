@@ -14,15 +14,18 @@ case class Config(
   commandType: CommandType = Undefined
 ) {
   val DATA_PATHS: Path = Paths.get("./data")
-  val DB_PATH: Path = Paths.get("./data/data.db")
-  val USERS_PATH: Path = File("data/users.csv").path
-  val CYBOZU_USERS_PATH: Path = File("data/cybozu_users.csv").path
-  val PRIORITIES_PATH: Path = File("data/priorities.csv").path
-  val STATUSES_PATH: Path = File("data/statuses.csv").path
-  val USERS_TEMP_PATH: Path = File("data/users.temp.csv").path
-  val CYBOZU_USERS_TEMP_PATH = File("data/cybozu_users.temp.csv").path
-  val PRIORITIES_TEMP_PATH: Path = File("data/priorities.temp.csv").path
-  val STATUSES_TEMP_PATH: Path = File("data/statuses.temp.csv").path
+  val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
+
+  val DB_PATH: Path = Paths.get(DATA_PATHS.toRealPath() + "/data.db")
+
+  lazy val USERS_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/users.csv").path
+  lazy val BACKLOG_USER_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/user_list.csv").path
+  lazy val USERS_TEMP_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/users.temp.csv").path
+
+  lazy val PRIORITIES_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/priorities.csv").path
+  lazy val STATUSES_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/statuses.csv").path
+  lazy val PRIORITIES_TEMP_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/priorities.temp.csv").path
+  lazy val STATUSES_TEMP_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/statuses.temp.csv").path
 }
 
 object Config {

@@ -37,7 +37,10 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
     }
 
   override def writeNew(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] =
-    write(path, writeStream, StandardOpenOption.CREATE)
+    for {
+      _ <- delete(path)
+      _ <- write(path, writeStream, StandardOpenOption.CREATE)
+    } yield ()
 
   override def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] =
     write(path, writeStream, StandardOpenOption.APPEND)

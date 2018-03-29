@@ -1,11 +1,7 @@
 package com.nulabinc.backlog.c2b.converters
 
-import java.nio.charset.Charset
-
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.datas._
-
-import scala.collection.immutable.HashMap
 
 trait Serializer[A, B] {
   def serialize(a: A): B
@@ -19,10 +15,9 @@ object CSVRecordSerializer {
 
   private val charset = Config.charset
 
-
   implicit val backlogUserSerializer: Serializer[BacklogUser, Array[Byte]] =
     (user: BacklogUser) =>
-      s""""","${user.userId.getOrElse("")}"\n""".stripMargin.getBytes(charset)
+      s""""${user.userId.getOrElse("")}"\n""".stripMargin.getBytes(charset)
 
   implicit val cybozuUserSerializer: Serializer[CybozuUser, Array[Byte]] =
     (user: CybozuUser) =>
@@ -60,6 +55,4 @@ object CSVRecordSerializer {
   def header: Array[Byte] =
     s""""CybozuLive","Backlog"\n""".stripMargin.getBytes(charset)
 
-  def split: Array[Byte] =
-    s""""----------------------","----------------------"\n""".stripMargin.getBytes(charset)
 }
