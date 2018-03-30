@@ -5,23 +5,6 @@ import org.apache.commons.csv.CSVRecord
 
 object CSVRecordParser {
 
-//  def user(record: CSVRecord): Either[ParseError[CybozuCSVUser], CybozuCSVUser] = {
-//
-//    val LAST_NAME_FIELD_INDEX   = 0
-//    val FIRST_NAME_FIELD_INDEX  = 1
-//
-//    if (record.size() >= CybozuCSVUser.fieldSize) {
-//      Right(
-//        CybozuCSVUser(
-//          lastName = record.get(LAST_NAME_FIELD_INDEX),
-//          firstName = record.get(FIRST_NAME_FIELD_INDEX)
-//        )
-//      )
-//    } else {
-//      Left(CannotParseCSV(classOf[CybozuCSVUser], "Invalid record size: " + record.size(), record))
-//    }
-//  }
-
   // "ID","タイトル","本文","作成者","作成日時","更新者","更新日時","ステータス","優先度","担当者","期日","コメント"
   def issue(record: CSVRecord): Either[ParseError[CybozuCSVTodo], CybozuCSVTodo] = {
 
@@ -146,45 +129,6 @@ object CSVRecordParser {
       }
     } else {
       Left(CannotParseCSV(classOf[CybozuCSVForum], "Invalid record size: " + record.size(), record))
-    }
-  }
-
-  def userMapping(record: CSVRecord): Either[ParseError[Mapping], UserMapping] =
-    mapping(record) { (source, destination) =>
-      UserMapping(
-        source = source,
-        destination = destination
-      )
-    }
-
-  def statusMapping(record: CSVRecord): Either[ParseError[Mapping], StatusMapping] =
-    mapping(record) { (source, destination) =>
-      StatusMapping(
-        source = source,
-        destination = destination
-      )
-    }
-
-  def priorityMapping(record: CSVRecord): Either[ParseError[Mapping], PriorityMapping] =
-    mapping(record) { (source, destination) =>
-      PriorityMapping(
-        source = source,
-        destination = destination
-      )
-    }
-
-  private def mapping[A](record: CSVRecord)(f: (String, String) => A): Either[ParseError[Mapping], A] = {
-
-    val SOURCE_FIELD_INDEX = 0
-    val DESTINATION_FIELD_INDEX = 1
-    val FIELD_SIZE = 2
-
-    if (record.size() == FIELD_SIZE) {
-      Right(
-        f(record.get(SOURCE_FIELD_INDEX), record.get(DESTINATION_FIELD_INDEX))
-      )
-    } else {
-      Left(CannotParseCSV(classOf[Mapping], "Invalid record size: " + record.size(), record))
     }
   }
 

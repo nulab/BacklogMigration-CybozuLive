@@ -12,7 +12,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
-import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, MappingFiles}
+import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, Exporter, MappingFiles}
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
 import org.apache.commons.csv.CSVFormat
@@ -144,6 +144,9 @@ object App extends Logger {
       _ <- Validations.dbExistsProgram(Config.DB_PATH)
       _ <- Validations.mappingFilesExistProgram
       _ <- Validations.mappingFileItems(backlogApi)
+      // Read mapping files
+      mappingContext <- MappingFiles.createMappingContext
+      _ <- Exporter.priorities()(mappingContext)
     } yield ()
 
     val f = interpreter.run(program).runAsync
