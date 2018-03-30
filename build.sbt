@@ -40,18 +40,18 @@ lazy val root = (project in file("."))
     libraryDependencies ++= {
       val catsVersion = "1.1.0"
       val slickVersion = "3.2.2"
+      val monixVersion = "3.0.0-RC1"
       Seq(
+        "com.github.scopt"      %% "scopt"            % "3.7.0",
         "org.typelevel"         %% "cats-core"        % catsVersion,
         "org.typelevel"         %% "cats-free"        % catsVersion,
-        "org.typelevel"         %% "cats-effect"      % "0.9",
-        "com.github.scopt"      %% "scopt"            % "3.7.0",
         "com.typesafe.slick"    %% "slick"            % slickVersion,
         "com.typesafe.slick"    %% "slick-hikaricp"   % slickVersion,
         "org.xerial"            %  "sqlite-jdbc"      % "3.21.0",
-        "io.monix"              %% "monix"            % "3.0.0-RC1",
-        "io.monix"              %% "monix-reactive"   % "3.0.0-RC1",
-        "io.monix"              %% "monix-execution"  % "3.0.0-RC1",
-        "io.monix"              %% "monix-eval"       % "3.0.0-RC1",
+        "io.monix"              %% "monix"            % monixVersion,
+        "io.monix"              %% "monix-reactive"   % monixVersion,
+        "io.monix"              %% "monix-execution"  % monixVersion,
+        "io.monix"              %% "monix-eval"       % monixVersion,
         "org.apache.commons"    %  "commons-csv"      % "1.5"
       )
     }
