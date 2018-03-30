@@ -21,7 +21,7 @@ object Validations extends Logger {
   def backlogProgram(config: Config, backlogApi: AllApi): AppProgram[Unit] = {
 
     import com.nulabinc.backlog.c2b.interpreters.AppDSL._
-    import com.nulabinc.backlog.c2b.interpreters.syntax._
+    import com.nulabinc.backlog.c2b.syntax.BacklogResponseOps._
 
     for {
       // Access check

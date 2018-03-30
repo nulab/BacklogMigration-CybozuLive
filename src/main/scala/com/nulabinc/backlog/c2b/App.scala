@@ -13,9 +13,9 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterp
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
 import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, Exporter, MappingFiles}
+import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
-import org.apache.commons.csv.CSVFormat
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
@@ -147,6 +147,10 @@ object App extends Logger {
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext
       _ <- Exporter.project(config.projectKey)
+      _ <- Exporter.categories(config.projectKey)
+      _ <- Exporter.versions(config.projectKey)
+      _ <- Exporter.issueTypes(config.projectKey, issueTypes)
+
     } yield ()
 
     val f = interpreter.run(program).runAsync
@@ -165,5 +169,12 @@ object App extends Logger {
     Console.printError(error)
     exit(exitCode)
   }
+
+  private def issueTypes: Seq[String] =
+    Seq(
+      Messages("issue.type.todo"),
+      Messages("issue.type.event"),
+      Messages("issue.type.forum")
+    )
 
 }

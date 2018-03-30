@@ -1,10 +1,10 @@
 package com.nulabinc.backlog.c2b.services
 
 import com.nulabinc.backlog.c2b.CybozuBacklogPaths
-import com.nulabinc.backlog.c2b.converters.BacklogProjectConverter
+import com.nulabinc.backlog.c2b.converters.{BacklogIssueTypeConverter, BacklogProjectConverter}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.migration.common.domain.BacklogProjectWrapper
+import com.nulabinc.backlog.migration.common.domain._
 import com.nulabinc.backlog.migration.common.utils.IOUtil
 import spray.json._
 
@@ -24,5 +24,40 @@ object Exporter {
       }
     } yield ()
   }
+
+  def categories(projectKey: String): AppProgram[Unit] = {
+    AppDSL.pure(
+      IOUtil.output(
+        backlogPath(projectKey).issueCategoriesJson,
+        BacklogIssueCategoriesWrapper(Seq.empty[BacklogIssueCategory]).toJson.prettyPrint
+      )
+    )
+  }
+
+  def versions(projectKey: String): AppProgram[Unit] =
+    AppDSL.pure(
+      IOUtil.output(
+        backlogPath(projectKey).versionsJson,
+        BacklogIssueCategoriesWrapper(Seq.empty[BacklogIssueCategory]).toJson.prettyPrint
+      )
+    )
+
+  def issueTypes(projectKey: String, issueTypes: Seq[String]): AppProgram[Unit] = {
+    import com.nulabinc.backlog.c2b.syntax.EitherOps._
+
+    issueTypes.map(s => BacklogIssueTypeConverter.to(s)).sequence match {
+      case Right(backlogIssueTypes) =>
+        AppDSL.pure(
+          IOUtil.output(
+            backlogPath(projectKey).issueTypesJson,
+            BacklogIssueTypesWrapper(backlogIssueTypes).toJson.prettyPrint
+          )
+        )
+      case Left(error) => AppDSL.exit(error.toString, 1)
+    }
+  }
+
+  private def backlogPath(projectKey: String): CybozuBacklogPaths =
+    new CybozuBacklogPaths(projectKey)
 
 }

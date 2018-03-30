@@ -21,7 +21,7 @@ object Config {
 
   val charset: Charset = Charset.forName("UTF-8")
 
-  val csvFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
+  val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
 
   val DATA_PATHS: Path = Paths.get("./data")
   val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
@@ -40,6 +40,9 @@ object Config {
   lazy val STATUSES_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/statuses.csv").path
   lazy val BACKLOG_STATUS_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/status_list.csv").path
   lazy val STATUSES_TEMP_PATH: Path = File(TEMP_PATHS.toRealPath() + "/statuses.temp.csv").path
+
+
+  val issueTypes = Seq("ToDo", "Event", "Forum")
 
   sealed trait CommandType
 
