@@ -146,7 +146,7 @@ object App extends Logger {
       _ <- Validations.mappingFileItems(backlogApi)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext
-      _ <- Exporter.priorities()(mappingContext)
+      _ <- Exporter.project(config.projectKey)
     } yield ()
 
     val f = interpreter.run(program).runAsync

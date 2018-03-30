@@ -13,7 +13,9 @@ case class Config(
   backlogKey: String = "",
   projectKey: String = "",
   commandType: CommandType = Undefined
-)
+) {
+//  val backlogPaths = new BacklogPaths(projectKey)
+}
 
 object Config {
 
