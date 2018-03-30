@@ -57,6 +57,14 @@ object Exporter {
     }
   }
 
+  def customFields(projectKey: String): AppProgram[Unit] =
+    AppDSL.pure(
+      IOUtil.output(
+        backlogPath(projectKey).customFieldSettingsJson,
+        BacklogCustomFieldSettingsWrapper(Seq.empty[BacklogCustomFieldSetting]).toJson.prettyPrint
+      )
+    )
+
   private def backlogPath(projectKey: String): CybozuBacklogPaths =
     new CybozuBacklogPaths(projectKey)
 
