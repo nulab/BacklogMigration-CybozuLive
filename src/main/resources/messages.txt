@@ -4,6 +4,7 @@ error.require_java8=The current version of Java is [{0}]. Java 8 is required for
 
 # Name
 name.backlog=Backlog
+name.cybozu=CybozuLive
 name.mapping.user=User
 name.mapping.priority=Priority
 name.mapping.status=Status
@@ -18,6 +19,9 @@ validation.admin.error={0} API key is not administrator authority. Please use AP
 validation.db.exists=Checking whether DB file exists ...
 validation.db.exists.ok=DB file exists.
 validation.db.exists.error=DB file does not exist. Did you run the init command?
-validation.mapping.exists=Checking whether mapping-files exists ...
-validation.mapping.exists.ok={0} file exists.
-validation.mapping.exists.error={0} file does not exist. Did you run the init command?
+validation.mapping.file.exists=Checking whether mapping-files exists ...
+validation.mapping.file.exists.ok={0} file exists.
+validation.mapping.file.exists.error={0} file does not exist. Did you run the init command?
+validation.mapping.item.exists=Checking whether {0} mapping items exist ...
+validation.mapping.item.empty={0} {1} item doesn''t specify. {2}: {3}
+validation.mapping.item.error={0} {1} item doesn''t exist. {2}: {3} {0}: {4}

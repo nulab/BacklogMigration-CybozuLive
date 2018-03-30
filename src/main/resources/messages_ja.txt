@@ -4,6 +4,7 @@ error.require_java8=現在のJavaのバージョンは[{0}]です。Java8以上�
 
 # Name
 name.backlog=Backlog
+name.cybozu=サイボウズLive
 name.mapping.user=ユーザー
 name.mapping.priority=優先度
 name.mapping.status=状態
@@ -18,6 +19,9 @@ validation.admin.error={0}のAPIキーが管理者権限ではありません。
 validation.db.exists=DBファイルが存在するかチェックしています ...
 validation.db.exists.ok=DBファイルが存在します。
 validation.db.exists.error=DBファイルが存在しません。initコマンドを実行しましたか？
-validation.mapping.exists=マッピングファイルが存在するかチェックしています ...
-validation.mapping.exists.ok={0}マッピングファイルが存在します.
-validation.mapping.exists.error={0}マッピングファイルが存在しません。initコマンドを実行しましたか？
+validation.mapping.file.exists=マッピングファイルが存在するかチェックしています ...
+validation.mapping.file.exists.ok={0}マッピングファイルが存在します.
+validation.mapping.file.exists.error={0}マッピングファイルが存在しません。initコマンドを実行しましたか？
+validation.mapping.item.exists={0}マッピング項目が正しいかチェックしています ...
+validation.mapping.item.empty={0} {1}マッピングの項目が指定されていません。 {2}: {3}
+validation.mapping.item.error={0} {1}マッピングに入力された項目が見つかりません。 {2}: {3} {0}: {4}
