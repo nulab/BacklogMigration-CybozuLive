@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
+import com.nulabinc.backlog.c2b.datas.{CybozuUser, Id}
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
@@ -13,10 +15,16 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
 
   val allTableOps = AllTableOps()
 
+  import allTableOps._
+
   private val db = Database.forConfig(configPath)
 
   override def run[A](prg: StoreProgram[A]): Task[A] =
     prg.foldMap(this)
+
+  def getCybozuUserById(id: AnyId): Task[Option[CybozuUser]] = Task.deferFuture {
+    db.run(cybozuUserTableOps.select(Id[CybozuUser](id)))
+  }
 
   // https://monix.io/docs/2x/eval/task.html
   // https://monix.io/docs/2x/reactive/observable.html
@@ -84,6 +92,8 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
           db.stream(cybozuUserTableOps.stream)
         )
       }
+      case GetCybozuUserById(id) =>
+        getCybozuUserById(id)
       case GetCybozuUserBykey(key) => Task.deferFuture {
         db.run(cybozuUserTableOps.findByKey(key))
       }

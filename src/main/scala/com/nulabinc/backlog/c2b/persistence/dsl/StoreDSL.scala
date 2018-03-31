@@ -69,6 +69,9 @@ object StoreDSL {
   lazy val getCybozuUsers: StoreProgram[Observable[CybozuUser]] =
     Free.liftF(GetCybozuUsers)
 
+  def getCybozuUserById(id: AnyId): StoreProgram[Option[CybozuUser]] =
+    Free.liftF(GetCybozuUserById(id))
+
   def getCybozuUserByKey(key: String): StoreProgram[Option[CybozuUser]] =
     Free.liftF(GetCybozuUserBykey(key))
 
