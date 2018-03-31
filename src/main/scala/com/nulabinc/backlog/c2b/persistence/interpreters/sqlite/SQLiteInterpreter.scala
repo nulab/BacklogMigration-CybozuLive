@@ -4,14 +4,14 @@ import com.nulabinc.backlog.c2b.datas.{CybozuUser, Id}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
+import com.nulabinc.backlog.c2b.persistence.interpreters.StoreInterpreter
 import monix.eval.Task
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops.AllTableOps
 import monix.execution.Scheduler
 import monix.reactive.Observable
 import slick.jdbc.SQLiteProfile.api._
 
-class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBInterpreter {
+class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends StoreInterpreter {
 
   val allTableOps = AllTableOps()
 

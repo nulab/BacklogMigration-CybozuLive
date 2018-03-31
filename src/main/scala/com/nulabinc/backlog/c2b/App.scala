@@ -68,7 +68,7 @@ object App extends Logger {
     val interpreter = new AppInterpreter(
       backlogInterpreter = new AkkaHttpInterpret,
       storageInterpreter = new LocalStorageInterpreter,
-      dbInterpreter = new SQLiteInterpreter("db.main"),
+      storeInterpreter = new SQLiteInterpreter("db.main"),
       consoleInterpreter = new ConsoleInterpreter
     ) // TODO: proxy
 
@@ -129,7 +129,7 @@ object App extends Logger {
     val interpreter = new AppInterpreter(
       backlogInterpreter = new AkkaHttpInterpret,
       storageInterpreter = new LocalStorageInterpreter,
-      dbInterpreter = new SQLiteInterpreter("db.main"),
+      storeInterpreter = new SQLiteInterpreter("db.main"),
       consoleInterpreter = new ConsoleInterpreter
     )
 

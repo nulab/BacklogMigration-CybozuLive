@@ -12,7 +12,7 @@ import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageADT, StoreADT}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.persistence.interpreters.{DBInterpreter, StorageInterpreter}
+import com.nulabinc.backlog.c2b.persistence.interpreters.{StoreInterpreter, StorageInterpreter}
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.Observable
@@ -32,7 +32,7 @@ class AppSpec extends FlatSpec with Matchers {
   val appInterpreter = new AppInterpreter(
     backlogInterpreter = new TestBacklogInterpreter,
     storageInterpreter = new TestStorageInterpreter,
-    dbInterpreter = new TestDBInterpreter,
+    storeInterpreter = new TestStoreInterpreter,
     consoleInterpreter = new TestConsoleInterpreter
   )
 
@@ -71,7 +71,7 @@ class AppSpec extends FlatSpec with Matchers {
     override def createDirectory(path: Path): Task[Unit] = ???
   }
 
-  class TestDBInterpreter extends DBInterpreter {
+  class TestStoreInterpreter extends StoreInterpreter {
     override def run[A](prg: StoreProgram[A]): Task[A] = ???
     override def apply[A](fa: StoreADT[A]): Task[A] = ???
   }

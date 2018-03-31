@@ -85,7 +85,7 @@ object AppDSL {
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
                      storageInterpreter: StorageInterpreter[Task],
-                     dbInterpreter: DBInterpreter,
+                     storeInterpreter: StoreInterpreter,
                      consoleInterpreter: ConsoleInterpreter)
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
 
@@ -105,7 +105,7 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case FromStorage(storePrg) =>
       storageInterpreter.run(storePrg)
     case FromDB(dbPrg) =>
-      dbInterpreter.run(dbPrg)
+      storeInterpreter.run(dbPrg)
     case FromConsole(consolePrg) =>
       consoleInterpreter.run(consolePrg)
     case FromBacklog(backlogPrg) => Task.deferFuture {
