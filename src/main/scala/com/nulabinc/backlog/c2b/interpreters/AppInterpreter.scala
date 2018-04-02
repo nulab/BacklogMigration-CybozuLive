@@ -1,11 +1,11 @@
 package com.nulabinc.backlog.c2b.interpreters
 
-
 import java.util.Locale
 
 import backlog4s.dsl.ApiDsl.ApiPrg
 import backlog4s.dsl.BacklogHttpInterpret
 import backlog4s.streaming.ApiStream.ApiStream
+import better.files.File
 import cats.free.Free
 import cats.~>
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
@@ -13,6 +13,7 @@ import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
+import com.nulabinc.backlog.migration.common.utils.IOUtil
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.{Consumer, Observable}
@@ -33,6 +34,7 @@ case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
 private case class FromTask[A](task: Task[A]) extends AppADT[A]
 case class SetLanguage(lang: String) extends AppADT[Unit]
+case class Export(file: File, content: String) extends AppADT[File]
 
 object AppDSL {
 
@@ -81,6 +83,10 @@ object AppDSL {
 
   def setLanguage(lang: String): AppProgram[Unit] =
     Free.liftF(SetLanguage(lang))
+
+  def export(file: File, content: String): AppProgram[File] =
+    Free.liftF(Export(file, content))
+
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -122,7 +128,7 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
               Seq(a)
             }
           )
-            .onComplete {
+          .onComplete {
             case Success(_) => s.onComplete()
             case Failure(ex) => s.onError(ex)
           }
@@ -141,5 +147,8 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       sys.exit(statusCode)
     }
     case SetLanguage(lang: String) => setLanguage(lang)
+    case Export(file, content) => Task {
+      IOUtil.output(file, content)
+    }
   }
 }

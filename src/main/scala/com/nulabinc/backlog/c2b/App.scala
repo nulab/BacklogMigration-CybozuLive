@@ -12,7 +12,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
-import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, Exporter, MappingFiles}
+import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, BacklogExport, MappingFiles}
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
@@ -139,6 +139,7 @@ object App extends Logger {
       // Initialize
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
+      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(Config.BACKLOG_PATHS))
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       _ <- Validations.dbExistsProgram(Config.DB_PATH)
@@ -146,12 +147,12 @@ object App extends Logger {
       _ <- Validations.mappingFileItems(backlogApi)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext
-      _ <- Exporter.project(config.projectKey)
-      _ <- Exporter.categories(config.projectKey)
-      _ <- Exporter.versions(config.projectKey)
-      _ <- Exporter.issueTypes(config.projectKey, issueTypes)
-      _ <- Exporter.customFields(config.projectKey)
-      _ <- Exporter.isuses(config.projectKey)(mappingContext)
+      _ <- BacklogExport.project(config.projectKey)
+      _ <- BacklogExport.categories(config.projectKey)
+      _ <- BacklogExport.versions(config.projectKey)
+      _ <- BacklogExport.issueTypes(config.projectKey, issueTypes)
+      _ <- BacklogExport.customFields(config.projectKey)
+      _ <- BacklogExport.issues(config.projectKey)(mappingContext)
     } yield ()
 
     val f = interpreter.run(program).runAsync

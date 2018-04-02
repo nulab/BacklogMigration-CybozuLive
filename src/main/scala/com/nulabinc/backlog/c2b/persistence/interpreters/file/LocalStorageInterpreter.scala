@@ -77,6 +77,13 @@ class LocalStorageInterpreter extends StorageInterpreter[Task] {
       }
     }
 
+  override def deleteDirectory(path: Path): Task[Unit] =
+    exists(path).map { result =>
+      if(result) {
+        File(path).listRecursively.foreach(_.delete(false))
+      }
+    }
+
   private def write(path: Path, writeStream: Observable[Array[Byte]], option: StandardOpenOption) =
     Task.deferAction { implicit scheduler =>
       Task.fromFuture {

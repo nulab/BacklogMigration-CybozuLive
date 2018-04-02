@@ -26,6 +26,7 @@ object Config {
   val DATA_PATHS: Path = Paths.get("./data")
   val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
   val TEMP_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/temp")
+  val BACKLOG_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/backlog")
 
   val DB_PATH: Path = Paths.get(DATA_PATHS.toRealPath() + "/data.db")
 

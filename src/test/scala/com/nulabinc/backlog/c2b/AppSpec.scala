@@ -71,6 +71,7 @@ class AppSpec extends FlatSpec with Matchers {
     override def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
     override def copy(from: Path, to: Path): Task[Boolean] = ???
     override def createDirectory(path: Path): Task[Unit] = ???
+    override def deleteDirectory(path: Path): Task[Unit] = ???
   }
 
   class TestStoreInterpreter extends StoreInterpreter[Task] {
