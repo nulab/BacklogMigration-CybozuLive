@@ -40,7 +40,11 @@ private[sqlite] case class TodoTableOps() extends BaseTableOps[CybozuDBTodo, Tod
         .on(_._1.updater === _.id)
         .result
         .headOption
-      comments <- commentTableQuery.filter(_.parentId === id).result
+      comments <- commentTableQuery
+        .filter(_.parentId === id)
+        .join(cybozuUserTableQuery)
+        .on(_.parentId === _.id)
+        .result
       // SELECT userfields... FROM issue_user JOIN cybozu_user ON cybozu_user.userId = id WHERE issueId = ?
       assignees <- issueUserTableQuery
           .filter(_.issueId === id)
@@ -51,7 +55,16 @@ private[sqlite] case class TodoTableOps() extends BaseTableOps[CybozuDBTodo, Tod
     } yield {
       optTodo.map {
         case ((todo, creator), updater) =>
-          CybozuTodo(todo, comments, creator, updater, assignees)
+          CybozuTodo(
+            todo = todo,
+            comments = comments.map {
+              case (comment, creator) =>
+                CybozuComment(comment, creator)
+            },
+            creator = creator,
+            updater = updater,
+            assignees = assignees
+          )
       }
     }
   }

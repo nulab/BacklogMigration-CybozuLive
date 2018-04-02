@@ -45,7 +45,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
         }
         defaultBacklogIssue.copy(
           id                = from.todo.id,
-          summary           = BacklogIssueSummary(value = title, original = title),
+          summary           = createBacklogIssueSummary(title),
           description       = from.todo.content,
           optDueDate        = from.todo.dueDate.map(DateUtil.toDateString),
           optIssueTypeName  = Some(ISSUE_TYPE_NAME),
@@ -96,7 +96,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
     } yield {
       defaultBacklogIssue.copy(
         id                = fromCybozuForum.forum.id,
-        summary           = BacklogIssueSummary(value = fromCybozuForum.forum.title, original = fromCybozuForum.forum.title),
+        summary           = createBacklogIssueSummary(fromCybozuForum.forum.title),
         description       = fromCybozuForum.forum.content,
         optStartDate      = None,
         optDueDate        = None,
