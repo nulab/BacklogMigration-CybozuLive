@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
-import com.nulabinc.backlog.c2b.datas.{CybozuDBTodo, CybozuDBUser, CybozuTodo, Id}
+import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
@@ -23,28 +23,7 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends Sto
     prg.foldMap(this)
 
   override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = Task.deferFuture {
-    val action = for {
-      todo <- todoTableOps.select(Id[CybozuDBTodo](id))
-      comments <- commentTableOps.getByParentId(id)
-      creator <- cybozuUserTableOps.select(Id[CybozuDBUser](todo.map(_.creator).getOrElse(0)))
-      updater <- cybozuUserTableOps.select(Id[CybozuDBUser](todo.map(_.updater).getOrElse(0)))
-      issueUsers <- cybozuIssueUserTableOps.read(id)
-      assignees <- cybozuUserTableOps.select(issueUsers.map(_.cybozuUserId))
-    } yield (todo, comments, creator, updater, assignees)
-    db.run(action).map {
-      case (Some(todo), comments, Some(creator), Some(updater), assignees) =>
-        Some(
-          CybozuTodo(
-            issue = todo,
-            comments = comments,
-            creator = creator,
-            updater = updater,
-            assignees = assignees
-          )
-        )
-      case _ =>
-        None
-    }
+    db.run(todoTableOps.getTodo(id))
   }
 
   def getCybozuUserById(id: AnyId): Task[Option[CybozuDBUser]] = Task.deferFuture {
@@ -79,6 +58,7 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends Sto
           db.stream(todoTableOps.stream)
         )
       }
+      case GetTodo(id) => getTodo(id)
       case StoreTodo(issue, writeType) => Task.deferFuture {
         db.run(todoTableOps.write(issue, writeType))
       }

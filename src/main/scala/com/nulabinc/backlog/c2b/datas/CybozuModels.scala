@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.datas
 
 case class CybozuTodo(
-  issue: CybozuDBTodo,
+  todo: CybozuDBTodo,
   comments: Seq[CybozuDBComment],
   creator: CybozuDBUser,
   updater: CybozuDBUser,

@@ -14,9 +14,6 @@ private[sqlite] case class CybozuIssueUserTableOps() {
 
   lazy val createTable = tableQuery.schema.create
 
-  def read(issueId: AnyId): DBIO[Seq[CybozuIssueUser]] =
-    tableQuery.filter(_.issueId === issueId).result
-
   def write(issueId: AnyId, userId: AnyId): DBIOWrite =
     tableQuery += CybozuIssueUser(issueId, userId)
 
@@ -24,4 +21,5 @@ private[sqlite] case class CybozuIssueUserTableOps() {
     DBIO.sequence(
       userIds.map(userId => write(issueId, userId))
     ).map(r => r.length)
+
 }

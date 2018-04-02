@@ -45,7 +45,7 @@ object StoreDSL {
   //
   // Cybozu To-DO
   //
-  def getTodo(id: AnyId): StoreProgram[Observable[Option[CybozuTodo]]] =
+  def getTodo(id: AnyId): StoreProgram[Option[CybozuTodo]] =
     Free.liftF(GetTodo(id))
 
   def storeTodo(todo: CybozuDBTodo): StoreProgram[AnyId] =

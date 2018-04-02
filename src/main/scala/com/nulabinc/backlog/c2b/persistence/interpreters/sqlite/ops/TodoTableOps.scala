@@ -1,10 +1,13 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
-import com.nulabinc.backlog.c2b.datas.{CybozuDBPriority, CybozuDBStatus, CybozuDBTodo}
-import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIOStream
-import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.{CommentTable, CybozuUserTable, JdbcMapper, TodoTable}
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
+import com.nulabinc.backlog.c2b.datas._
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOStream}
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables._
 import slick.lifted.TableQuery
 import slick.jdbc.SQLiteProfile.api._
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 private[sqlite] case class TodoTableOps() extends BaseTableOps[CybozuDBTodo, TodoTable] {
 
@@ -13,6 +16,7 @@ private[sqlite] case class TodoTableOps() extends BaseTableOps[CybozuDBTodo, Tod
   protected val tableQuery = TableQuery[TodoTable]
   private val commentTableQuery = TableQuery[CommentTable]
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
+  private val issueUserTableQuery = TableQuery[CybozuIssueUserTable]
 
   lazy val distinctPriorities: DBIOStream[CybozuDBPriority] =
     tableQuery
@@ -26,4 +30,29 @@ private[sqlite] case class TodoTableOps() extends BaseTableOps[CybozuDBTodo, Tod
       .distinct
       .result
 
+  def getTodo(id: AnyId): DBIORead[Option[CybozuTodo]] = {
+    for {
+      optTodo <- tableQuery
+        .filter(_.id === id)
+        .join(cybozuUserTableQuery)
+        .on(_.creator === _.id)
+        .join(cybozuUserTableQuery)
+        .on(_._1.updater === _.id)
+        .result
+        .headOption
+      comments <- commentTableQuery.filter(_.parentId === id).result
+      // SELECT userfields... FROM issue_user JOIN cybozu_user ON cybozu_user.userId = id WHERE issueId = ?
+      assignees <- issueUserTableQuery
+          .filter(_.issueId === id)
+          .join(cybozuUserTableQuery)
+          .on(_.userId === _.id)
+          .map(_._2)
+          .result
+    } yield {
+      optTodo.map {
+        case ((todo, creator), updater) =>
+          CybozuTodo(todo, comments, creator, updater, assignees)
+      }
+    }
+  }
 }
