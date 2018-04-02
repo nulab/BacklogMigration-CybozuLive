@@ -151,6 +151,7 @@ object App extends Logger {
       _ <- Exporter.versions(config.projectKey)
       _ <- Exporter.issueTypes(config.projectKey, issueTypes)
       _ <- Exporter.customFields(config.projectKey)
+      _ <- Exporter.isuses(config.projectKey)(mappingContext)
     } yield ()
 
     val f = interpreter.run(program).runAsync

@@ -7,13 +7,6 @@ import com.nulabinc.backlog.migration.common.domain._
 
 sealed trait IssueFrom
 
-case class FromCybozuTodo(
-  todo: CybozuDBTodo,
-  creator: CybozuDBUser,
-  updater: CybozuDBUser,
-  maybeAssignee: Option[CybozuDBUser]
-) extends IssueFrom
-
 case class FromCybozuEvent(
   event: CybozuDBEvent,
   creator: CybozuDBUser
@@ -26,44 +19,44 @@ case class FromCybozuForum(
 ) extends IssueFrom
 
 
-class IssueConverter()(implicit ctx: MappingContext) extends Converter[IssueFrom, BacklogIssue]{
+class IssueConverter()(implicit ctx: MappingContext) {
+
+  import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
   val userConverter = new BacklogUserConverter()
 
-  override def to(issueFrom: IssueFrom): Either[ConvertError, BacklogIssue] = issueFrom match {
-    case fromCybozuTodo: FromCybozuTodo =>
-      from(fromCybozuTodo)
-    case fromCybozuEvent: FromCybozuEvent =>
-      from(fromCybozuEvent)
-    case fromCybozuForum: FromCybozuForum =>
-      from(fromCybozuForum)
-  }
-
-  def from(fromCybozuIssue: FromCybozuTodo): Either[ConvertError, BacklogIssue] = {
+  def from(from: CybozuTodo): Either[ConvertError, BacklogIssue] = {
 
     val ISSUE_TYPE_NAME = "ToDoリスト"
 
     for {
-      convertedCreator <- userConverter.to(fromCybozuIssue.creator)
-      convertedUpdater <- userConverter.to(fromCybozuIssue.updater)
-      maybeConvertedAssignee <- userConverter.to(fromCybozuIssue.maybeAssignee)
-      status <- ctx.getStatusName(fromCybozuIssue.todo.status)
-      priority <- ctx.getPriorityName(fromCybozuIssue.todo.priority)
+      convertedCreator <- userConverter.to(from.creator)
+      convertedUpdater <- userConverter.to(from.updater)
+      assignees <- from.assignees.map(u => userConverter.to(u)).sequence
+      status <- ctx.getStatusName(from.todo.status)
+      priority <- ctx.getPriorityName(from.todo.priority)
     } yield {
+        val optAssignee = if (assignees.length > 1) Some(assignees.head) else None
+        val title = if (assignees.length > 1) {
+          val otherAssignees = assignees.tail
+          from.todo.title + "\n\n担当者: " + otherAssignees.mkString(",")
+        } else {
+          from.todo.title
+        }
         defaultBacklogIssue.copy(
-          id                = fromCybozuIssue.todo.id,
-          summary           = BacklogIssueSummary(value = fromCybozuIssue.todo.title, original = fromCybozuIssue.todo.title),
-          description       = fromCybozuIssue.todo.content,
-          optDueDate        = fromCybozuIssue.todo.dueDate.map(DateUtil.toDateString),
+          id                = from.todo.id,
+          summary           = BacklogIssueSummary(value = title, original = title),
+          description       = from.todo.content,
+          optDueDate        = from.todo.dueDate.map(DateUtil.toDateString),
           optIssueTypeName  = Some(ISSUE_TYPE_NAME),
           statusName        = status,
           priorityName      = priority,
-          optAssignee       = maybeConvertedAssignee,
+          optAssignee       = optAssignee,
           operation         = BacklogOperation(
             optCreatedUser    = Some(convertedCreator),
-            optCreated        = Some(DateUtil.toDateTimeString(fromCybozuIssue.todo.createdAt)),
+            optCreated        = Some(DateUtil.toDateTimeString(from.todo.createdAt)),
             optUpdatedUser    = Some(convertedUpdater),
-            optUpdated        = Some(DateUtil.toDateTimeString(fromCybozuIssue.todo.updatedAt))
+            optUpdated        = Some(DateUtil.toDateTimeString(from.todo.updatedAt))
           )
         )
     }
