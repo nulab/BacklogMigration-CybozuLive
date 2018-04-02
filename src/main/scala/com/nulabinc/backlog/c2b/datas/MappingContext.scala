@@ -22,7 +22,7 @@ case class MappingContext(
       .getOrElse(Left(MappingFail[CybozuDBStatus](source.value)))
 
   def getPriorityName(source: CybozuDBPriority): Either[ConvertError, String] =
-    statusMappings.get(source.value)
+    priorityMappings.get(source.value)
       .map(dst => Right(dst))
       .getOrElse(Left(MappingFail[CybozuDBPriority](source.value)))
 
