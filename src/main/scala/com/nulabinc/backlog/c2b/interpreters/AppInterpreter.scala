@@ -85,14 +85,15 @@ object AppDSL {
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
                      storageInterpreter: StorageInterpreter[Task],
-                     storeInterpreter: StoreInterpreter,
+                     storeInterpreter: StoreInterpreter[Task],
                      consoleInterpreter: ConsoleInterpreter)
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
 
   def run[A](appProgram: AppProgram[A]): Task[A] =
     appProgram.foldMap(this)
 
-  def setLanguage(lang: String): Task[Unit] = Task {
+
+  def setLanguage(lang: String): Task[Unit] = Task { // TODO: change to Locale
     lang match {
       case "ja" => Locale.setDefault(Locale.JAPAN)
       case "en" => Locale.setDefault(Locale.US)

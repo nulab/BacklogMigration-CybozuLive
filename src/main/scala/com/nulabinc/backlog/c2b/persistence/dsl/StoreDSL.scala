@@ -42,6 +42,12 @@ object StoreDSL {
   lazy val getBacklogStatuses: StoreProgram[Observable[BacklogStatus]] =
     Free.liftF(GetBacklogStatuses)
 
+  //
+  // Cybozu To-DO
+  //
+  def getTodo(id: AnyId): StoreProgram[Observable[Option[CybozuTodo]]] =
+    Free.liftF(GetTodo(id))
+
   def storeTodo(todo: CybozuDBTodo): StoreProgram[AnyId] =
     Free.liftF(StoreTodo(todo))
 

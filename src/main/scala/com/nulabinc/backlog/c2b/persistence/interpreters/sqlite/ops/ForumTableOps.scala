@@ -8,6 +8,6 @@ import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] case class ForumTableOps() extends BaseTableOps[CybozuDBForum, ForumTable] {
 
-  protected def tableQuery = TableQuery[ForumTable]
+  protected val tableQuery = TableQuery[ForumTable]
 
 }

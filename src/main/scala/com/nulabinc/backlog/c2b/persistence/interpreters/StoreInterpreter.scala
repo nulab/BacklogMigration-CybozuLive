@@ -1,11 +1,14 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters
 
 import cats.~>
+import com.nulabinc.backlog.c2b.datas.CybozuTodo
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreADT
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import monix.eval.Task
 
-trait StoreInterpreter extends (StoreADT ~> Task) {
+trait StoreInterpreter[F[_]] extends (StoreADT ~> F) {
 
-  def run[A](prg: StoreProgram[A]): Task[A]
+  def run[A](prg: StoreProgram[A]): F[A]
+
+  def getTodo(id: AnyId): F[Option[CybozuTodo]]
 }

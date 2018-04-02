@@ -1,6 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
 import com.nulabinc.backlog.c2b.datas.CybozuDBUser
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOWrite}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.exceptions.{SQLiteError, SQLiteException}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.CybozuUserTable
@@ -24,5 +25,8 @@ private[sqlite] case class CybozuUserTableOps()(implicit exc: Scheduler) extends
     .filter(_.userId === key)
     .result
     .headOption
+
+  def select(ids: Seq[AnyId]): DBIO[Seq[CybozuDBUser]] =
+    tableQuery.filter(_.id.inSet(ids)).result
 
 }

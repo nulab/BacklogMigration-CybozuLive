@@ -8,6 +8,6 @@ import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] case class EventTableOps() extends BaseTableOps[CybozuDBEvent, EventTable] {
 
-  protected def tableQuery = TableQuery[EventTable]
+  protected val tableQuery = TableQuery[EventTable]
 
 }

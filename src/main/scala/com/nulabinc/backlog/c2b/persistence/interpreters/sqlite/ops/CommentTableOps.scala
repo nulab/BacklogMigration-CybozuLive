@@ -14,4 +14,7 @@ private[sqlite] case class CommentTableOps()(implicit exc: Scheduler) extends Ba
   def streamByParentId(id: AnyId): DBIOStream[CybozuDBComment] =
     tableQuery.filter(_.parentId === id).result
 
+  def getByParentId(id: AnyId): DBIO[Seq[CybozuDBComment]] =
+    tableQuery.filter(_.parentId === id).result
+
 }

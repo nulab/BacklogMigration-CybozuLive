@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
 
 private[sqlite] trait BaseTableOps[A <: Entity, Table <: BaseTable[A]] {
 
-  protected def tableQuery: TableQuery[Table]
+  protected val tableQuery: TableQuery[Table]
 
   lazy val createTable = tableQuery.schema.create
 
