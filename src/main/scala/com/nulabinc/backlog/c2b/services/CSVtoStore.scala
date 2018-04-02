@@ -16,15 +16,15 @@ object CSVtoStore {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
         observable.map { result =>
-          val creator = CybozuUser.from(result.issue.creator)
-          val updater = CybozuUser.from(result.issue.updater)
-          val assignees = result.issue.assignees.map(u => CybozuUser.from(u))
+          val creator = CybozuDBUser.from(result.issue.creator)
+          val updater = CybozuDBUser.from(result.issue.updater)
+          val assignees = result.issue.assignees.map(u => CybozuDBUser.from(u))
           for {
             // Save issues
             creatorId <- insertOrUpdateUser(creator)
             updaterId <- insertOrUpdateUser(updater)
             issueId <- {
-              val issue = CybozuTodo.from(
+              val issue = CybozuDBTodo.from(
                 todo = result.issue,
                 creatorId = creatorId,
                 updaterId = updaterId
@@ -49,12 +49,12 @@ object CSVtoStore {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
         observable.map { result =>
-          val creator = CybozuUser.from(result.issue.creator)
+          val creator = CybozuDBUser.from(result.issue.creator)
           for {
             // Save event
             creatorId <- insertOrUpdateUser(creator)
             eventId <- {
-              val issue = CybozuEvent.from(
+              val issue = CybozuDBEvent.from(
                 event = result.issue,
                 creatorId = creatorId
               )
@@ -73,14 +73,14 @@ object CSVtoStore {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
         observable.map { result =>
-          val creator = CybozuUser.from(result.issue.creator)
-          val updater = CybozuUser.from(result.issue.updater)
+          val creator = CybozuDBUser.from(result.issue.creator)
+          val updater = CybozuDBUser.from(result.issue.updater)
           for {
             // Save event
             creatorId <- insertOrUpdateUser(creator)
             updaterId <- insertOrUpdateUser(updater)
             forumId <- {
-              val forum = CybozuForum.from(
+              val forum = CybozuDBForum.from(
                 forum = result.issue,
                 creatorId = creatorId,
                 updaterId = updaterId
@@ -106,7 +106,7 @@ object CSVtoStore {
         }
     }
 
-  private def insertOrUpdateUser(cybozuUser: CybozuUser): StoreProgram[AnyId] =
+  private def insertOrUpdateUser(cybozuUser: CybozuDBUser): StoreProgram[AnyId] =
     for {
       optId <- StoreDSL.getCybozuUserByKey(cybozuUser.userId)
       id <- optId match {
@@ -117,10 +117,10 @@ object CSVtoStore {
 
   private def comments(issueId: AnyId, csvComments: Seq[CybozuCSVComment]): StoreProgram[Unit] = {
     val commentsPrograms = csvComments.map { comment =>
-      val commentCreator = CybozuUser.from(comment.creator)
+      val commentCreator = CybozuDBUser.from(comment.creator)
       for {
         creatorId <- insertOrUpdateUser(commentCreator)
-      } yield CybozuComment.from(issueId, comment, creatorId)
+      } yield CybozuDBComment.from(issueId, comment, creatorId)
     }
     for {
       comments <- sequential(commentsPrograms)

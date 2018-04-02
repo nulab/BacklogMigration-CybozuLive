@@ -15,28 +15,28 @@ case class Pure[A](a: A) extends StoreADT[A]
 
 case object CreateDatabase extends StoreADT[Unit]
 
-case object GetTodos extends StoreADT[Observable[CybozuTodo]]
-case class StoreTodo(todo: CybozuTodo, writeType: WriteType = Insert) extends StoreADT[AnyId]
+case object GetTodos extends StoreADT[Observable[CybozuDBTodo]]
+case class StoreTodo(todo: CybozuDBTodo, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
-case class GetComments(todo: CybozuTodo) extends StoreADT[Observable[CybozuComment]]
-case class StoreComment(comment: CybozuComment, writeType: WriteType = Insert) extends StoreADT[AnyId]
-case class StoreComments(comments: Seq[CybozuComment], writeType: WriteType = Insert) extends StoreADT[Seq[AnyId]]
+case class GetComments(todo: CybozuDBTodo) extends StoreADT[Observable[CybozuDBComment]]
+case class StoreComment(comment: CybozuDBComment, writeType: WriteType = Insert) extends StoreADT[AnyId]
+case class StoreComments(comments: Seq[CybozuDBComment], writeType: WriteType = Insert) extends StoreADT[Seq[AnyId]]
 
 case class StoreTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]) extends StoreADT[Int]
 
-case object GetEvents extends StoreADT[Observable[CybozuEvent]]
-case class StoreEvent(event: CybozuEvent, writeType: WriteType = Insert) extends StoreADT[AnyId]
+case object GetEvents extends StoreADT[Observable[CybozuDBEvent]]
+case class StoreEvent(event: CybozuDBEvent, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
-case object GetForums extends StoreADT[Observable[CybozuForum]]
-case class StoreForum(forum: CybozuForum, writeType: WriteType = Insert) extends StoreADT[AnyId]
+case object GetForums extends StoreADT[Observable[CybozuDBForum]]
+case class StoreForum(forum: CybozuDBForum, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
-case object GetCybozuUsers extends StoreADT[Observable[CybozuUser]]
-case class GetCybozuUserById(id: AnyId) extends StoreADT[Option[CybozuUser]]
-case class GetCybozuUserBykey(key: String) extends StoreADT[Option[CybozuUser]]
-case class StoreCybozuUser(user: CybozuUser, writeType: WriteType = Insert) extends StoreADT[AnyId]
+case object GetCybozuUsers extends StoreADT[Observable[CybozuDBUser]]
+case class GetCybozuUserById(id: AnyId) extends StoreADT[Option[CybozuDBUser]]
+case class GetCybozuUserBykey(key: String) extends StoreADT[Option[CybozuDBUser]]
+case class StoreCybozuUser(user: CybozuDBUser, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
-case object GetCybozuPriorities extends StoreADT[Observable[CybozuPriority]]
-case object GetCybozuStatuses extends StoreADT[Observable[CybozuStatus]]
+case object GetCybozuPriorities extends StoreADT[Observable[CybozuDBPriority]]
+case object GetCybozuStatuses extends StoreADT[Observable[CybozuDBStatus]]
 
 case class WriteDBStream[A](stream: Observable[StoreProgram[A]]) extends StoreADT[Unit]
 

@@ -1,11 +1,11 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables
 
-import com.nulabinc.backlog.c2b.datas.{CybozuForum, CybozuUser}
+import com.nulabinc.backlog.c2b.datas.{CybozuDBForum, CybozuDBUser}
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import slick.lifted.{ProvenShape, Tag}
 import slick.jdbc.SQLiteProfile.api._
 
-private[sqlite] class ForumTable(tag: Tag) extends BaseTable[CybozuForum](tag, "cybozu_forums") {
+private[sqlite] class ForumTable(tag: Tag) extends BaseTable[CybozuDBForum](tag, "cybozu_forums") {
 
   import JdbcMapper._
 
@@ -16,8 +16,8 @@ private[sqlite] class ForumTable(tag: Tag) extends BaseTable[CybozuForum](tag, "
   def updater: Rep[AnyId] = column[AnyId]("updater_id")
   def updatedAt: Rep[DateTime] = column[DateTime]("updated_at")
 
-  override def * : ProvenShape[CybozuForum] =
+  override def * : ProvenShape[CybozuDBForum] =
     (id, title, content, creator, createdAt,
-      updater, updatedAt) <> (CybozuForum.tupled, CybozuForum.unapply)
+      updater, updatedAt) <> (CybozuDBForum.tupled, CybozuDBForum.unapply)
 
 }

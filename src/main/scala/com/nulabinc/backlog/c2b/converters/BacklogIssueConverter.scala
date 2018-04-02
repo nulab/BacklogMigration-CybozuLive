@@ -8,21 +8,21 @@ import com.nulabinc.backlog.migration.common.domain._
 sealed trait IssueFrom
 
 case class FromCybozuTodo(
-  todo: CybozuTodo,
-  creator: CybozuUser,
-  updater: CybozuUser,
-  maybeAssignee: Option[CybozuUser]
+  todo: CybozuDBTodo,
+  creator: CybozuDBUser,
+  updater: CybozuDBUser,
+  maybeAssignee: Option[CybozuDBUser]
 ) extends IssueFrom
 
 case class FromCybozuEvent(
-  event: CybozuEvent,
-  creator: CybozuUser
+  event: CybozuDBEvent,
+  creator: CybozuDBUser
 ) extends IssueFrom
 
 case class FromCybozuForum(
-  forum: CybozuForum,
-  creator: CybozuUser,
-  updater: CybozuUser
+  forum: CybozuDBForum,
+  creator: CybozuDBUser,
+  updater: CybozuDBUser
 ) extends IssueFrom
 
 

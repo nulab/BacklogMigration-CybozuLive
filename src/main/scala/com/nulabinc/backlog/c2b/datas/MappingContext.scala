@@ -14,16 +14,16 @@ case class MappingContext(
   def getUserName(source: String): Either[ConvertError, String] =
     userMappings.get(source)
       .map(dst => Right(dst))
-      .getOrElse(Left(MappingFail[CybozuUser](source)))
+      .getOrElse(Left(MappingFail[CybozuDBUser](source)))
 
-  def getStatusName(source: CybozuStatus): Either[ConvertError, String] =
+  def getStatusName(source: CybozuDBStatus): Either[ConvertError, String] =
     statusMappings.get(source.value)
       .map(dst => Right(dst))
-      .getOrElse(Left(MappingFail[CybozuStatus](source.value)))
+      .getOrElse(Left(MappingFail[CybozuDBStatus](source.value)))
 
-  def getPriorityName(source: CybozuPriority): Either[ConvertError, String] =
+  def getPriorityName(source: CybozuDBPriority): Either[ConvertError, String] =
     statusMappings.get(source.value)
       .map(dst => Right(dst))
-      .getOrElse(Left(MappingFail[CybozuPriority](source.value)))
+      .getOrElse(Left(MappingFail[CybozuDBPriority](source.value)))
 
 }
