@@ -38,7 +38,7 @@ object BacklogExport {
   def versions(projectKey: String): AppProgram[File] =
     AppDSL.export(
       backlogPath(projectKey).versionsJson,
-      BacklogIssueCategoriesWrapper(Seq.empty[BacklogIssueCategory]).toJson.prettyPrint
+      BacklogVersionsWrapper(Seq.empty[BacklogVersion]).toJson.prettyPrint
     )
 
   def issueTypes(projectKey: String, issueTypes: Seq[String]): AppProgram[Unit] = {
