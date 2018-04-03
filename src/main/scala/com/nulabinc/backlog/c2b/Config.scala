@@ -12,7 +12,7 @@ case class Config(
   backlogUrl: String = "",
   backlogKey: String = "",
   projectKey: String = "",
-  commandType: CommandType = Undefined
+  commandType: CommandType = UndefinedCommand
 ) {
 //  val backlogPaths = new BacklogPaths(projectKey)
 }
@@ -47,9 +47,9 @@ object Config {
 
   sealed trait CommandType
 
-  case object Init extends CommandType
-  case object Import extends CommandType
-  case object Undefined extends CommandType
+  case object InitCommand extends CommandType
+  case object ImportCommand extends CommandType
+  case object UndefinedCommand extends CommandType
 }
 
 

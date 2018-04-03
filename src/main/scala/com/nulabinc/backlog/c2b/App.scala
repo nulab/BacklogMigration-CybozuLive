@@ -6,13 +6,14 @@ import backlog4s.apis.AllApi
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
-import com.nulabinc.backlog.c2b.interpreters._
+import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
-import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, BacklogExport, MappingFiles}
+import com.nulabinc.backlog.c2b.services.{BacklogExport, BacklogToStore, CSVtoStore, MappingFiles}
+import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
@@ -51,8 +52,8 @@ object App extends Logger {
 
     ConfigParser(appName, appVersion).parse(args) match {
       case Some(config) => config.commandType match {
-        case Init => init(config, language)
-        case Import => `import`(config, language)
+        case InitCommand => init(config, language)
+        case ImportCommand => `import`(config, language)
         case _ => throw new RuntimeException("It never happens")
       }
       case None => throw new RuntimeException("It never happens")
@@ -134,6 +135,11 @@ object App extends Logger {
     )
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
+    val backlogApiConfiguration = BacklogApiConfiguration(
+      url = config.backlogUrl,
+      key = config.backlogKey,
+      projectKey = config.projectKey
+    )
 
     val program = for {
       // Initialize
@@ -153,6 +159,7 @@ object App extends Logger {
       _ <- BacklogExport.issueTypes(config.projectKey, issueTypes)
       _ <- BacklogExport.customFields(config.projectKey)
       _ <- BacklogExport.issues(config.projectKey)(mappingContext)
+      _ <- AppDSL.`import`(backlogApiConfiguration)
     } yield ()
 
     val f = interpreter.run(program).runAsync
