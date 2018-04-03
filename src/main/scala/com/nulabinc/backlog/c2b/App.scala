@@ -8,7 +8,8 @@ import backlog4s.apis.AllApi
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
-import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleInterpreter}
+import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
@@ -22,7 +23,6 @@ import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
-import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object App extends Logger {
@@ -36,9 +36,6 @@ object App extends Logger {
     val appVersion = appConfig.getString("version")
     val language = appConfig.getString("language")
     val dataDirectory = appConfig.getString("dataDirectory")
-
-    // start
-    Console.printBanner(appName, appVersion)
 
     // ------------------------------------------------------------------------
     // check
@@ -59,19 +56,16 @@ object App extends Logger {
     }
     // TODO: check release version
 
-    ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
-      case Some(config) => config.commandType match {
-        case InitCommand => init(config, language)
-        case ImportCommand => `import`(config, language)
+    val config = ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
+      case Some(c) => c.commandType match {
+        case InitCommand => c
+        case ImportCommand => c
         case _ => throw new RuntimeException("It never happens")
       }
       case None => throw new RuntimeException("It never happens")
     }
-  }
 
-  def init(config: Config, language: String): Unit = {
-
-    implicit val system: ActorSystem = ActorSystem("init")
+    implicit val system: ActorSystem = ActorSystem("main")
     implicit val mat: ActorMaterializer = ActorMaterializer()
     implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
 
@@ -80,10 +74,26 @@ object App extends Logger {
       storageInterpreter = new LocalStorageInterpreter,
       storeInterpreter = new SQLiteInterpreter(config.DB_PATH),
       consoleInterpreter = new ConsoleInterpreter
-    ) // TODO: proxy
+    )
+
+    val program = for {
+      _ <- printBanner(appName, appVersion)
+      _ <- config.commandType match {
+        case InitCommand => init(config, language)
+        case ImportCommand => `import`(config, language)
+        case _ => AppDSL.exit("Invalid command type. It never happens", 1)
+      }
+    } yield ()
+
+    interpreter.run(program).runSyncUnsafe(Duration.Inf)
+
+    system.terminate()
+    exit(0)
+  }
+
+  def init(config: Config, language: String): AppProgram[Unit] = {
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
-
 
     val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = {
@@ -100,7 +110,7 @@ object App extends Logger {
     val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles)
     val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles)
 
-    val program = for {
+    for {
       // Initialize
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
@@ -122,26 +132,9 @@ object App extends Logger {
       // Write mapping files
       _ <- MappingFiles.write(config)
     } yield ()
-
-    val f = interpreter.run(program).runAsync
-
-    Await.result(f, Duration.Inf)
-
-    system.terminate()
   }
 
-  def `import`(config: Config, language: String): Unit = {
-
-    implicit val system: ActorSystem = ActorSystem("import")
-    implicit val mat: ActorMaterializer = ActorMaterializer()
-    implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
-
-    val interpreter = new AppInterpreter(
-      backlogInterpreter = new AkkaHttpInterpret,
-      storageInterpreter = new LocalStorageInterpreter,
-      storeInterpreter = new SQLiteInterpreter(config.DB_PATH),
-      consoleInterpreter = new ConsoleInterpreter
-    )
+  def `import`(config: Config, language: String): AppProgram[Unit] = {
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
     val backlogApiConfiguration = BacklogApiConfiguration(
@@ -151,7 +144,7 @@ object App extends Logger {
       backlogOutputPath = config.BACKLOG_PATHS
     )
 
-    val program = for {
+    for {
       // Initialize
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
@@ -171,13 +164,15 @@ object App extends Logger {
       _ <- BacklogExport.issues(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
     } yield ()
-
-    val f = interpreter.run(program).runAsync
-
-    Await.result(f, Duration.Inf)
-
-    system.terminate()
   }
+
+  private def printBanner(applicationName: String, applicationVersion: String): AppProgram[Unit] =
+    AppDSL.fromConsole(
+      ConsoleDSL.print(
+        s"""
+           |$applicationName $applicationVersion
+           |--------------------------------------------------""".stripMargin)
+    )
 
   private def exit(exitCode: Int): Unit = {
     AnsiConsole.systemUninstall()
