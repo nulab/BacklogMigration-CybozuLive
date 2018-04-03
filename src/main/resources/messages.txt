@@ -1,6 +1,7 @@
 
 # Error messages
 error.require_java8=The current version of Java is [{0}]. Java 8 is required for this program.
+error.data_folder_not_found=[{0}] doesn''t exist.
 
 # Name
 name.backlog=Backlog

@@ -1,6 +1,7 @@
 
 # Error messages
 error.require_java8=現在のJavaのバージョンは[{0}]です。Java8以上が必須になります。
+error.data_folder_not_found=[{0}]ディレクトリが存在しません。
 
 # Name
 name.backlog=Backlog
