@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b
 
-import java.nio.file.NoSuchFileException
+import java.nio.file.{NoSuchFileException, Paths}
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -35,6 +35,7 @@ object App extends Logger {
     val appName = appConfig.getString("name")
     val appVersion = appConfig.getString("version")
     val language = appConfig.getString("language")
+    val dataDirectory = appConfig.getString("dataDirectory")
 
     // start
     Console.printBanner(appName, appVersion)
@@ -43,10 +44,10 @@ object App extends Logger {
     // check
     // ------------------------------------------------------------------------
     try {
-      Config.DATA_PATHS.toFile.exists()
+      Paths.get(dataDirectory).toRealPath()
     } catch {
       case _: Throwable =>
-        exit(1, throw new NoSuchFileException(Messages("error.data_folder_not_found", Config.DATA_PATH_STRING)))
+        exit(1, Messages("error.data_folder_not_found", dataDirectory))
     }
     ClassVersionChecker.check() match {
       case Failure(ex) => exit(1, ex)
@@ -58,7 +59,7 @@ object App extends Logger {
     }
     // TODO: check release version
 
-    ConfigParser(appName, appVersion).parse(args) match {
+    ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
       case Some(config) => config.commandType match {
         case InitCommand => init(config, language)
         case ImportCommand => `import`(config, language)
@@ -84,7 +85,7 @@ object App extends Logger {
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
 
-    val csvFiles = Config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
+    val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
     val todoFiles = {
       csvFiles.filter(_.getName.contains("live_ToDo")) ++
       csvFiles.filter(_.getName.contains("live_To-Do List"))
@@ -103,12 +104,12 @@ object App extends Logger {
       // Initialize
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
-      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.MAPPING_PATHS))
-      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.TEMP_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       // Delete operations
-      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(Config.DB_PATH))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read CSV and to store
       _ <- CSVtoStore.todo(todoObservable)
@@ -119,7 +120,7 @@ object App extends Logger {
       _ <- BacklogToStore.status(backlogApi.statusApi)
       _ <- BacklogToStore.user(backlogApi.userApi)
       // Write mapping files
-      _ <- MappingFiles.write
+      _ <- MappingFiles.write(config)
     } yield ()
 
     val f = interpreter.run(program).runAsync
@@ -147,27 +148,27 @@ object App extends Logger {
       url = config.backlogUrl,
       key = config.backlogKey,
       projectKey = config.projectKey,
-      backlogOutputPath = Config.BACKLOG_PATHS
+      backlogOutputPath = config.BACKLOG_PATHS
     )
 
     val program = for {
       // Initialize
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
-      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(Config.BACKLOG_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(config.BACKLOG_PATHS))
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
-      _ <- Validations.dbExistsProgram(Config.DB_PATH)
-      _ <- Validations.mappingFilesExistProgram
-      _ <- Validations.mappingFileItems(backlogApi)
+      _ <- Validations.dbExistsProgram(config.DB_PATH)
+      _ <- Validations.mappingFilesExistProgram(config)
+      _ <- Validations.mappingFileItems(backlogApi, config)
       // Read mapping files
-      mappingContext <- MappingFiles.createMappingContext
-      _ <- BacklogExport.project(config.projectKey)
-      _ <- BacklogExport.categories(config.projectKey)
-      _ <- BacklogExport.versions(config.projectKey)
-      _ <- BacklogExport.issueTypes(config.projectKey, issueTypes)
-      _ <- BacklogExport.customFields(config.projectKey)
-      _ <- BacklogExport.issues(config.projectKey)(mappingContext)
+      mappingContext <- MappingFiles.createMappingContext(config)
+      _ <- BacklogExport.project(config)
+      _ <- BacklogExport.categories(config)
+      _ <- BacklogExport.versions(config)
+      _ <- BacklogExport.issueTypes(config, issueTypes)
+      _ <- BacklogExport.customFields(config)
+      _ <- BacklogExport.issues(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
     } yield ()
 
@@ -185,6 +186,11 @@ object App extends Logger {
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
     Console.printError(error)
+    exit(exitCode)
+  }
+
+  private def exit(exitCode: Int, error: String): Unit = {
+    Console.println(error)
     exit(exitCode)
   }
 

@@ -1,11 +1,16 @@
 package com.nulabinc.backlog.c2b.parsers
 
+import java.nio.file.Path
+
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.Config._
 
 case class ConfigParser(applicationName: String, applicationVersion: String) {
-  def parse(args: Array[String]): Option[Config] =
-    ConfigParser.parser(applicationName, applicationVersion).parse(args, Config())
+  def parse(args: Array[String], dataDirectory: String): Option[Config] =
+    ConfigParser
+      .parser(applicationName, applicationVersion)
+      .parse(args, Config())
+      .map(_.copy(dataDirectory = dataDirectory))
 
   def help(): Unit = {
     ConfigParser.parser(applicationName, applicationVersion).parse(Seq("--help"), Config()).getOrElse("")

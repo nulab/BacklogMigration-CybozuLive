@@ -18,38 +18,38 @@ object BacklogExport {
 
   import com.nulabinc.backlog.migration.common.domain.BacklogJsonProtocol._
 
-  def project(projectKey: String): AppProgram[Unit] = {
-    val projectResult = BacklogProjectConverter.to(projectKey)
+  def project(config: Config): AppProgram[Unit] = {
+    val projectResult = BacklogProjectConverter.to(config.projectKey)
     for {
       _ <- projectResult match {
         case Right(project) =>
-          AppDSL.export(backlogPath(projectKey).projectJson, BacklogProjectWrapper(project).toJson.prettyPrint)
+          AppDSL.export(config.backlogPaths.projectJson, BacklogProjectWrapper(project).toJson.prettyPrint)
         case Left(error) =>
           AppDSL.exit(error.toString, 1)
       }
     } yield ()
   }
 
-  def categories(projectKey: String): AppProgram[File] =
+  def categories(config: Config): AppProgram[File] =
     AppDSL.export(
-      backlogPath(projectKey).issueCategoriesJson,
+      config.backlogPaths.issueCategoriesJson,
       BacklogIssueCategoriesWrapper(Seq.empty[BacklogIssueCategory]).toJson.prettyPrint
     )
 
-  def versions(projectKey: String): AppProgram[File] =
+  def versions(config: Config): AppProgram[File] =
     AppDSL.export(
-      backlogPath(projectKey).versionsJson,
+      config.backlogPaths.versionsJson,
       BacklogVersionsWrapper(Seq.empty[BacklogVersion]).toJson.prettyPrint
     )
 
-  def issueTypes(projectKey: String, issueTypes: Seq[String]): AppProgram[Unit] = {
+  def issueTypes(config: Config, issueTypes: Seq[String]): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
     issueTypes.map(s => BacklogIssueTypeConverter.to(s)).sequence match {
       case Right(backlogIssueTypes) =>
         for {
           _ <- AppDSL.export(
-            backlogPath(projectKey).issueTypesJson,
+            config.backlogPaths.issueTypesJson,
             BacklogIssueTypesWrapper(backlogIssueTypes).toJson.prettyPrint
           )
         } yield ()
@@ -58,9 +58,9 @@ object BacklogExport {
     }
   }
 
-  def customFields(projectKey: String): AppProgram[File] =
+  def customFields(config: Config): AppProgram[File] =
     AppDSL.export(
-      backlogPath(projectKey).customFieldSettingsJson,
+      config.backlogPaths.customFieldSettingsJson,
       BacklogCustomFieldSettingsWrapper(Seq.empty[BacklogCustomFieldSetting]).toJson.prettyPrint
     )
 
@@ -112,21 +112,17 @@ object BacklogExport {
       }
     } yield ()
 
-  def issues(projectKey: String)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+  def issues(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new BacklogCommentConverter()
-    val backlogPaths = backlogPath(projectKey)
 
     for {
       todos <- AppDSL.fromDB(StoreDSL.getTodos)
       _ <- AppDSL.consumeStream {
-        todos.map(todo => exportTodo(backlogPaths, todo.id, issueConverter, commentConverter))
+        todos.map(todo => exportTodo(config.backlogPaths, todo.id, issueConverter, commentConverter))
       }
     } yield ()
   }
-
-  private def backlogPath(projectKey: String): BacklogPaths =
-    new BacklogPaths(projectKey, Config.BACKLOG_PATHS)
 
   private def sequence[A](prgs: Seq[AppProgram[A]]): AppProgram[Seq[A]] =
     prgs.foldLeft(AppDSL.pure(Seq.empty[A])) {
