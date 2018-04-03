@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
+import java.nio.file.Path
+
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.dsl._
@@ -11,13 +13,13 @@ import monix.execution.Scheduler
 import monix.reactive.Observable
 import slick.jdbc.SQLiteProfile.api._
 
-class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends StoreInterpreter[Task] {
+class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInterpreter[Task] {
 
   val allTableOps = AllTableOps()
 
   import allTableOps._
 
-  private val db = Database.forConfig(configPath)
+  private val db = Database.forURL(s"jdbc:sqlite:${dbPath.toAbsolutePath}", driver = "org.sqlite.JDBC")
 
   override def run[A](prg: StoreProgram[A]): Task[A] =
     prg.foldMap(this)

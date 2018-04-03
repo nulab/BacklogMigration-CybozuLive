@@ -53,20 +53,20 @@ object Validations extends Logger {
     } yield ()
   }
 
-  def mappingFilesExistProgram: AppProgram[Unit] = {
+  def mappingFilesExistProgram(config: Config): AppProgram[Unit] = {
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists")))
-      user <- AppDSL.fromStorage(StorageDSL.exists(Config.USERS_PATH))
+      user <- AppDSL.fromStorage(StorageDSL.exists(config.USERS_PATH))
       _ <- if (user)
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", userMappingName)))
       else
         AppDSL.exit(Messages("validation.mapping.file.exists.error", userMappingName), 1)
-      priority <- AppDSL.fromStorage(StorageDSL.exists(Config.PRIORITIES_PATH))
+      priority <- AppDSL.fromStorage(StorageDSL.exists(config.PRIORITIES_PATH))
       _ <- if (priority)
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", priorityMappingName)))
       else
         AppDSL.exit(Messages("validation.mapping.file.exists.error", priorityMappingName), 1)
-      status <- AppDSL.fromStorage(StorageDSL.exists(Config.STATUSES_PATH))
+      status <- AppDSL.fromStorage(StorageDSL.exists(config.STATUSES_PATH))
       _ <- if (status)
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", statusMappingName)))
       else
@@ -74,21 +74,21 @@ object Validations extends Logger {
     } yield ()
   }
 
-  def mappingFileItems(api: AllApi): AppProgram[Unit] =
+  def mappingFileItems(api: AllApi, config: Config): AppProgram[Unit] =
     for {
-      _ <- userMappingFileItems(api.userApi)
-      _ <- priorityMappingFileItems(api.priorityApi)
-      _ <- statusMappingFileItems(api.statusApi)
+      _ <- userMappingFileItems(api.userApi, config)
+      _ <- priorityMappingFileItems(api.priorityApi, config)
+      _ <- statusMappingFileItems(api.statusApi, config)
     } yield ()
 
-  private def userMappingFileItems(api: UserApi): AppProgram[Unit] =
+  private def userMappingFileItems(api: UserApi, config: Config): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.item.exists", userMappingName)))
       usersResult <- AppDSL.fromBacklog(api.all())
       _ <- usersResult match {
         case Right(users) =>
           for {
-            userMappings <- MappingFiles.read(Config.USERS_PATH)
+            userMappings <- MappingFiles.read(config.USERS_PATH)
             _ <- AppDSL.consumeStream(
               userMappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
@@ -108,13 +108,13 @@ object Validations extends Logger {
       }
     } yield ()
 
-  private def priorityMappingFileItems(api: PriorityApi): AppProgram[Unit] =
+  private def priorityMappingFileItems(api: PriorityApi, config: Config): AppProgram[Unit] =
     for {
       result <- AppDSL.fromBacklog(api.all)
       _ <- result match {
         case Right(priorities) =>
           for {
-            mappings <- MappingFiles.read(Config.PRIORITIES_PATH)
+            mappings <- MappingFiles.read(config.PRIORITIES_PATH)
             _ <- AppDSL.consumeStream(
               mappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
@@ -134,13 +134,13 @@ object Validations extends Logger {
       }
     } yield ()
 
-  private def statusMappingFileItems(api: StatusApi): AppProgram[Unit] =
+  private def statusMappingFileItems(api: StatusApi, config: Config): AppProgram[Unit] =
     for {
       result <- AppDSL.fromBacklog(api.all)
       _ <- result match {
         case Right(statuses) =>
           for {
-            mappings <- MappingFiles.read(Config.STATUSES_PATH)
+            mappings <- MappingFiles.read(config.STATUSES_PATH)
             _ <- AppDSL.consumeStream(
               mappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>

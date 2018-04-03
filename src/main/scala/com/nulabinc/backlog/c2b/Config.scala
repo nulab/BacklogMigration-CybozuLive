@@ -5,6 +5,7 @@ import java.nio.file.{Path, Paths}
 
 import better.files.File
 import com.nulabinc.backlog.c2b.Config._
+import com.nulabinc.backlog.migration.common.conf.BacklogPaths
 import org.apache.commons.csv.CSVFormat
 
 
@@ -12,18 +13,10 @@ case class Config(
   backlogUrl: String = "",
   backlogKey: String = "",
   projectKey: String = "",
-  commandType: CommandType = Undefined
+  commandType: CommandType = UndefinedCommand,
+  dataDirectory: String = ""
 ) {
-//  val backlogPaths = new BacklogPaths(projectKey)
-}
-
-object Config {
-
-  val charset: Charset = Charset.forName("UTF-8")
-
-  val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
-
-  val DATA_PATHS: Path = Paths.get("./data")
+  val DATA_PATHS: Path = Paths.get(dataDirectory)
   val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
   val TEMP_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/temp")
   val BACKLOG_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/backlog")
@@ -42,14 +35,22 @@ object Config {
   lazy val BACKLOG_STATUS_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/status_list.csv").path
   lazy val STATUSES_TEMP_PATH: Path = File(TEMP_PATHS.toRealPath() + "/statuses.temp.csv").path
 
+  lazy val backlogPaths = new BacklogPaths(projectKey, BACKLOG_PATHS)
+}
+
+object Config {
+
+  val charset: Charset = Charset.forName("UTF-8")
+
+  val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
 
   val issueTypes = Seq("ToDo", "Event", "Forum")
 
   sealed trait CommandType
 
-  case object Init extends CommandType
-  case object Import extends CommandType
-  case object Undefined extends CommandType
+  case object InitCommand extends CommandType
+  case object ImportCommand extends CommandType
+  case object UndefinedCommand extends CommandType
 }
 
 
