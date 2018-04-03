@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b
 
+import java.nio.file.NoSuchFileException
+
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import backlog4s.apis.AllApi
@@ -40,6 +42,12 @@ object App extends Logger {
     // ------------------------------------------------------------------------
     // check
     // ------------------------------------------------------------------------
+    try {
+      Config.DATA_PATHS.toFile.exists()
+    } catch {
+      case _: Throwable =>
+        exit(1, throw new NoSuchFileException(Messages("error.data_folder_not_found", Config.DATA_PATH_STRING)))
+    }
     ClassVersionChecker.check() match {
       case Failure(ex) => exit(1, ex)
       case _ => ()
