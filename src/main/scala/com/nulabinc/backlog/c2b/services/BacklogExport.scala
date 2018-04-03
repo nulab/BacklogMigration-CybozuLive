@@ -73,11 +73,8 @@ object BacklogExport {
                              issueId: AnyId,
                              comments: Seq[CybozuComment],
                              converter: BacklogCommentConverter): AppProgram[Seq[Unit]] = {
-    val prgs = comments.zipWithIndex.map {
+    val programs = comments.zipWithIndex.map {
       case (cybozuComment, index) =>
-        val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
-        val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
-
         converter.from(issueId, cybozuComment) match {
           case Right(backlogComment) =>
             val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
@@ -87,7 +84,7 @@ object BacklogExport {
             AppDSL.exit("Comment convert error. " + error.toString, 1)
         }
     }
-    sequence(prgs)
+    sequence(programs)
   }
 
   private def exportTodo(paths: BacklogPaths,

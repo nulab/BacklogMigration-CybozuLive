@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b
 
-import java.nio.file.{NoSuchFileException, Paths}
+import java.nio.file.Paths
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
