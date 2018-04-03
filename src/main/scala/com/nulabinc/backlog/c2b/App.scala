@@ -138,7 +138,8 @@ object App extends Logger {
     val backlogApiConfiguration = BacklogApiConfiguration(
       url = config.backlogUrl,
       key = config.backlogKey,
-      projectKey = config.projectKey
+      projectKey = config.projectKey,
+      backlogOutputPath = Config.BACKLOG_PATHS
     )
 
     val program = for {

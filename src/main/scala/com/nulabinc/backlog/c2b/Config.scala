@@ -13,9 +13,7 @@ case class Config(
   backlogKey: String = "",
   projectKey: String = "",
   commandType: CommandType = UndefinedCommand
-) {
-//  val backlogPaths = new BacklogPaths(projectKey)
-}
+)
 
 object Config {
 
@@ -23,7 +21,7 @@ object Config {
 
   val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
 
-  val DATA_PATHS: Path = Paths.get("./data")
+  val DATA_PATHS: Path = Paths.get("./backlog-migration") // TODO: if it doesn't exist
   val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
   val TEMP_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/temp")
   val BACKLOG_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/backlog")
