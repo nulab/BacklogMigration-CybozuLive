@@ -1,5 +1,6 @@
 package com.nulabinc.backlog.c2b.interpreters
 
+import java.io.PrintStream
 import java.util.Locale
 
 import backlog4s.dsl.ApiDsl.ApiPrg
@@ -13,7 +14,9 @@ import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
+import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
 import com.nulabinc.backlog.migration.common.utils.IOUtil
+import com.nulabinc.backlog.migration.importer.core.Boot
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.{Consumer, Observable}
@@ -35,6 +38,7 @@ case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit
 private case class FromTask[A](task: Task[A]) extends AppADT[A]
 case class SetLanguage(lang: String) extends AppADT[Unit]
 case class Export(file: File, content: String) extends AppADT[File]
+case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
 
 object AppDSL {
 
@@ -86,6 +90,9 @@ object AppDSL {
 
   def export(file: File, content: String): AppProgram[File] =
     Free.liftF(Export(file, content))
+
+  def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
+    Free.liftF(Import(backlogApiConfiguration))
 
 }
 
@@ -149,6 +156,9 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case SetLanguage(lang: String) => setLanguage(lang)
     case Export(file, content) => Task {
       IOUtil.output(file, content)
+    }
+    case Import(config) => Task {
+      Boot.execute(config, false)
     }
   }
 }
