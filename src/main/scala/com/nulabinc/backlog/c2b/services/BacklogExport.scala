@@ -78,7 +78,7 @@ object BacklogExport {
         val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
         val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
 
-        converter.from(cybozuComment) match {
+        converter.from(issueId, cybozuComment) match {
           case Right(backlogComment) =>
             val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
             val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
