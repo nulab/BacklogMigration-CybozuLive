@@ -12,25 +12,31 @@ import com.osinka.i18n.Messages
 
 object Validations extends Logger {
 
+  private val backlogName = Messages("name.backlog")
+  private val cybozuName = Messages("name.cybozu")
+  private val userMappingName = Messages("name.mapping.user")
+  private val priorityMappingName = Messages("name.mapping.priority")
+  private val statusMappingName = Messages("name.mapping.status")
+
   def backlogProgram(config: Config, backlogApi: AllApi): AppProgram[Unit] = {
 
     import com.nulabinc.backlog.c2b.interpreters.AppDSL._
-    import com.nulabinc.backlog.c2b.interpreters.syntax._
+    import com.nulabinc.backlog.c2b.syntax.BacklogResponseOps._
 
     for {
       // Access check
-      _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", Messages("name.backlog"))))
+      _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", backlogName)))
       apiAccess <- fromBacklog(backlogApi.spaceApi.logo)
       _ <- apiAccess.orExit(
-        Messages("validation.access.ok", Messages("name.backlog")),
-        Messages("validation.access.error", Messages("name.backlog"))
+        Messages("validation.access.ok", backlogName),
+        Messages("validation.access.error", backlogName)
       )
       // Admin check
-      _ <- fromConsole(ConsoleDSL.print(Messages("validation.admin", Messages("name.backlog"))))
+      _ <- fromConsole(ConsoleDSL.print(Messages("validation.admin", backlogName)))
       adminCheck <- fromBacklog(backlogApi.spaceApi.diskUsage)
       _ <- adminCheck.orExit(
-        Messages("validation.admin.ok", Messages("name.backlog")),
-        Messages("validation.admin.error", Messages("name.backlog"))
+        Messages("validation.admin.ok", backlogName),
+        Messages("validation.admin.error", backlogName)
       )
     } yield ()
   }
@@ -49,22 +55,22 @@ object Validations extends Logger {
 
   def mappingFilesExistProgram: AppProgram[Unit] = {
     for {
-      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists")))
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists")))
       user <- AppDSL.fromStorage(StorageDSL.exists(Config.USERS_PATH))
       _ <- if (user)
-        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists.ok", Messages("name.mapping.user"))))
+        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", userMappingName)))
       else
-        AppDSL.exit(Messages("validation.mapping.exists.error", Messages("name.mapping.user")), 1)
+        AppDSL.exit(Messages("validation.mapping.file.exists.error", userMappingName), 1)
       priority <- AppDSL.fromStorage(StorageDSL.exists(Config.PRIORITIES_PATH))
       _ <- if (priority)
-        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists.ok", Messages("name.mapping.priority"))))
+        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", priorityMappingName)))
       else
-        AppDSL.exit(Messages("validation.mapping.exists.error", Messages("name.mapping.priority")), 1)
+        AppDSL.exit(Messages("validation.mapping.file.exists.error", priorityMappingName), 1)
       status <- AppDSL.fromStorage(StorageDSL.exists(Config.STATUSES_PATH))
       _ <- if (status)
-        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.exists.ok", Messages("name.mapping.status"))))
+        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", statusMappingName)))
       else
-        AppDSL.exit(Messages("validation.mapping.exists.error", Messages("name.mapping.status")), 1)
+        AppDSL.exit(Messages("validation.mapping.file.exists.error", statusMappingName), 1)
     } yield ()
   }
 
@@ -77,6 +83,7 @@ object Validations extends Logger {
 
   private def userMappingFileItems(api: UserApi): AppProgram[Unit] =
     for {
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.item.exists", userMappingName)))
       usersResult <- AppDSL.fromBacklog(api.all())
       _ <- usersResult match {
         case Right(users) =>
@@ -85,13 +92,13 @@ object Validations extends Logger {
             _ <- AppDSL.consumeStream(
               userMappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
-                  AppDSL.exit("Backlog user doesn't specify. Cybozu user name: " + cybozu, 1)
+                  AppDSL.exit(Messages("validation.mapping.item.empty", backlogName, userMappingName, cybozuName, cybozu), 1)
                 case (cybozu, backlog) =>
                   val userExists = users.exists(_.userId.contains(backlog))
                   if (userExists) {
                     AppDSL.pure(())
                   } else {
-                    AppDSL.exit(s"Backlog user doesn't exist. Cybozu: $cybozu Backlog: $backlog", 1)
+                    AppDSL.exit(Messages("validation.mapping.item.error", backlogName, userMappingName, cybozuName, cybozu, backlog), 1)
                   }
               }
             )
@@ -111,13 +118,13 @@ object Validations extends Logger {
             _ <- AppDSL.consumeStream(
               mappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
-                  AppDSL.exit("Backlog priority doesn't specify. Cybozu priority: " + cybozu, 1)
+                  AppDSL.exit(Messages("validation.mapping.item.empty", backlogName, priorityMappingName, cybozuName, cybozu), 1)
                 case (cybozu, backlog) =>
                   val exists = priorities.exists(_.name == backlog)
                   if (exists) {
                     AppDSL.pure(())
                   } else {
-                    AppDSL.exit(s"Backlog priority doesn't exist. Cybozu: $cybozu Backlog: $backlog", 1)
+                    AppDSL.exit(Messages("validation.mapping.item.error", backlogName, priorityMappingName, cybozuName, cybozu, backlog), 1)
                   }
               }
             )
@@ -137,13 +144,13 @@ object Validations extends Logger {
             _ <- AppDSL.consumeStream(
               mappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
-                  AppDSL.exit("Backlog status doesn't specify. Cybozu status: " + cybozu, 1)
+                  AppDSL.exit(Messages("validation.mapping.item.empty", backlogName, statusMappingName, cybozuName, cybozu), 1)
                 case (cybozu, backlog) =>
                   val exists = statuses.exists(_.name == backlog)
                   if (exists) {
                     AppDSL.pure(())
                   } else {
-                    AppDSL.exit(s"Backlog status doesn't exist. Cybozu: $cybozu Backlog: $backlog", 1)
+                    AppDSL.exit(Messages("validation.mapping.item.error", backlogName, statusMappingName, cybozuName, cybozu, backlog), 1)
                   }
               }
             )
@@ -152,5 +159,6 @@ object Validations extends Logger {
           AppDSL.exit("Get backlog statuses fail. " + error.toString, 1)
       }
     } yield ()
+
 
 }

@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
-import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIOWrite, DBIOWrites}
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIOWrite
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.{CybozuIssueUser, CybozuIssueUserTable}
 import slick.jdbc.SQLiteProfile.api._
 import slick.lifted.TableQuery
@@ -21,4 +21,5 @@ private[sqlite] case class CybozuIssueUserTableOps() {
     DBIO.sequence(
       userIds.map(userId => write(issueId, userId))
     ).map(r => r.length)
+
 }

@@ -5,7 +5,7 @@ import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import slick.lifted.{ProvenShape, Tag}
 import slick.jdbc.SQLiteProfile.api._
 
-private[sqlite] class TodoTable(tag: Tag) extends BaseTable[CybozuTodo](tag, "cybozu_todos") {
+private[sqlite] class TodoTable(tag: Tag) extends BaseTable[CybozuDBTodo](tag, "cybozu_todos") {
 
   import JdbcMapper._
 
@@ -15,12 +15,12 @@ private[sqlite] class TodoTable(tag: Tag) extends BaseTable[CybozuTodo](tag, "cy
   def createdAt: Rep[DateTime] = column[DateTime]("created_at")
   def updater: Rep[AnyId] = column[AnyId]("updater_id")
   def updatedAt: Rep[DateTime] = column[DateTime]("updated_at")
-  def status: Rep[CybozuStatus] = column[CybozuStatus]("status")
-  def priority: Rep[CybozuPriority] = column[CybozuPriority]("priority")
+  def status: Rep[CybozuDBStatus] = column[CybozuDBStatus]("status")
+  def priority: Rep[CybozuDBPriority] = column[CybozuDBPriority]("priority")
   def dueDate: Rep[Option[DateTime]] = column[Option[DateTime]]("due_date")
 
-  override def * : ProvenShape[CybozuTodo] =
+  override def * : ProvenShape[CybozuDBTodo] =
     (id, title, content, creator, createdAt, updater, updatedAt,
-      status, priority, dueDate) <> (CybozuTodo.tupled, CybozuTodo.unapply)
+      status, priority, dueDate) <> (CybozuDBTodo.tupled, CybozuDBTodo.unapply)
 
 }

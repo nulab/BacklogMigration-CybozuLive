@@ -19,24 +19,24 @@ object CSVRecordSerializer {
     (user: BacklogUser) =>
       s""""${user.userId.getOrElse("")}"\n""".stripMargin.getBytes(charset)
 
-  implicit val cybozuUserSerializer: Serializer[CybozuUser, Array[Byte]] =
-    (user: CybozuUser) =>
+  implicit val cybozuUserSerializer: Serializer[CybozuDBUser, Array[Byte]] =
+    (user: CybozuDBUser) =>
       s""""${user.userId}",""\n""".stripMargin.getBytes(charset)
 
   implicit val backlogPrioritySerializer: Serializer[BacklogPriority, Array[Byte]] =
     (priority: BacklogPriority) =>
       s""""${priority.name}"\n""".stripMargin.getBytes(charset)
 
-  implicit val cybozuPrioritySerializer: Serializer[CybozuPriority, Array[Byte]] =
-    (priority: CybozuPriority) =>
+  implicit val cybozuPrioritySerializer: Serializer[CybozuDBPriority, Array[Byte]] =
+    (priority: CybozuDBPriority) =>
       s""""${priority.value}",""\n""".stripMargin.getBytes(charset)
 
   implicit val backlogStatusSerializer: Serializer[BacklogStatus, Array[Byte]] =
     (status: BacklogStatus) =>
       s""""${status.name}"\n""".stripMargin.getBytes(charset)
 
-  implicit val cybozuStatusSerializer: Serializer[CybozuStatus, Array[Byte]] =
-    (status: CybozuStatus) =>
+  implicit val cybozuStatusSerializer: Serializer[CybozuDBStatus, Array[Byte]] =
+    (status: CybozuDBStatus) =>
       s""""${status.value}",""\n""".stripMargin.getBytes(charset)
 
   implicit val stringTupleSerializer: Serializer[(String, String), Array[Byte]] =

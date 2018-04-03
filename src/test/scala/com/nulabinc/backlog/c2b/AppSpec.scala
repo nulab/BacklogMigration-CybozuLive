@@ -8,11 +8,13 @@ import backlog4s.dsl.BacklogHttpOp.HttpF
 import backlog4s.dsl.{BacklogHttpInterpret, HttpQuery}
 import backlog4s.dsl.HttpADT.{ByteStream, Response}
 import cats.Monad
+import com.nulabinc.backlog.c2b.datas.CybozuTodo
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageADT, StoreADT}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.persistence.interpreters.{DBInterpreter, StorageInterpreter}
+import com.nulabinc.backlog.c2b.persistence.interpreters.{StorageInterpreter, StoreInterpreter}
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.Observable
@@ -32,7 +34,7 @@ class AppSpec extends FlatSpec with Matchers {
   val appInterpreter = new AppInterpreter(
     backlogInterpreter = new TestBacklogInterpreter,
     storageInterpreter = new TestStorageInterpreter,
-    dbInterpreter = new TestDBInterpreter,
+    storeInterpreter = new TestStoreInterpreter,
     consoleInterpreter = new TestConsoleInterpreter
   )
 
@@ -69,11 +71,13 @@ class AppSpec extends FlatSpec with Matchers {
     override def writeAppend(path: Path, writeStream: Observable[Array[Byte]]): Task[Unit] = ???
     override def copy(from: Path, to: Path): Task[Boolean] = ???
     override def createDirectory(path: Path): Task[Unit] = ???
+    override def deleteDirectory(path: Path): Task[Unit] = ???
   }
 
-  class TestDBInterpreter extends DBInterpreter {
+  class TestStoreInterpreter extends StoreInterpreter[Task] {
     override def run[A](prg: StoreProgram[A]): Task[A] = ???
     override def apply[A](fa: StoreADT[A]): Task[A] = ???
+    override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {

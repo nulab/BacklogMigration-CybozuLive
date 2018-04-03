@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
-import com.nulabinc.backlog.c2b.datas.{CybozuComment, Entity, Id}
+import com.nulabinc.backlog.c2b.datas.{CybozuDBComment, Entity, Id}
 import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, Update, WriteType}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOStream, DBIOWrite, DBIOWrites}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.BaseTable
@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
 
 private[sqlite] trait BaseTableOps[A <: Entity, Table <: BaseTable[A]] {
 
-  protected def tableQuery: TableQuery[Table]
+  protected val tableQuery: TableQuery[Table]
 
   lazy val createTable = tableQuery.schema.create
 

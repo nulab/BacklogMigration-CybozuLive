@@ -6,6 +6,7 @@ import java.nio.file.Path
 import scala.collection.JavaConverters._
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.converters.CSVRecordSerializer
+import com.nulabinc.backlog.c2b.datas.MappingContext
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
@@ -31,6 +32,28 @@ object MappingFiles {
         .drop(1)
         .map(record => (record.get(0), record.get(1)))
     )
+
+  def createMappingContext: AppProgram[MappingContext] = {
+
+    def indexSeqToHashMap(seq: IndexedSeq[(String, String)]): HashMap[String, String] =
+      HashMap(seq map { a => a._1 -> a._2 }: _*)
+
+    for {
+      userMappingStream <- read(Config.USERS_PATH)
+      users <- AppDSL.streamAsSeq(userMappingStream)
+      userMappings = indexSeqToHashMap(users)
+      priorityMappingStream <- read(Config.PRIORITIES_PATH)
+      priorities <- AppDSL.streamAsSeq(priorityMappingStream)
+      priorityMappings = indexSeqToHashMap(priorities)
+      statusMappingStream <- read(Config.STATUSES_PATH)
+      statuses <- AppDSL.streamAsSeq(statusMappingStream)
+      statusMappings = indexSeqToHashMap(statuses)
+    } yield MappingContext(
+      userMappings = userMappings,
+      priorityMappings = priorityMappings,
+      statusMappings = statusMappings
+    )
+  }
 
   private def readCSVFile(is: InputStream): HashMap[String, String] = {
     val parser = CSVParser.parse(is, Config.charset, Config.csvFormat)

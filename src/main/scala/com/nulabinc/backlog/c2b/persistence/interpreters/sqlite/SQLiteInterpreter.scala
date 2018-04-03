@@ -1,22 +1,34 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite
 
+import com.nulabinc.backlog.c2b.datas._
+import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.persistence.interpreters.DBInterpreter
+import com.nulabinc.backlog.c2b.persistence.interpreters.StoreInterpreter
 import monix.eval.Task
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops.AllTableOps
 import monix.execution.Scheduler
 import monix.reactive.Observable
 import slick.jdbc.SQLiteProfile.api._
 
-class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBInterpreter {
+class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends StoreInterpreter[Task] {
 
   val allTableOps = AllTableOps()
+
+  import allTableOps._
 
   private val db = Database.forConfig(configPath)
 
   override def run[A](prg: StoreProgram[A]): Task[A] =
     prg.foldMap(this)
+
+  override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = Task.deferFuture {
+    db.run(todoTableOps.getTodo(id))
+  }
+
+  def getCybozuUserById(id: AnyId): Task[Option[CybozuDBUser]] = Task.deferFuture {
+    db.run(cybozuUserTableOps.select(Id[CybozuDBUser](id)))
+  }
 
   // https://monix.io/docs/2x/eval/task.html
   // https://monix.io/docs/2x/reactive/observable.html
@@ -29,7 +41,7 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
         Task(a)
       case CreateDatabase => Task.deferFuture {
         val sqls = DBIO.seq(
-          issueTableOps.createTable,
+          todoTableOps.createTable,
           commentTableOps.createTable,
           eventTableOps.createTable,
           forumTableOps.createTable,
@@ -43,11 +55,12 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       }
       case GetTodos => Task.eval {
         Observable.fromReactivePublisher(
-          db.stream(issueTableOps.stream)
+          db.stream(todoTableOps.stream)
         )
       }
+      case GetTodo(id) => getTodo(id)
       case StoreTodo(issue, writeType) => Task.deferFuture {
-        db.run(issueTableOps.write(issue, writeType))
+        db.run(todoTableOps.write(issue, writeType))
       }
       case GetForums => Task.eval {
         Observable.fromReactivePublisher(
@@ -84,6 +97,8 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
           db.stream(cybozuUserTableOps.stream)
         )
       }
+      case GetCybozuUserById(id) =>
+        getCybozuUserById(id)
       case GetCybozuUserBykey(key) => Task.deferFuture {
         db.run(cybozuUserTableOps.findByKey(key))
       }
@@ -116,12 +131,12 @@ class SQLiteInterpreter(configPath: String)(implicit exc: Scheduler) extends DBI
       }
       case GetCybozuPriorities => Task.eval {
         Observable.fromReactivePublisher(
-          db.stream(issueTableOps.distinctPriorities)
+          db.stream(todoTableOps.distinctPriorities)
         )
       }
       case GetCybozuStatuses => Task.eval {
         Observable.fromReactivePublisher(
-          db.stream(issueTableOps.distinctStatuses)
+          db.stream(todoTableOps.distinctStatuses)
         )
       }
       case WriteDBStream(stream) =>

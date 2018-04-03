@@ -12,10 +12,10 @@ import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
-import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, MappingFiles}
+import com.nulabinc.backlog.c2b.services.{BacklogToStore, CSVtoStore, BacklogExport, MappingFiles}
+import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
-import org.apache.commons.csv.CSVFormat
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
@@ -68,7 +68,7 @@ object App extends Logger {
     val interpreter = new AppInterpreter(
       backlogInterpreter = new AkkaHttpInterpret,
       storageInterpreter = new LocalStorageInterpreter,
-      dbInterpreter = new SQLiteInterpreter("db.main"),
+      storeInterpreter = new SQLiteInterpreter("db.main"),
       consoleInterpreter = new ConsoleInterpreter
     ) // TODO: proxy
 
@@ -129,7 +129,7 @@ object App extends Logger {
     val interpreter = new AppInterpreter(
       backlogInterpreter = new AkkaHttpInterpret,
       storageInterpreter = new LocalStorageInterpreter,
-      dbInterpreter = new SQLiteInterpreter("db.main"),
+      storeInterpreter = new SQLiteInterpreter("db.main"),
       consoleInterpreter = new ConsoleInterpreter
     )
 
@@ -139,11 +139,20 @@ object App extends Logger {
       // Initialize
       _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
+      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(Config.BACKLOG_PATHS))
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi)
       _ <- Validations.dbExistsProgram(Config.DB_PATH)
       _ <- Validations.mappingFilesExistProgram
       _ <- Validations.mappingFileItems(backlogApi)
+      // Read mapping files
+      mappingContext <- MappingFiles.createMappingContext
+      _ <- BacklogExport.project(config.projectKey)
+      _ <- BacklogExport.categories(config.projectKey)
+      _ <- BacklogExport.versions(config.projectKey)
+      _ <- BacklogExport.issueTypes(config.projectKey, issueTypes)
+      _ <- BacklogExport.customFields(config.projectKey)
+      _ <- BacklogExport.issues(config.projectKey)(mappingContext)
     } yield ()
 
     val f = interpreter.run(program).runAsync
@@ -162,5 +171,12 @@ object App extends Logger {
     Console.printError(error)
     exit(exitCode)
   }
+
+  private def issueTypes: Seq[String] =
+    Seq(
+      Messages("issue.type.todo"),
+      Messages("issue.type.event"),
+      Messages("issue.type.forum")
+    )
 
 }
