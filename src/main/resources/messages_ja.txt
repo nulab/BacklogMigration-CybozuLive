@@ -35,6 +35,9 @@ issue.type.forum=掲示板
 # Mapping file
 mapping.output_file={0}のマッピングファイルを作成しました。マッピングファイルを確認し、必要に応じて修正してください。
 
+# Messages
+message.init.finish=エクスポートが完了しました。 次のステップは \n\n1. マッピングファイルを編集します。\n2. importコマンドを実行します。\n\n
+
 #
 # From importer
 #

@@ -35,6 +35,9 @@ issue.type.forum=Forum
 # Mapping file
 mapping.output_file=The mapping file about {0} is created. Check the mapping file and fix it if necessary.
 
+# Messages
+message.init.finish=Init completed. Next step \n\n1. Edit mapping files.\n2. Execute the import command.\n\n
+
 #
 # From importer
 #

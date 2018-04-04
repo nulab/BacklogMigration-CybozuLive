@@ -133,6 +133,7 @@ object App extends Logger {
       _ <- MappingFiles.write(config)
       // Finalize
       _ <- MappingFileConsole.to(config)
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.finish")))
     } yield ()
   }
 
