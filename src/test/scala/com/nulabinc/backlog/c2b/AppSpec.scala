@@ -8,7 +8,7 @@ import backlog4s.dsl.BacklogHttpOp.HttpF
 import backlog4s.dsl.{BacklogHttpInterpret, HttpQuery}
 import backlog4s.dsl.HttpADT.{ByteStream, Response}
 import cats.Monad
-import com.nulabinc.backlog.c2b.datas.CybozuTodo
+import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuForum, CybozuTodo}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageADT, StoreADT}
@@ -78,6 +78,8 @@ class AppSpec extends FlatSpec with Matchers {
     override def run[A](prg: StoreProgram[A]): Task[A] = ???
     override def apply[A](fa: StoreADT[A]): Task[A] = ???
     override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = ???
+    override def getEvent(id: AnyId): Task[Option[CybozuEvent]] = ???
+    override def getForum(id: AnyId): Task[Option[CybozuForum]] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {

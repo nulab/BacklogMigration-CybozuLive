@@ -26,6 +26,8 @@ object BacklogExport {
       _ <- issueTypes(config, cybozuIssueTypes)
       _ <- customFields(config)
       _ <- todos(config)
+      _ <- events(config)
+      _ <- forums(config)
     } yield ()
 
   def project(config: Config): AppProgram[Unit] = {
@@ -86,6 +88,18 @@ object BacklogExport {
     } yield ()
   }
 
+  def events(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+    val issueConverter = new IssueConverter()
+    val commentConverter = new BacklogCommentConverter()
+
+    for {
+      events <- AppDSL.fromDB(StoreDSL.getEvents)
+      _ <- AppDSL.consumeStream {
+        events.map(event => exportEvent(config.backlogPaths, event.id, issueConverter, commentConverter))
+      }
+    } yield ()
+  }
+
   def forums(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new BacklogCommentConverter()
@@ -117,6 +131,28 @@ object BacklogExport {
           }
         case None =>
           AppDSL.exit("ToDo not found", 1)
+      }
+    } yield ()
+
+  private def exportEvent(paths: BacklogPaths,
+                          eventId: AnyId,
+                          issueConverter: IssueConverter,
+                          commentConverter: BacklogCommentConverter): AppProgram[Unit] =
+    for {
+      optEvent <- AppDSL.fromDB(StoreDSL.getEvent(eventId))
+      _ <- optEvent match {
+        case Some(event) =>
+          issueConverter.from(event) match {
+            case Right(backlogIssue) =>
+              for {
+                _ <- exportIssue(paths, backlogIssue, event.event.startDateTime)
+                _ <- exportComments(paths, event.event.id, event.comments, commentConverter)
+              } yield ()
+            case Left(error) =>
+              AppDSL.exit("Event convert error. " + error.toString, 1)
+          }
+        case None =>
+          AppDSL.exit("Event not found", 1)
       }
     } yield ()
 

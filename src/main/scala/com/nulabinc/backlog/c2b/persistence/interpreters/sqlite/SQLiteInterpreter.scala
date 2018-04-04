@@ -28,6 +28,10 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     db.run(todoTableOps.getTodo(id))
   }
 
+  override def getEvent(id: AnyId): Task[Option[CybozuEvent]] = Task.deferFuture {
+    db.run(eventTableOps.getEvent(id))
+  }
+
   override def getForum(id: AnyId): Task[Option[CybozuForum]] = Task.deferFuture {
     db.run(forumTableOps.getForum(id))
   }
@@ -80,6 +84,8 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
       case StoreForum(forum, writeType) => Task.deferFuture {
         db.run(forumTableOps.write(forum, writeType))
       }
+      case GetEvent(id) =>
+        getEvent(id)
       case GetEvents => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(eventTableOps.stream)

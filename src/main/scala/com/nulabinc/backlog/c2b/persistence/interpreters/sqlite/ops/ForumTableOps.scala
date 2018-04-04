@@ -17,7 +17,7 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
 
   def getForum(id: AnyId): DBIORead[Option[CybozuForum]] = {
     for {
-      optTodo <- tableQuery
+      optForum <- tableQuery
         .filter(_.id === id)
         .join(cybozuUserTableQuery)
         .on(_.creator === _.id)
@@ -31,7 +31,7 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
         .on(_.parentId === _.id)
         .result
     } yield {
-      optTodo.map {
+      optForum.map {
         case ((forum, creator), updater) =>
           CybozuForum(
             forum = forum,
