@@ -15,7 +15,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
-import com.nulabinc.backlog.c2b.services.{BacklogExport, BacklogToStore, CSVtoStore, MappingFiles}
+import com.nulabinc.backlog.c2b.services._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
@@ -104,7 +104,7 @@ object App extends Logger {
       csvFiles.filter(_.getName.contains("live_Events_")) ++
       csvFiles.filter(_.getName.contains("live_イベント_"))
     }
-    val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_"))
+    val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_")) // TODO: english version
 
     val todoObservable = CybozuCSVReader.toCybozuTodo(todoFiles)
     val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles)
@@ -131,6 +131,8 @@ object App extends Logger {
       _ <- BacklogToStore.user(backlogApi.userApi)
       // Write mapping files
       _ <- MappingFiles.write(config)
+      // Finalize
+      _ <- MappingFileConsole.to(config)
     } yield ()
   }
 

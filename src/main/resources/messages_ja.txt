@@ -32,6 +32,9 @@ issue.type.todo=ToDo
 issue.type.event=イベント
 issue.type.forum=掲示板
 
+# Mapping file
+mapping.output_file={0}のマッピングファイルを作成しました。マッピングファイルを確認し、必要に応じて修正してください。
+
 #
 # From importer
 #

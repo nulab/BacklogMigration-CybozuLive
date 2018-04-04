@@ -32,6 +32,9 @@ issue.type.todo=To-Do
 issue.type.event=Event
 issue.type.forum=Forum
 
+# Mapping file
+mapping.output_file=The mapping file about {0} is created. Check the mapping file and fix it if necessary.
+
 #
 # From importer
 #
