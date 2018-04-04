@@ -6,10 +6,12 @@ import java.nio.file.Path
 import scala.collection.JavaConverters._
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.converters.CSVRecordSerializer
+import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas.MappingContext
-import com.nulabinc.backlog.c2b.interpreters.AppDSL
+import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
+import com.osinka.i18n.Messages
 import monix.reactive.Observable
 import org.apache.commons.csv.CSVParser
 
@@ -171,5 +173,44 @@ object MappingFiles {
       )
     } yield ()
 
+}
+
+object MappingFileConsole extends Logger {
+
+  private val mappingResultBorder: AppProgram[Unit] =
+    AppDSL.fromConsole(
+      ConsoleDSL.print("\n--------------------------------------------------")
+    )
+
+  def to(config: Config): AppProgram[Unit] = {
+    import MappingFiles._
+
+    for {
+      _ <- mappingResultBorder
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("mapping.output_file", Messages("name.mapping.user")) + "\n"))
+      userStream <- read(config.USERS_PATH)
+      _ <- AppDSL.consumeStream(
+        userStream.map(mappingResult)
+      )
+      _ <- mappingResultBorder
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("mapping.output_file", Messages("name.mapping.priority")) + "\n"))
+      priorityStream <- read(config.PRIORITIES_PATH)
+      _ <- AppDSL.consumeStream(
+        priorityStream.map(mappingResult)
+      )
+      _ <- mappingResultBorder
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("mapping.output_file", Messages("name.mapping.status")) + "\n"))
+      statusStream <- read(config.STATUSES_PATH)
+      _ <- AppDSL.consumeStream(
+        statusStream.map(mappingResult)
+      )
+      _ <- mappingResultBorder
+    } yield ()
+  }
+
+  private def mappingResult(row: (String, String)): AppProgram[Unit] =
+    AppDSL.fromConsole(
+      ConsoleDSL.print(s"${row._1} => ${row._2}")
+    )
 
 }
