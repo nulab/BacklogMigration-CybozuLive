@@ -8,6 +8,19 @@ case class CybozuTodo(
   assignees: Seq[CybozuDBUser]
 )
 
+case class CybozuEvent(
+  event: CybozuDBEvent,
+  comments: Seq[CybozuComment],
+  creator: CybozuDBUser
+)
+
+case class CybozuForum(
+  forum: CybozuDBForum,
+  comments: Seq[CybozuComment],
+  creator: CybozuDBUser,
+  updater: CybozuDBUser
+)
+
 case class CybozuComment(
   comment: CybozuDBComment,
   creator: CybozuDBUser

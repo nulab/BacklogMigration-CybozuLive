@@ -64,11 +64,6 @@ private[c2b] object Console extends Logger {
     }
   }
 
-  def printBanner(applicationName: String, applicationVersion: String): Unit = println(
-    s"""
-      |$applicationName $applicationVersion
-      |--------------------------------------------------""".stripMargin)
-
   def printError(ex: Throwable): Unit =
     error(ex.getMessage)
 

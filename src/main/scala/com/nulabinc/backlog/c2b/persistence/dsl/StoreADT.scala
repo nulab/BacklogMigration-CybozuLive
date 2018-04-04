@@ -26,9 +26,11 @@ case class StoreComments(comments: Seq[CybozuDBComment], writeType: WriteType = 
 case class StoreTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]) extends StoreADT[Int]
 
 case object GetEvents extends StoreADT[Observable[CybozuDBEvent]]
+case class GetEvent(id: AnyId) extends StoreADT[Option[CybozuEvent]]
 case class StoreEvent(event: CybozuDBEvent, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case object GetForums extends StoreADT[Observable[CybozuDBForum]]
+case class GetForum(id: AnyId) extends StoreADT[Option[CybozuForum]]
 case class StoreForum(forum: CybozuDBForum, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case object GetCybozuUsers extends StoreADT[Observable[CybozuDBUser]]

@@ -4,21 +4,6 @@ import com.nulabinc.backlog.c2b.core.DateUtil
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.migration.common.domain._
 
-
-sealed trait IssueFrom
-
-case class FromCybozuEvent(
-  event: CybozuDBEvent,
-  creator: CybozuDBUser
-) extends IssueFrom
-
-case class FromCybozuForum(
-  forum: CybozuDBForum,
-  creator: CybozuDBUser,
-  updater: CybozuDBUser
-) extends IssueFrom
-
-
 class IssueConverter()(implicit ctx: MappingContext) {
 
   import com.nulabinc.backlog.c2b.syntax.EitherOps._
@@ -62,23 +47,23 @@ class IssueConverter()(implicit ctx: MappingContext) {
     }
   }
 
-  def from(fromCybozuEvent: FromCybozuEvent): Either[ConvertError, BacklogIssue] = {
+  def from(from: CybozuEvent): Either[ConvertError, BacklogIssue] = {
 
     val ISSUE_TYPE_NAME = "イベント"
 
     for {
-      convertedCreator <- userConverter.to(fromCybozuEvent.creator)
+      convertedCreator <- userConverter.to(from.creator)
     } yield {
       defaultBacklogIssue.copy(
-        id                = fromCybozuEvent.event.id,
-        summary           = createBacklogIssueSummary(fromCybozuEvent.event.title),
-        description       = fromCybozuEvent.event.memo + "\n\n" + fromCybozuEvent.event.menu,
+        id                = from.event.id,
+        summary           = createBacklogIssueSummary(from.event.title),
+        description       = from.event.memo + "\n\n" + from.event.menu,
         optStartDate      = None,
         optDueDate        = None,
         optIssueTypeName  = Some(ISSUE_TYPE_NAME),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
-          optCreated        = Some(DateUtil.toDateTimeString(fromCybozuEvent.event.startDateTime)),
+          optCreated        = Some(DateUtil.toDateTimeString(from.event.startDateTime)),
           optUpdatedUser    = None,
           optUpdated        = None
         )
@@ -86,26 +71,26 @@ class IssueConverter()(implicit ctx: MappingContext) {
     }
   }
 
-  def from(fromCybozuForum: FromCybozuForum): Either[ConvertError, BacklogIssue] = {
+  def from(from: CybozuForum): Either[ConvertError, BacklogIssue] = {
 
     val ISSUE_TYPE_NAME = "掲示板"
 
     for {
-      convertedCreator <- userConverter.to(fromCybozuForum.creator)
-      convertedUpdater <- userConverter.to(fromCybozuForum.updater)
+      convertedCreator <- userConverter.to(from.creator)
+      convertedUpdater <- userConverter.to(from.updater)
     } yield {
       defaultBacklogIssue.copy(
-        id                = fromCybozuForum.forum.id,
-        summary           = createBacklogIssueSummary(fromCybozuForum.forum.title),
-        description       = fromCybozuForum.forum.content,
+        id                = from.forum.id,
+        summary           = createBacklogIssueSummary(from.forum.title),
+        description       = from.forum.content,
         optStartDate      = None,
         optDueDate        = None,
         optIssueTypeName  = Some(ISSUE_TYPE_NAME),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
-          optCreated        = Some(DateUtil.toDateTimeString(fromCybozuForum.forum.createdAt)),
+          optCreated        = Some(DateUtil.toDateTimeString(from.forum.createdAt)),
           optUpdatedUser    = Some(convertedUpdater),
-          optUpdated        = Some(DateUtil.toDateTimeString(fromCybozuForum.forum.updatedAt))
+          optUpdated        = Some(DateUtil.toDateTimeString(from.forum.updatedAt))
         )
       )
     }

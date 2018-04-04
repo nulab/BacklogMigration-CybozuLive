@@ -18,23 +18,11 @@ object StoreDSL {
   lazy val createDatabase: StoreProgram[Unit] =
     Free.liftF(CreateDatabase)
 
-  lazy val getTodos: StoreProgram[Observable[CybozuDBTodo]] =
-    Free.liftF(GetTodos)
-
-  lazy val getEvents: StoreProgram[Observable[CybozuDBEvent]] =
-    Free.liftF(GetEvents)
-
-  lazy val getForums: StoreProgram[Observable[CybozuDBForum]] =
-    Free.liftF(GetForums)
-
   lazy val getCybozuPriorities: StoreProgram[Observable[CybozuDBPriority]] =
     Free.liftF(GetCybozuPriorities)
 
   lazy val getCybozuStatuses: StoreProgram[Observable[CybozuDBStatus]] =
     Free.liftF(GetCybozuStatuses)
-
-  lazy val getBacklogUsers: StoreProgram[Observable[BacklogUser]] =
-    Free.liftF(GetBacklogUsers)
 
   lazy val getBacklogPriorities: StoreProgram[Observable[BacklogPriority]] =
     Free.liftF(GetBacklogPriorities)
@@ -45,6 +33,9 @@ object StoreDSL {
   //
   // Cybozu To-DO
   //
+  lazy val getTodos: StoreProgram[Observable[CybozuDBTodo]] =
+    Free.liftF(GetTodos)
+
   def getTodo(id: AnyId): StoreProgram[Option[CybozuTodo]] =
     Free.liftF(GetTodo(id))
 
@@ -63,8 +54,26 @@ object StoreDSL {
   def storeTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]): StoreProgram[Int] =
     Free.liftF(StoreTodoAssignees(todoId, assigneeIds))
 
+  //
+  // Cybozu Event
+  //
+  lazy val getEvents: StoreProgram[Observable[CybozuDBEvent]] =
+    Free.liftF(GetEvents)
+
+  def getEvent(id: AnyId): StoreProgram[Option[CybozuEvent]] =
+    Free.liftF(GetEvent(id))
+
   def storeEvent(event: CybozuDBEvent): StoreProgram[AnyId] =
     Free.liftF(StoreEvent(event))
+
+  //
+  // Cybozu Forum
+  //
+  lazy val getForums: StoreProgram[Observable[CybozuDBForum]] =
+    Free.liftF(GetForums)
+
+  def getForum(id: AnyId): StoreProgram[Option[CybozuForum]] =
+    Free.liftF(GetForum(id))
 
   def storeForum(forum: CybozuDBForum): StoreProgram[AnyId] =
     Free.liftF(StoreForum(forum))
@@ -87,6 +96,9 @@ object StoreDSL {
   //
   // Backlog user
   //
+  lazy val getBacklogUsers: StoreProgram[Observable[BacklogUser]] =
+    Free.liftF(GetBacklogUsers)
+
   def storeBacklogUser(user: BacklogUser): StoreProgram[AnyId] =
     Free.liftF(StoreBacklogUser(user))
 

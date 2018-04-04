@@ -18,6 +18,18 @@ object BacklogExport {
 
   import com.nulabinc.backlog.migration.common.domain.BacklogJsonProtocol._
 
+  def all(config: Config, cybozuIssueTypes: Seq[String])(implicit mappingContext: MappingContext): AppProgram[Unit] =
+    for {
+      _ <- project(config)
+      _ <- categories(config)
+      _ <- versions(config)
+      _ <- issueTypes(config, cybozuIssueTypes)
+      _ <- customFields(config)
+      _ <- todos(config)
+      _ <- events(config)
+      _ <- forums(config)
+    } yield ()
+
   def project(config: Config): AppProgram[Unit] = {
     val projectResult = BacklogProjectConverter.to(config.projectKey)
     for {
@@ -64,30 +76,40 @@ object BacklogExport {
       BacklogCustomFieldSettingsWrapper(Seq.empty[BacklogCustomFieldSetting]).toJson.prettyPrint
     )
 
-  private def exportIssue(paths: BacklogPaths, backlogIssue: BacklogIssue, createdAt: DateTime): AppProgram[File] = {
-    val issueDirPath = paths.issueDirectoryPath("issue", backlogIssue.id, Date.from(createdAt.toInstant),0)
-    AppDSL.export(paths.issueJson(issueDirPath), backlogIssue.toJson.prettyPrint)
+  def todos(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+    val issueConverter = new IssueConverter()
+    val commentConverter = new BacklogCommentConverter()
+
+    for {
+      todos <- AppDSL.fromDB(StoreDSL.getTodos)
+      _ <- AppDSL.consumeStream {
+        todos.map(todo => exportTodo(config.backlogPaths, todo.id, issueConverter, commentConverter))
+      }
+    } yield ()
   }
 
-  private def exportComments(paths: BacklogPaths,
-                             issueId: AnyId,
-                             comments: Seq[CybozuComment],
-                             converter: BacklogCommentConverter): AppProgram[Seq[Unit]] = {
-    val prgs = comments.zipWithIndex.map {
-      case (cybozuComment, index) =>
-        val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
-        val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
+  def events(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+    val issueConverter = new IssueConverter()
+    val commentConverter = new BacklogCommentConverter()
 
-        converter.from(issueId, cybozuComment) match {
-          case Right(backlogComment) =>
-            val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
-            val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
-            AppDSL.export(paths.issueJson(issueDirPath), backlogComment.toJson.prettyPrint).map(_ => ())
-          case Left(error) =>
-            AppDSL.exit("Comment convert error. " + error.toString, 1)
-        }
-    }
-    sequence(prgs)
+    for {
+      events <- AppDSL.fromDB(StoreDSL.getEvents)
+      _ <- AppDSL.consumeStream {
+        events.map(event => exportEvent(config.backlogPaths, event.id, issueConverter, commentConverter))
+      }
+    } yield ()
+  }
+
+  def forums(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+    val issueConverter = new IssueConverter()
+    val commentConverter = new BacklogCommentConverter()
+
+    for {
+      forums <- AppDSL.fromDB(StoreDSL.getForums)
+      _ <- AppDSL.consumeStream {
+        forums.map(forum => exportForum(config.backlogPaths, forum.id, issueConverter, commentConverter))
+      }
+    } yield ()
   }
 
   private def exportTodo(paths: BacklogPaths,
@@ -112,17 +134,75 @@ object BacklogExport {
       }
     } yield ()
 
-  def issues(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
-    val issueConverter = new IssueConverter()
-    val commentConverter = new BacklogCommentConverter()
-
+  private def exportEvent(paths: BacklogPaths,
+                          eventId: AnyId,
+                          issueConverter: IssueConverter,
+                          commentConverter: BacklogCommentConverter): AppProgram[Unit] =
     for {
-      todos <- AppDSL.fromDB(StoreDSL.getTodos)
-      _ <- AppDSL.consumeStream {
-        todos.map(todo => exportTodo(config.backlogPaths, todo.id, issueConverter, commentConverter))
+      optEvent <- AppDSL.fromDB(StoreDSL.getEvent(eventId))
+      _ <- optEvent match {
+        case Some(event) =>
+          issueConverter.from(event) match {
+            case Right(backlogIssue) =>
+              for {
+                _ <- exportIssue(paths, backlogIssue, event.event.startDateTime)
+                _ <- exportComments(paths, event.event.id, event.comments, commentConverter)
+              } yield ()
+            case Left(error) =>
+              AppDSL.exit("Event convert error. " + error.toString, 1)
+          }
+        case None =>
+          AppDSL.exit("Event not found", 1)
       }
     } yield ()
+
+  private def exportForum(paths: BacklogPaths,
+                          forumId: AnyId,
+                          issueConverter: IssueConverter,
+                          commentConverter: BacklogCommentConverter): AppProgram[Unit] =
+    for {
+      optForum <- AppDSL.fromDB(StoreDSL.getForum(forumId))
+      _ <- optForum match {
+        case Some(forum) =>
+          issueConverter.from(forum) match {
+            case Right(backlogIssue) =>
+              for {
+                _ <- exportIssue(paths, backlogIssue, forum.forum.createdAt)
+                _ <- exportComments(paths, forum.forum.id, forum.comments, commentConverter)
+              } yield ()
+            case Left(error) =>
+              AppDSL.exit("Forum convert error. " + error.toString, 1)
+          }
+        case None =>
+          AppDSL.exit("Forum not found", 1)
+      }
+    } yield ()
+
+
+  private def exportIssue(paths: BacklogPaths, backlogIssue: BacklogIssue, createdAt: DateTime): AppProgram[File] = {
+    val issueDirPath = paths.issueDirectoryPath("issue", backlogIssue.id, Date.from(createdAt.toInstant),0)
+    AppDSL.export(paths.issueJson(issueDirPath), backlogIssue.toJson.prettyPrint)
   }
+
+  private def exportComments(paths: BacklogPaths,
+                             issueId: AnyId,
+                             comments: Seq[CybozuComment],
+                             converter: BacklogCommentConverter): AppProgram[Seq[Unit]] = {
+    val programs = comments.zipWithIndex.map {
+      case (cybozuComment, index) =>
+        converter.from(issueId, cybozuComment) match {
+          case Right(backlogComment) =>
+            val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
+            val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
+            AppDSL.export(paths.issueJson(issueDirPath), backlogComment.toJson.prettyPrint).map(_ => ())
+          case Left(error) =>
+            AppDSL.exit("Comment convert error. " + error.toString, 1)
+        }
+    }
+    sequence(programs)
+  }
+
+
 
   private def sequence[A](prgs: Seq[AppProgram[A]]): AppProgram[Seq[A]] =
     prgs.foldLeft(AppDSL.pure(Seq.empty[A])) {
