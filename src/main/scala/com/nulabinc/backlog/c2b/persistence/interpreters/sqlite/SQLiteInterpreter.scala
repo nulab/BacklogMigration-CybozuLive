@@ -28,9 +28,14 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     db.run(todoTableOps.getTodo(id))
   }
 
+  override def getForum(id: AnyId): Task[Option[CybozuForum]] = Task.deferFuture {
+    db.run(forumTableOps.getForum(id))
+  }
+
   def getCybozuUserById(id: AnyId): Task[Option[CybozuDBUser]] = Task.deferFuture {
     db.run(cybozuUserTableOps.select(Id[CybozuDBUser](id)))
   }
+
 
   // https://monix.io/docs/2x/eval/task.html
   // https://monix.io/docs/2x/reactive/observable.html
@@ -60,10 +65,13 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
           db.stream(todoTableOps.stream)
         )
       }
-      case GetTodo(id) => getTodo(id)
+      case GetTodo(id) =>
+        getTodo(id)
       case StoreTodo(issue, writeType) => Task.deferFuture {
         db.run(todoTableOps.write(issue, writeType))
       }
+      case GetForum(id) =>
+        getForum(id)
       case GetForums => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(forumTableOps.stream)

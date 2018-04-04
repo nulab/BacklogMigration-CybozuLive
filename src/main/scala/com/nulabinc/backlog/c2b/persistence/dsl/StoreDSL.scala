@@ -66,6 +66,12 @@ object StoreDSL {
   def storeEvent(event: CybozuDBEvent): StoreProgram[AnyId] =
     Free.liftF(StoreEvent(event))
 
+  //
+  // Cybozu Forum
+  //
+  def getForum(id: AnyId): StoreProgram[Option[CybozuForum]] =
+    Free.liftF(GetForum(id))
+
   def storeForum(forum: CybozuDBForum): StoreProgram[AnyId] =
     Free.liftF(StoreForum(forum))
 

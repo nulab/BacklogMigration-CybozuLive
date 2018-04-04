@@ -156,12 +156,7 @@ object App extends Logger {
       _ <- Validations.mappingFileItems(backlogApi, config)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext(config)
-      _ <- BacklogExport.project(config)
-      _ <- BacklogExport.categories(config)
-      _ <- BacklogExport.versions(config)
-      _ <- BacklogExport.issueTypes(config, issueTypes)
-      _ <- BacklogExport.customFields(config)
-      _ <- BacklogExport.issues(config)(mappingContext)
+      _ <- BacklogExport.all(config, issueTypes)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
     } yield ()
   }
@@ -171,7 +166,8 @@ object App extends Logger {
       ConsoleDSL.print(
         s"""
            |$applicationName $applicationVersion
-           |--------------------------------------------------""".stripMargin)
+           |--------------------------------------------------""".stripMargin
+      )
     )
 
   private def exit(exitCode: Int): Unit = {

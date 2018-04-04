@@ -29,6 +29,7 @@ case object GetEvents extends StoreADT[Observable[CybozuDBEvent]]
 case class StoreEvent(event: CybozuDBEvent, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case object GetForums extends StoreADT[Observable[CybozuDBForum]]
+case class GetForum(id: AnyId) extends StoreADT[Option[CybozuForum]]
 case class StoreForum(forum: CybozuDBForum, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case object GetCybozuUsers extends StoreADT[Observable[CybozuDBUser]]

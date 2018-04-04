@@ -7,9 +7,9 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables._
 import slick.lifted.TableQuery
 import slick.jdbc.SQLiteProfile.api._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
-private[sqlite] case class TodoTableOps() extends BaseTableOps[CybozuDBTodo, TodoTable] {
+private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extends BaseTableOps[CybozuDBTodo, TodoTable] {
 
   import JdbcMapper._
 
@@ -58,8 +58,8 @@ private[sqlite] case class TodoTableOps() extends BaseTableOps[CybozuDBTodo, Tod
           CybozuTodo(
             todo = todo,
             comments = comments.map {
-              case (comment, creator) =>
-                CybozuComment(comment, creator)
+              case (comment, commentCreator) =>
+                CybozuComment(comment, commentCreator)
             },
             creator = creator,
             updater = updater,
