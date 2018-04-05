@@ -58,6 +58,9 @@ lazy val root = (project in file("."))
         "io.monix"              %% "monix-eval"       % monixVersion,
         "org.apache.commons"    %  "commons-csv"      % "1.5"
       )
+    },
+    assemblyJarName in assembly := {
+      s"${name.value}-${version.value}.jar"
     }
   )
   .dependsOn(backlogMigrationCommon, backlogMigrationImporter)
