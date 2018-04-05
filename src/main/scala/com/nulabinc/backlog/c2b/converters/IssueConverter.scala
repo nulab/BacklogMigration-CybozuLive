@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b.converters
 
+import java.time.format.DateTimeFormatter
+
 import com.nulabinc.backlog.c2b.core.DateUtil
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.migration.common.domain._
@@ -8,7 +10,8 @@ class IssueConverter()(implicit ctx: MappingContext) {
 
   import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
-  val userConverter = new BacklogUserConverter()
+  private val userConverter = new BacklogUserConverter()
+  private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
 
   def from(from: CybozuTodo, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
 
@@ -45,15 +48,18 @@ class IssueConverter()(implicit ctx: MappingContext) {
     }
   }
 
-  def from(from: CybozuEvent, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
-
+  def from(from: CybozuEvent, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] =
     for {
       convertedCreator <- userConverter.to(from.creator)
     } yield {
+      val description =
+        from.event.memo + "\n\n" +
+        from.event.menu + "\n\n" +
+        formatter.format(from.event.startDateTime) + " ~ " + formatter.format(from.event.endDateTime)
       defaultBacklogIssue.copy(
         id                = from.event.id,
         summary           = createBacklogIssueSummary(from.event.title),
-        description       = from.event.memo + "\n\n" + from.event.menu,
+        description       = description,
         optStartDate      = None,
         optDueDate        = None,
         optIssueTypeName  = Some(issueType.value),
@@ -65,7 +71,6 @@ class IssueConverter()(implicit ctx: MappingContext) {
         )
       )
     }
-  }
 
   def from(from: CybozuForum, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
 
