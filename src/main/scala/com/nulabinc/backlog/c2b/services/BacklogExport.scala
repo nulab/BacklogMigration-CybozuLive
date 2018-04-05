@@ -4,7 +4,7 @@ import java.util.Date
 
 import better.files.File
 import com.nulabinc.backlog.c2b.Config
-import com.nulabinc.backlog.c2b.converters.{BacklogCommentConverter, BacklogIssueTypeConverter, BacklogProjectConverter, IssueConverter}
+import com.nulabinc.backlog.c2b.converters._
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
@@ -21,6 +21,7 @@ object BacklogExport {
   def all(config: Config, issueTypes: Map[IssueType, CybozuIssueType])(implicit mappingContext: MappingContext): AppProgram[Unit] =
     for {
       _ <- project(config)
+      _ <- users(config)
       _ <- categories(config)
       _ <- versions(config)
       _ <- exportIssueTypes(config, issueTypes)
@@ -38,6 +39,26 @@ object BacklogExport {
           AppDSL.export(config.backlogPaths.projectJson, BacklogProjectWrapper(project).toJson.prettyPrint)
         case Left(error) =>
           AppDSL.exit(error.toString, 1)
+      }
+    } yield ()
+  }
+
+  def users(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+    import com.nulabinc.backlog.c2b.syntax.EitherOps._
+
+    val userConverter = new BacklogUserConverter()
+    for {
+      userStream <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
+      cybozuUsers <- AppDSL.streamAsSeq(userStream)
+      result = cybozuUsers.map(userConverter.to).sequence
+      _ <- result match {
+        case Right(backlogUsers) =>
+          AppDSL.export(
+            config.backlogPaths.projectUsersJson,
+            BacklogProjectUsersWrapper(backlogUsers).toJson.prettyPrint
+          )
+        case Left(error) =>
+          AppDSL.exit("User convert error. " + error.toString, 1)
       }
     } yield ()
   }
