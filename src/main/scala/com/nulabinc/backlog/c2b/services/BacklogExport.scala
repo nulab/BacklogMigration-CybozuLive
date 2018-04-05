@@ -5,7 +5,7 @@ import java.util.Date
 import better.files.File
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.converters.{BacklogCommentConverter, BacklogIssueTypeConverter, BacklogProjectConverter, IssueConverter}
-import com.nulabinc.backlog.c2b.datas.{CybozuComment, MappingContext}
+import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
@@ -18,16 +18,16 @@ object BacklogExport {
 
   import com.nulabinc.backlog.migration.common.domain.BacklogJsonProtocol._
 
-  def all(config: Config, cybozuIssueTypes: Seq[String])(implicit mappingContext: MappingContext): AppProgram[Unit] =
+  def all(config: Config, issueTypes: Map[IssueType, CybozuIssueType])(implicit mappingContext: MappingContext): AppProgram[Unit] =
     for {
       _ <- project(config)
       _ <- categories(config)
       _ <- versions(config)
-      _ <- issueTypes(config, cybozuIssueTypes)
+      _ <- exportIssueTypes(config, issueTypes)
       _ <- customFields(config)
-      _ <- todos(config)
-      _ <- events(config)
-      _ <- forums(config)
+      _ <- todos(config, issueTypes(IssueType.ToDo))
+      _ <- events(config, issueTypes(IssueType.Event))
+      _ <- forums(config, issueTypes(IssueType.Forum))
     } yield ()
 
   def project(config: Config): AppProgram[Unit] = {
@@ -54,10 +54,10 @@ object BacklogExport {
       BacklogVersionsWrapper(Seq.empty[BacklogVersion]).toJson.prettyPrint
     )
 
-  def issueTypes(config: Config, issueTypes: Seq[String]): AppProgram[Unit] = {
+  def exportIssueTypes(config: Config, issueTypes: Map[IssueType, CybozuIssueType]): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
-    issueTypes.map(s => BacklogIssueTypeConverter.to(s)).sequence match {
+    issueTypes.values.toSeq.map(s => BacklogIssueTypeConverter.to(s)).sequence match {
       case Right(backlogIssueTypes) =>
         for {
           _ <- AppDSL.export(
@@ -76,51 +76,52 @@ object BacklogExport {
       BacklogCustomFieldSettingsWrapper(Seq.empty[BacklogCustomFieldSetting]).toJson.prettyPrint
     )
 
-  def todos(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+  def todos(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new BacklogCommentConverter()
 
     for {
       todos <- AppDSL.fromDB(StoreDSL.getTodos)
       _ <- AppDSL.consumeStream {
-        todos.map(todo => exportTodo(config.backlogPaths, todo.id, issueConverter, commentConverter))
+        todos.map(todo => exportTodo(config.backlogPaths, todo.id, issueType, issueConverter, commentConverter))
       }
     } yield ()
   }
 
-  def events(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+  def events(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new BacklogCommentConverter()
 
     for {
       events <- AppDSL.fromDB(StoreDSL.getEvents)
       _ <- AppDSL.consumeStream {
-        events.map(event => exportEvent(config.backlogPaths, event.id, issueConverter, commentConverter))
+        events.map(event => exportEvent(config.backlogPaths, event.id, issueType, issueConverter, commentConverter))
       }
     } yield ()
   }
 
-  def forums(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+  def forums(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new BacklogCommentConverter()
 
     for {
       forums <- AppDSL.fromDB(StoreDSL.getForums)
       _ <- AppDSL.consumeStream {
-        forums.map(forum => exportForum(config.backlogPaths, forum.id, issueConverter, commentConverter))
+        forums.map(forum => exportForum(config.backlogPaths, forum.id, issueType, issueConverter, commentConverter))
       }
     } yield ()
   }
 
   private def exportTodo(paths: BacklogPaths,
                          todoId: AnyId,
+                         issueType: CybozuIssueType,
                          issueConverter: IssueConverter,
                          commentConverter: BacklogCommentConverter): AppProgram[Unit] =
     for {
       optTodo <- AppDSL.fromDB(StoreDSL.getTodo(todoId))
       _ <- optTodo match {
         case Some(todo) =>
-          issueConverter.from(todo) match {
+          issueConverter.from(todo, issueType) match {
             case Right(backlogIssue) =>
               for {
                 _ <- exportIssue(paths, backlogIssue, todo.todo.createdAt)
@@ -136,13 +137,14 @@ object BacklogExport {
 
   private def exportEvent(paths: BacklogPaths,
                           eventId: AnyId,
+                          issueType: CybozuIssueType,
                           issueConverter: IssueConverter,
                           commentConverter: BacklogCommentConverter): AppProgram[Unit] =
     for {
       optEvent <- AppDSL.fromDB(StoreDSL.getEvent(eventId))
       _ <- optEvent match {
         case Some(event) =>
-          issueConverter.from(event) match {
+          issueConverter.from(event, issueType) match {
             case Right(backlogIssue) =>
               for {
                 _ <- exportIssue(paths, backlogIssue, event.event.startDateTime)
@@ -158,13 +160,14 @@ object BacklogExport {
 
   private def exportForum(paths: BacklogPaths,
                           forumId: AnyId,
+                          issueType: CybozuIssueType,
                           issueConverter: IssueConverter,
                           commentConverter: BacklogCommentConverter): AppProgram[Unit] =
     for {
       optForum <- AppDSL.fromDB(StoreDSL.getForum(forumId))
       _ <- optForum match {
         case Some(forum) =>
-          issueConverter.from(forum) match {
+          issueConverter.from(forum, issueType) match {
             case Right(backlogIssue) =>
               for {
                 _ <- exportIssue(paths, backlogIssue, forum.forum.createdAt)

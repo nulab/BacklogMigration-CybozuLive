@@ -10,9 +10,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
 
   val userConverter = new BacklogUserConverter()
 
-  def from(from: CybozuTodo): Either[ConvertError, BacklogIssue] = {
-
-    val ISSUE_TYPE_NAME = "ToDoリスト"
+  def from(from: CybozuTodo, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
 
     for {
       convertedCreator <- userConverter.to(from.creator)
@@ -33,7 +31,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
           summary           = createBacklogIssueSummary(title),
           description       = from.todo.content,
           optDueDate        = from.todo.dueDate.map(DateUtil.toDateString),
-          optIssueTypeName  = Some(ISSUE_TYPE_NAME),
+          optIssueTypeName  = Some(issueType.value),
           statusName        = status,
           priorityName      = priority,
           optAssignee       = optAssignee,
@@ -47,9 +45,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
     }
   }
 
-  def from(from: CybozuEvent): Either[ConvertError, BacklogIssue] = {
-
-    val ISSUE_TYPE_NAME = "イベント"
+  def from(from: CybozuEvent, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
 
     for {
       convertedCreator <- userConverter.to(from.creator)
@@ -60,7 +56,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
         description       = from.event.memo + "\n\n" + from.event.menu,
         optStartDate      = None,
         optDueDate        = None,
-        optIssueTypeName  = Some(ISSUE_TYPE_NAME),
+        optIssueTypeName  = Some(issueType.value),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
           optCreated        = Some(DateUtil.toDateTimeString(from.event.startDateTime)),
@@ -71,9 +67,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
     }
   }
 
-  def from(from: CybozuForum): Either[ConvertError, BacklogIssue] = {
-
-    val ISSUE_TYPE_NAME = "掲示板"
+  def from(from: CybozuForum, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
 
     for {
       convertedCreator <- userConverter.to(from.creator)
@@ -85,7 +79,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
         description       = from.forum.content,
         optStartDate      = None,
         optDueDate        = None,
-        optIssueTypeName  = Some(ISSUE_TYPE_NAME),
+        optIssueTypeName  = Some(issueType.value),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
           optCreated        = Some(DateUtil.toDateTimeString(from.forum.createdAt)),

@@ -8,6 +8,7 @@ import backlog4s.apis.AllApi
 import backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
+import com.nulabinc.backlog.c2b.datas.{CybozuIssueType, IssueType}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -188,11 +189,11 @@ object App extends Logger {
     exit(exitCode)
   }
 
-  private def issueTypes: Seq[String] =
-    Seq(
-      Messages("issue.type.todo"),
-      Messages("issue.type.event"),
-      Messages("issue.type.forum")
+  private def issueTypes: Map[IssueType, CybozuIssueType] =
+    Map(
+      IssueType.ToDo -> CybozuIssueType(Messages("issue.type.todo")),
+      IssueType.Event -> CybozuIssueType(Messages("issue.type.event")),
+      IssueType.Forum -> CybozuIssueType(Messages("issue.type.forum"))
     )
 
 }

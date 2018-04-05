@@ -25,3 +25,5 @@ case class CybozuComment(
   comment: CybozuDBComment,
   creator: CybozuDBUser
 )
+
+case class CybozuIssueType(value: String) extends AnyVal
