@@ -50,6 +50,8 @@
         </encoder>
     </appender>
 
+    <logger name="slick" level="WARN"/>
+
     <root level="DEBUG">
         <appender-ref ref="FILE"/>
         <appender-ref ref="FILE_WARN"/>
