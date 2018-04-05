@@ -13,8 +13,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
   private val userConverter = new BacklogUserConverter()
   private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
 
-  def from(from: CybozuTodo, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
-
+  def from(from: CybozuTodo, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] =
     for {
       convertedCreator <- userConverter.to(from.creator)
       convertedUpdater <- userConverter.to(from.updater)
@@ -25,7 +24,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
         val optAssignee = if (assignees.length > 1) Some(assignees.head) else None
         val title = if (assignees.length > 1) {
           val otherAssignees = assignees.tail
-          from.todo.title + "\n\n担当者: " + otherAssignees.mkString(",")
+          from.todo.title + "\n\n担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
         } else {
           from.todo.title
         }
@@ -46,7 +45,6 @@ class IssueConverter()(implicit ctx: MappingContext) {
           )
         )
     }
-  }
 
   def from(from: CybozuEvent, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] =
     for {
