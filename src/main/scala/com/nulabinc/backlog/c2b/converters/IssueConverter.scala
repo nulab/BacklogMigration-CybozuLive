@@ -21,7 +21,6 @@ class IssueConverter()(implicit ctx: MappingContext) {
       status <- ctx.getStatusName(from.todo.status)
       priority <- ctx.getPriorityName(from.todo.priority)
     } yield {
-        val optAssignee = if (assignees.length > 1) Some(assignees.head) else None
         val title = if (assignees.length > 1) {
           val otherAssignees = assignees.tail
           from.todo.title + "\n\n担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
@@ -36,7 +35,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
           optIssueTypeName  = Some(issueType.value),
           statusName        = status,
           priorityName      = priority,
-          optAssignee       = optAssignee,
+          optAssignee       = assignees.headOption,
           operation         = BacklogOperation(
             optCreatedUser    = Some(convertedCreator),
             optCreated        = Some(DateUtil.toDateTimeString(from.todo.createdAt)),
