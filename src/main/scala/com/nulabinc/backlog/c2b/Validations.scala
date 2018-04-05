@@ -46,7 +46,7 @@ object Validations extends Logger {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.db.exists")))
       exists <- AppDSL.fromStorage(StorageDSL.exists(dbPath))
       _ <- if (exists) {
-        AppDSL.fromConsole(ConsoleDSL.print("validation.db.exists.ok"))
+        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.db.exists.ok")))
       } else {
         AppDSL.exit(Messages("validation.db.exists.error"), 1)
       }
