@@ -18,10 +18,10 @@ lazy val backlogMigrationCommon = (project in file("modules/common"))
   .settings(
     unmanagedBase := baseDirectory.value / "libs",
     libraryDependencies ++= Seq(
-      "com.google.inject"     %  "guice"          % "4.1.0",
-      "io.spray"              %% "spray-json"     % "1.3.2",
+      "com.google.inject"     %  "guice"          % "4.2.0",
+      "io.spray"              %% "spray-json"     % "1.3.4",
       "com.mixpanel"          %  "mixpanel-java"  % "1.4.4",
-      "net.codingwell"        %% "scala-guice"    % "4.1.0",
+      "net.codingwell"        %% "scala-guice"    % "4.2.0",
       "com.netaporter"        %% "scala-uri"      % "0.4.16",
       "com.github.pathikrit"  %% "better-files"   % "3.4.0"
     )
@@ -43,7 +43,7 @@ lazy val root = (project in file("."))
   .settings(
     libraryDependencies ++= {
       val catsVersion = "1.1.0"
-      val slickVersion = "3.2.2"
+      val slickVersion = "3.2.3"
       val monixVersion = "3.0.0-RC1"
       Seq(
         "com.github.scopt"      %% "scopt"            % "3.7.0",

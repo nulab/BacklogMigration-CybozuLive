@@ -23,7 +23,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
     } yield {
         val description = if (assignees.length > 1) {
           val otherAssignees = assignees.tail
-          from.todo.content + "\n\n担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",") // TODO: english
+          from.todo.content + "\n\nその他担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",") // TODO: english
         } else {
           from.todo.content
         }
