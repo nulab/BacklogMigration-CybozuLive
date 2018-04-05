@@ -21,16 +21,16 @@ class IssueConverter()(implicit ctx: MappingContext) {
       status <- ctx.getStatusName(from.todo.status)
       priority <- ctx.getPriorityName(from.todo.priority)
     } yield {
-        val title = if (assignees.length > 1) {
+        val description = if (assignees.length > 1) {
           val otherAssignees = assignees.tail
-          from.todo.title + "\n\n担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
+          from.todo.content + "\n\n担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",") // TODO: english
         } else {
-          from.todo.title
+          from.todo.content
         }
         defaultBacklogIssue.copy(
           id                = from.todo.id,
-          summary           = createBacklogIssueSummary(title),
-          description       = from.todo.content,
+          summary           = createBacklogIssueSummary(from.todo.title),
+          description       = description,
           optDueDate        = from.todo.dueDate.map(DateUtil.toDateString),
           optIssueTypeName  = Some(issueType.value),
           statusName        = status,
