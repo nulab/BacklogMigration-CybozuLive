@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.syntax
 
-import backlog4s.dsl.HttpADT.Response
+import com.github.chaabaj.backlog4s.dsl.HttpADT.Response
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 

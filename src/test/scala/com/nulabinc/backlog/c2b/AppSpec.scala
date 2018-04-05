@@ -1,12 +1,12 @@
 package com.nulabinc.backlog.c2b
 
 import java.io.{File, InputStream}
-import java.nio.file.{Path, StandardOpenOption}
+import java.nio.file.Path
 
-import backlog4s.apis.AllApi
-import backlog4s.dsl.BacklogHttpOp.HttpF
-import backlog4s.dsl.{BacklogHttpInterpret, HttpQuery}
-import backlog4s.dsl.HttpADT.{ByteStream, Response}
+import com.github.chaabaj.backlog4s.apis.AllApi
+import com.github.chaabaj.backlog4s.dsl.BacklogHttpOp.HttpF
+import com.github.chaabaj.backlog4s.dsl.{BacklogHttpInterpret, HttpQuery}
+import com.github.chaabaj.backlog4s.dsl.HttpADT.{ByteStream, Response}
 import cats.Monad
 import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuForum, CybozuTodo}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId

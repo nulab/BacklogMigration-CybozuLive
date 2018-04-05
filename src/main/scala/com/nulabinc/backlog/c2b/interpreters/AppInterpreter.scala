@@ -3,12 +3,12 @@ package com.nulabinc.backlog.c2b.interpreters
 import java.io.PrintStream
 import java.util.Locale
 
-import backlog4s.dsl.ApiDsl.ApiPrg
-import backlog4s.dsl.BacklogHttpInterpret
-import backlog4s.streaming.ApiStream.ApiStream
 import better.files.File
 import cats.free.Free
 import cats.~>
+import com.github.chaabaj.backlog4s.dsl.ApiDsl.ApiPrg
+import com.github.chaabaj.backlog4s.dsl.BacklogHttpInterpret
+import com.github.chaabaj.backlog4s.streaming.ApiStream.ApiStream
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram

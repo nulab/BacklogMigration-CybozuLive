@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.services
 
-import backlog4s.apis.{PriorityApi, StatusApi, UserApi}
+import com.github.chaabaj.backlog4s.apis.{PriorityApi, StatusApi, UserApi}
 import com.nulabinc.backlog.c2b.datas.{BacklogPriority, BacklogStatus, BacklogUser}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
@@ -9,11 +9,11 @@ import monix.reactive.Observable
 
 object BacklogToStore {
 
-  import backlog4s.dsl.syntax._
+  import com.github.chaabaj.backlog4s.dsl.syntax._
 
   def user(api: UserApi): AppProgram[Unit] =
     for {
-      users <- AppDSL.fromBacklog(api.all().orFail)
+      users <- AppDSL.fromBacklog(api.all.orFail)
       _ <- AppDSL.consumeStream(
         Observable.fromIterator(users.iterator).map { user =>
           for {

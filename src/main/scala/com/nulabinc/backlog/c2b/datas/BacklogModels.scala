@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.datas
 
-import backlog4s.datas.User
+import com.github.chaabaj.backlog4s.datas.User
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 
 case class BacklogUser(

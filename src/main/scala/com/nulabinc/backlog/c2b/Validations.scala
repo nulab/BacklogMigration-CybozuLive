@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b
 
 import java.nio.file.Path
 
-import backlog4s.apis.{AllApi, PriorityApi, StatusApi, UserApi}
+import com.github.chaabaj.backlog4s.apis.{AllApi, PriorityApi, StatusApi, UserApi}
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
@@ -84,7 +84,7 @@ object Validations extends Logger {
   private def userMappingFileItems(api: UserApi, config: Config): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.item.exists", userMappingName)))
-      usersResult <- AppDSL.fromBacklog(api.all())
+      usersResult <- AppDSL.fromBacklog(api.all)
       _ <- usersResult match {
         case Right(users) =>
           for {

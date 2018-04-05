@@ -4,8 +4,8 @@ import java.nio.file.Paths
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import backlog4s.apis.AllApi
-import backlog4s.interpreters.AkkaHttpInterpret
+import com.github.chaabaj.backlog4s.apis.AllApi
+import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
 import com.nulabinc.backlog.c2b.datas.{CybozuIssueType, IssueType}
