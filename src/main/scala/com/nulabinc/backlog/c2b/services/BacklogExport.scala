@@ -5,6 +5,7 @@ import java.util.Date
 import better.files.File
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.converters._
+import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
@@ -12,9 +13,10 @@ import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
 import com.nulabinc.backlog.migration.common.conf.BacklogPaths
 import com.nulabinc.backlog.migration.common.domain._
+import com.osinka.i18n.Messages
 import spray.json._
 
-object BacklogExport {
+object BacklogExport extends Logger {
 
   import com.nulabinc.backlog.migration.common.domain.BacklogJsonProtocol._
 
@@ -36,7 +38,11 @@ object BacklogExport {
     for {
       _ <- projectResult match {
         case Right(project) =>
-          AppDSL.export(config.backlogPaths.projectJson, BacklogProjectWrapper(project).toJson.prettyPrint)
+          AppDSL.export(
+            Messages("export.project"),
+            config.backlogPaths.projectJson,
+            BacklogProjectWrapper(project).toJson.prettyPrint
+          )
         case Left(error) =>
           AppDSL.exit(error.toString, 1)
       }
@@ -54,6 +60,7 @@ object BacklogExport {
       _ <- result match {
         case Right(backlogUsers) =>
           AppDSL.export(
+            Messages("export.user"),
             config.backlogPaths.projectUsersJson,
             BacklogProjectUsersWrapper(backlogUsers).toJson.prettyPrint
           )
@@ -65,12 +72,14 @@ object BacklogExport {
 
   def categories(config: Config): AppProgram[File] =
     AppDSL.export(
+      Messages("export.category"),
       config.backlogPaths.issueCategoriesJson,
       BacklogIssueCategoriesWrapper(Seq.empty[BacklogIssueCategory]).toJson.prettyPrint
     )
 
   def versions(config: Config): AppProgram[File] =
     AppDSL.export(
+      Messages("export.version"),
       config.backlogPaths.versionsJson,
       BacklogVersionsWrapper(Seq.empty[BacklogVersion]).toJson.prettyPrint
     )
@@ -82,6 +91,7 @@ object BacklogExport {
       case Right(backlogIssueTypes) =>
         for {
           _ <- AppDSL.export(
+            Messages("export.issue_type"),
             config.backlogPaths.issueTypesJson,
             BacklogIssueTypesWrapper(backlogIssueTypes).toJson.prettyPrint
           )
@@ -93,6 +103,7 @@ object BacklogExport {
 
   def customFields(config: Config): AppProgram[File] =
     AppDSL.export(
+      Messages("export.custom_field"),
       config.backlogPaths.customFieldSettingsJson,
       BacklogCustomFieldSettingsWrapper(Seq.empty[BacklogCustomFieldSetting]).toJson.prettyPrint
     )
@@ -203,10 +214,13 @@ object BacklogExport {
     } yield ()
 
 
-  private def exportIssue(paths: BacklogPaths, backlogIssue: BacklogIssue, createdAt: DateTime): AppProgram[File] = {
-    val issueDirPath = paths.issueDirectoryPath("issue", backlogIssue.id, Date.from(createdAt.toInstant),0)
-    AppDSL.export(paths.issueJson(issueDirPath), backlogIssue.toJson.prettyPrint)
-  }
+  private def exportIssue(paths: BacklogPaths, backlogIssue: BacklogIssue, createdAt: DateTime): AppProgram[File] =
+    AppDSL.export(
+      Messages("export.issue"),
+      paths.issueDirectoryPath("issue", backlogIssue.id, Date.from(createdAt.toInstant),0),
+      backlogIssue.toJson.prettyPrint
+    )
+
 
   private def exportComments(paths: BacklogPaths,
                              issueId: AnyId,
@@ -218,7 +232,11 @@ object BacklogExport {
           case Right(backlogComment) =>
             val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
             val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
-            AppDSL.export(paths.issueJson(issueDirPath), backlogComment.toJson.prettyPrint).map(_ => ())
+            AppDSL.export(
+              Messages("export.comment"),
+              paths.issueJson(issueDirPath),
+              backlogComment.toJson.prettyPrint
+            ).map(_ => ())
           case Left(error) =>
             AppDSL.exit("Comment convert error. " + error.toString, 1)
         }
