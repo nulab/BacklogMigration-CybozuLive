@@ -1,0 +1,9 @@
+[submodule "modules/common"]
+	path = modules/common
+	url = git@github.com:nulab/backlog-migration-common.git
+[submodule "modules/backlog4s"]
+	path = modules/backlog4s
+	url = git@github.com:chaabaj/backlog4s.git
+[submodule "modules/importer"]
+	path = modules/importer
+	url = git@github.com:nulab/backlog-importer.git

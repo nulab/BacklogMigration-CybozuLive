@@ -1,0 +1,107 @@
+
+# Error messages
+error.require_java8=現在のJavaのバージョンは[{0}]です。Java8以上が必須になります。
+error.data_folder_not_found=[{0}]ディレクトリが存在しません。
+
+# Name
+name.backlog=Backlog
+name.cybozu=サイボウズLive
+name.mapping.user=ユーザー
+name.mapping.priority=優先度
+name.mapping.status=状態
+
+# Validation
+validation.access={0}にアクセス可能かチェックしています...
+validation.access.ok={0}にアクセス可能です。
+validation.access.error={0}にアクセスできませんでした。URLまたはAPIアクセスキーを確認してください。
+validation.admin=管理者権限の有無をチェックしています...
+validation.admin.ok=管理者権限があります。
+validation.admin.error={0}のAPIキーが管理者権限ではありません。管理者権限のAPIキーを使用してください。
+validation.db.exists=DBファイルが存在するかチェックしています ...
+validation.db.exists.ok=DBファイルが存在します。
+validation.db.exists.error=DBファイルが存在しません。initコマンドを実行しましたか？
+validation.mapping.file.exists=マッピングファイルが存在するかチェックしています ...
+validation.mapping.file.exists.ok={0}マッピングファイルが存在します.
+validation.mapping.file.exists.error={0}マッピングファイルが存在しません。initコマンドを実行しましたか？
+validation.mapping.item.exists={0}マッピング項目が正しいかチェックしています ...
+validation.mapping.item.empty={0} {1}マッピングの項目が指定されていません。 {2}: {3}
+validation.mapping.item.error={0} {1}マッピングに入力された項目が見つかりません。 {2}: {3} {0}: {4}
+
+# Issue types
+issue.type.todo=ToDo
+issue.type.event=イベント
+issue.type.forum=掲示板
+
+# Mapping file
+mapping.output_file={0}のマッピングファイルを作成しました。マッピングファイルを確認し、必要に応じて修正してください。
+
+# Messages
+message.init.finish=エクスポートが完了しました。 次のステップは \n\n1. マッピングファイルを編集します。\n2. importコマンドを実行します。\n\n
+
+#
+# From importer
+#
+
+# Common
+common.projects=プロジェクト
+common.users=ユーザー
+common.not_set=新規
+common.no=いいえ
+common.parent_issue=親課題
+common.empty=未設定
+common.project_key=プロジェクトキー
+common.version=バージョン
+common.category=カテゴリー
+common.issue_type=課題種別
+common.project_user=参加ユーザー
+common.custom_field=カスタムフィールド
+common.result_failed=失敗:{0,number,#}
+common.result_success=成功
+common.issues=課題
+common.issues_info=課題情報
+common.wikis=Wiki
+common.groups=グループ
+common.src=移行元
+common.dst=移行先
+common.src.uppercase=移行元
+common.dst.uppercase=移行先
+common.url=URL
+common.access_key=アクセスキー
+common.filter=フィルター
+common.importOnly=インポートのみ実行
+common.fitIssueKey=課題キーを一致させる
+
+
+# Message
+message.exporting=エクスポートしています...
+message.exported=エクスポートしました。
+message.converting=コンバートしています...
+message.converted=コンバートしました。
+message.importing=インポートしています...
+message.imported=インポートしました。
+message.execute={0}の{1}(全{2,number,#}件)
+message.executed={0}を{1}
+message.progress.executed={1}を{0}
+message.progress.value=({0,number,#}/{1,number,#})
+message.analyzing=解析しています...
+message.analyzed=解析しました。
+message.collecting=収集しています...
+message.collected=収集しました。
+
+# Import
+import.start=インポートを開始します。
+import.finish=インポートが完了しました。
+import.suspend=インポートを中断します。
+import.issue.already_exists=課題[{0}]は、すでに登録されているため読み飛ばします。
+import.issue.create_dummy=ダミーの課題を作成しました。:{0}
+import.progress=進行状況...({0,number,#}/{1,number,#})
+import.date.execute={0}の{1}を{2}
+import.remaining_time=[残り時間:{0}]
+import.error.project.not.join=[{0}]は参加していないプロジェクトになります。課題を追加する場合はプロジェクトに参加してください。
+import.error.limit.project=プロジェクト[{0}]をインポートできません。\n現在のプランではこれ以上プロジェクトを登録できません。\nプランをアップグレードしてください。
+import.error.wiki.attachment=添付ファイルをWiki[{0}]に添付できませんでした。:{1}
+import.error.issue.attachment=添付ファイル[{0}]をアップロードできませんでした。:{1}
+import.error.attachment.too_large=添付ファイル{0}をアップロードできませんでした。添付ファイルのサイズが大きすぎます。
+import.error.failed.import=プロジェクト[{0}]を登録できませんでした。:{1}
+import.error.failed.comment=コメントを課題[{0}]に登録できませんでした。:{1}
+
