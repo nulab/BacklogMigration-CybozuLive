@@ -2,7 +2,8 @@ package com.nulabinc.backlog.c2b
 
 import java.nio.file.Path
 
-import com.github.chaabaj.backlog4s.apis.{AllApi, PriorityApi, StatusApi, UserApi}
+import com.github.chaabaj.backlog4s.apis._
+import com.github.chaabaj.backlog4s.datas._
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
@@ -18,7 +19,7 @@ object Validations extends Logger {
   private val priorityMappingName = Messages("name.mapping.priority")
   private val statusMappingName = Messages("name.mapping.status")
 
-  def backlogProgram(config: Config, backlogApi: AllApi): AppProgram[Unit] = {
+  def backlogProgram(config: Config, spaceApi: SpaceApi): AppProgram[Unit] = {
 
     import com.nulabinc.backlog.c2b.interpreters.AppDSL._
     import com.nulabinc.backlog.c2b.syntax.BacklogResponseOps._
@@ -26,19 +27,43 @@ object Validations extends Logger {
     for {
       // Access check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", backlogName)))
-      apiAccess <- fromBacklog(backlogApi.spaceApi.logo)
+      apiAccess <- fromBacklog(spaceApi.logo)
       _ <- apiAccess.orExit(
         Messages("validation.access.ok", backlogName),
         Messages("validation.access.error", backlogName)
       )
       // Admin check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.admin", backlogName)))
-      adminCheck <- fromBacklog(backlogApi.spaceApi.diskUsage)
+      adminCheck <- fromBacklog(spaceApi.diskUsage)
       _ <- adminCheck.orExit(
         Messages("validation.admin.ok", backlogName),
         Messages("validation.admin.error", backlogName)
       )
     } yield ()
+  }
+
+  def projectsExists(config: Config, projectApi: ProjectApi): AppProgram[Unit] = {
+    for {
+      exists <- AppDSL.fromBacklog(
+        projectApi.byIdOrKey(
+          KeyParam[Project](
+            Key[Project](config.projectKey)
+          )
+        )
+      )
+      _ <- exists match {
+        case Right(_) =>
+          for {
+            input <- AppDSL.fromConsole(ConsoleDSL.read(Messages("validation.backlog_project_already_exist", config.projectKey)))
+            _ <- if(input == "y" || input == "Y")
+              AppDSL.pure(())
+            else
+              AppDSL.exit(Messages("message.import.cancel"), 0)
+          } yield ()
+        case Left(_) => AppDSL.pure(())
+      }
+    } yield ()
+
   }
 
   def dbExistsProgram(dbPath: Path): AppProgram[Unit] = {
@@ -74,7 +99,7 @@ object Validations extends Logger {
     } yield ()
   }
 
-  def mappingFileItems(api: AllApi, config: Config): AppProgram[Unit] =
+  def mappingFileItems(config: Config, api: AllApi): AppProgram[Unit] =
     for {
       _ <- userMappingFileItems(api.userApi, config)
       _ <- priorityMappingFileItems(api.priorityApi, config)
