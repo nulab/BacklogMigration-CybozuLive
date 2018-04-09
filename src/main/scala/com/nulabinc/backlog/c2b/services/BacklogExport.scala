@@ -256,11 +256,12 @@ object BacklogExport {
                              comments: Seq[CybozuComment],
                              converter: BacklogCommentConverter,
                              offset: Int = 0): AppProgram[Seq[Unit]] = {
-    val programs = comments.zipWithIndex.map {
+    import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
+    
+    comments.zipWithIndex.map {
       case (cybozuComment, index) =>
         exportComment(paths, issueId, cybozuComment, index + offset, converter)
-    }
-    sequence(programs)
+    }.sequence
   }
 
   private def createBacklogCommentWithStatusChangelog(parentIssueId: Long,
@@ -285,15 +286,4 @@ object BacklogExport {
       optCreatedUser = backlogOperation.optCreatedUser,
       optCreated =  backlogOperation.optCreated
     )
-
-  private def sequence[A](prgs: Seq[AppProgram[A]]): AppProgram[Seq[A]] =
-    prgs.foldLeft(AppDSL.pure(Seq.empty[A])) {
-      case (newPrg, prg) =>
-        newPrg.flatMap { results =>
-          prg.map { result =>
-            results :+ result
-          }
-        }
-    }
-
 }
