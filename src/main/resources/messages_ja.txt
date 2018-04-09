@@ -17,15 +17,16 @@ validation.access.error={0}にアクセスできませんでした。URLまた�
 validation.admin=管理者権限の有無をチェックしています...
 validation.admin.ok=管理者権限があります。
 validation.admin.error={0}のAPIキーが管理者権限ではありません。管理者権限のAPIキーを使用してください。
-validation.db.exists=DBファイルが存在するかチェックしています ...
-validation.db.exists.ok=DBファイルが存在します。
-validation.db.exists.error=DBファイルが存在しません。initコマンドを実行しましたか？
+validation.db.exists=エクスポートデータが存在するかチェックしています ...
+validation.db.exists.ok=エクスポートデータが存在します。
+validation.db.exists.error=エクスポートデータが存在しません。initコマンドを実行しましたか？
 validation.mapping.file.exists=マッピングファイルが存在するかチェックしています ...
-validation.mapping.file.exists.ok={0}マッピングファイルが存在します.
+validation.mapping.file.exists.ok={0}マッピングファイルが存在します。
 validation.mapping.file.exists.error={0}マッピングファイルが存在しません。initコマンドを実行しましたか？
 validation.mapping.item.exists={0}マッピング項目が正しいかチェックしています ...
 validation.mapping.item.empty={0} {1}マッピングの項目が指定されていません。 {2}: {3}
 validation.mapping.item.error={0} {1}マッピングに入力された項目が見つかりません。 {2}: {3} {0}: {4}
+validation.backlog_project_already_exist=プロジェクト[{0}]はBacklog内に既に存在します。\nプロジェクト[{0}]にインポートしますか？（追加インポートの仕様については、詳細READMEを参照ください) (y/n [n]):
 
 # Issue types
 issue.type.todo=ToDo
@@ -36,6 +37,7 @@ issue.type.forum=掲示板
 mapping.output_file={0}のマッピングファイルを作成しました。マッピングファイルを確認し、必要に応じて修正してください。
 
 # Messages
+message.import.cancel=インポートを中止しました。
 message.init.finish=エクスポートが完了しました。 次のステップは \n\n1. マッピングファイルを編集します。\n2. importコマンドを実行します。\n\n
 
 # Export

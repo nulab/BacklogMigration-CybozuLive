@@ -17,15 +17,16 @@ validation.access.error=The accessing {0} failed. Please check the url or api ac
 validation.admin=Checking for the presence of admin role ...
 validation.admin.ok=That is OK!
 validation.admin.error={0} API key is not administrator authority. Please use API key of administrator authority.
-validation.db.exists=Checking whether DB file exists ...
-validation.db.exists.ok=DB file exists.
-validation.db.exists.error=DB file does not exist. Did you run the init command?
+validation.db.exists=Checking whether export data exists ...
+validation.db.exists.ok=Export data exists.
+validation.db.exists.error=Export data does not exist. Did you run the init command?
 validation.mapping.file.exists=Checking whether mapping-files exists ...
 validation.mapping.file.exists.ok={0} file exists.
 validation.mapping.file.exists.error={0} file does not exist. Did you run the init command?
 validation.mapping.item.exists=Checking whether {0} mapping items exist ...
 validation.mapping.item.empty={0} {1} item is not specified. {2}: {3}
 validation.mapping.item.error={0} {1} item doesn''t exist. {2}: {3} {0}: {4}
+validation.backlog_project_already_exist=Project "{0}" already exists. Do you want to import? (Check the README file for details.)  (y/n [n]):
 
 # Issue types
 issue.type.todo=To-Do
@@ -36,6 +37,7 @@ issue.type.forum=Forum
 mapping.output_file=The mapping file about {0} is created. Check the mapping file and fix it if necessary.
 
 # Messages
+message.import.cancel=Import has been canceled.
 message.init.finish=Init completed. Next step \n\n1. Edit mapping files.\n2. Execute the import command.\n\n
 
 # Export
