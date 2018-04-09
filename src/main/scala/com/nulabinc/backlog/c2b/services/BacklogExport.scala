@@ -8,7 +8,7 @@ import com.nulabinc.backlog.c2b.converters._
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
-import com.nulabinc.backlog.c2b.interpreters.AppDSL
+import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
 import com.nulabinc.backlog.migration.common.conf.BacklogPaths
@@ -20,8 +20,12 @@ object BacklogExport extends Logger {
 
   import com.nulabinc.backlog.migration.common.domain.BacklogJsonProtocol._
 
+  val start: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.print(Messages("export.start")))
+  val finish: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.print(Messages("export.finish")))
+
   def all(config: Config, issueTypes: Map[IssueType, CybozuIssueType])(implicit mappingContext: MappingContext): AppProgram[Unit] =
     for {
+      _ <- start
       _ <- project(config)
       _ <- users(config)
       _ <- categories(config)
@@ -31,6 +35,7 @@ object BacklogExport extends Logger {
       _ <- todos(config, issueTypes(IssueType.ToDo))
       _ <- events(config, issueTypes(IssueType.Event))
       _ <- forums(config, issueTypes(IssueType.Forum))
+      _ <- finish
     } yield ()
 
   def project(config: Config): AppProgram[Unit] = {

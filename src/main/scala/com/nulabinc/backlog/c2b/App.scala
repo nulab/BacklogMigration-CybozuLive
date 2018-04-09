@@ -161,7 +161,9 @@ object App extends Logger {
       _ <- Validations.projectsExists(config, backlogApi.projectApi)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext(config)
+      // Export
       _ <- BacklogExport.all(config, issueTypes)(mappingContext)
+      // Import
       _ <- AppDSL.`import`(backlogApiConfiguration)
     } yield ()
   }

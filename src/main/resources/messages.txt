@@ -42,7 +42,7 @@ message.init.finish=Init completed. Next step \n\n1. Edit mapping files.\n2. Exe
 
 # Export
 export.start=Start export.
-export.finish=Export completed. Next step \n\n1. Edit mapping files.\n2. Execute the following command to import (replace with your JIRA password).\n\n--------------------------------------\n\n{0}\n\n--------------------------------------
+export.finish=Export completed.
 export.attachment.empty=Attachment: {0} -> {1}
 export.remaining_time=[Remaining time:{0}]
 export.date.execute={2} {1} about {0}.
