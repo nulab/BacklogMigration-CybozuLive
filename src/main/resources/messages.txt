@@ -9,6 +9,7 @@ name.cybozu=CybozuLive
 name.mapping.user=User
 name.mapping.priority=Priority
 name.mapping.status=Status
+name.status.open=Open
 
 # Validation
 validation.access=Checking whether the {0} is accessible ...

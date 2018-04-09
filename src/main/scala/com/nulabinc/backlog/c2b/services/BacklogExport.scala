@@ -23,7 +23,9 @@ object BacklogExport extends Logger {
   val start: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.print(Messages("export.start")))
   val finish: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.print(Messages("export.finish")))
 
-  def all(config: Config, issueTypes: Map[IssueType, CybozuIssueType])(implicit mappingContext: MappingContext): AppProgram[Unit] =
+  def all(config: Config,
+          issueTypes: Map[IssueType, CybozuIssueType],
+          openStatusName: String)(implicit mappingContext: MappingContext): AppProgram[Unit] =
     for {
       _ <- start
       _ <- project(config)
@@ -32,7 +34,7 @@ object BacklogExport extends Logger {
       _ <- versions(config)
       _ <- exportIssueTypes(config, issueTypes)
       _ <- customFields(config)
-      _ <- todos(config, issueTypes(IssueType.ToDo))
+      _ <- todos(config, issueTypes(IssueType.ToDo), openStatusName)
       _ <- events(config, issueTypes(IssueType.Event))
       _ <- forums(config, issueTypes(IssueType.Forum))
       _ <- finish
@@ -113,14 +115,18 @@ object BacklogExport extends Logger {
       BacklogCustomFieldSettingsWrapper(Seq.empty[BacklogCustomFieldSetting]).toJson.prettyPrint
     )
 
-  def todos(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+  def todos(config: Config,
+            issueType: CybozuIssueType,
+            openStatusName: String)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new BacklogCommentConverter()
 
     for {
       todos <- AppDSL.fromDB(StoreDSL.getTodos)
       _ <- AppDSL.consumeStream {
-        todos.map(todo => exportTodo(config.backlogPaths, todo.id, issueType, issueConverter, commentConverter))
+        todos.map(todo =>
+          exportTodo(config.backlogPaths, todo.id, issueType, issueConverter, commentConverter, openStatusName)
+        )
       }
     } yield ()
   }
@@ -153,7 +159,8 @@ object BacklogExport extends Logger {
                          todoId: AnyId,
                          issueType: CybozuIssueType,
                          issueConverter: IssueConverter,
-                         commentConverter: BacklogCommentConverter): AppProgram[Unit] =
+                         commentConverter: BacklogCommentConverter,
+                         openStatusName: String): AppProgram[Unit] =
     for {
       optTodo <- AppDSL.fromDB(StoreDSL.getTodo(todoId))
       _ <- optTodo match {
@@ -162,7 +169,20 @@ object BacklogExport extends Logger {
             case Right(backlogIssue) =>
               for {
                 _ <- exportIssue(paths, backlogIssue, todo.todo.createdAt)
-                _ <- exportComments(paths, todo.todo.id, todo.comments, commentConverter)
+                _ <- if (backlogIssue.statusName != openStatusName) {
+                  val comment = createBacklogCommentWithStatusChangelog(
+                    parentIssueId = todo.todo.id,
+                    oldStatusName = openStatusName,
+                    newStatusName = backlogIssue.statusName,
+                    backlogOperation = backlogIssue.operation
+                  )
+                  for {
+                    _ <- exportComment(paths, todo.todo.id, comment, todo.todo.createdAt, 0)
+                    _ <- exportComments(paths, todo.todo.id, todo.comments, commentConverter, 1)
+                  } yield ()
+                } else {
+                  exportComments(paths, todo.todo.id, todo.comments, commentConverter)
+                }
               } yield ()
             case Left(error) =>
               AppDSL.exit("ToDo convert error. " + error.toString, 1)
@@ -228,36 +248,62 @@ object BacklogExport extends Logger {
     )
   }
 
+  private def exportComment(paths: BacklogPaths,
+                            issueId: AnyId,
+                            backlogComment: BacklogComment,
+                            commentCreatedAt: DateTime,
+                            index: Int): AppProgram[Unit] = {
+    val createdDate = Date.from(commentCreatedAt.toInstant)
+    val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
+    AppDSL.export(Messages("export.comment"), paths.issueJson(issueDirPath), backlogComment.toJson.prettyPrint).map(_ => ())
+  }
+
+  private def exportComment(paths: BacklogPaths,
+                            issueId: AnyId,
+                            cybozuComment: CybozuComment,
+                            index: Int,
+                            converter: BacklogCommentConverter): AppProgram[Unit] = {
+    converter.from(issueId, cybozuComment) match {
+      case Right(backlogComment) =>
+        exportComment(paths, issueId, backlogComment, cybozuComment.comment.createdAt, index)
+      case Left(error) =>
+        AppDSL.exit("Comment convert error. " + error.toString, 1)
+    }
+  }
+
   private def exportComments(paths: BacklogPaths,
                              issueId: AnyId,
                              comments: Seq[CybozuComment],
-                             converter: BacklogCommentConverter): AppProgram[Seq[Unit]] = {
-    val programs = comments.zipWithIndex.map {
+                             converter: BacklogCommentConverter,
+                             offset: Int = 0): AppProgram[Seq[Unit]] = {
+    import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
+    
+    comments.zipWithIndex.map {
       case (cybozuComment, index) =>
-        converter.from(issueId, cybozuComment) match {
-          case Right(backlogComment) =>
-            val createdDate = Date.from(comments(index).comment.createdAt.toInstant)
-            val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
-            AppDSL.export(
-              Messages("export.comment"),
-              paths.issueJson(issueDirPath),
-              backlogComment.toJson.prettyPrint
-            ).map(_ => ())
-          case Left(error) =>
-            AppDSL.exit("Comment convert error. " + error.toString, 1)
-        }
-    }
-    sequence(programs)
+        exportComment(paths, issueId, cybozuComment, index + offset, converter)
+    }.sequence
   }
 
-  private def sequence[A](prgs: Seq[AppProgram[A]]): AppProgram[Seq[A]] =
-    prgs.foldLeft(AppDSL.pure(Seq.empty[A])) {
-      case (newPrg, prg) =>
-        newPrg.flatMap { results =>
-          prg.map { result =>
-            results :+ result
-          }
-        }
-    }
-
+  private def createBacklogCommentWithStatusChangelog(parentIssueId: Long,
+                                                      oldStatusName: String,
+                                                      newStatusName: String,
+                                                      backlogOperation: BacklogOperation): BacklogComment =
+    BacklogComment(
+      eventType = "comment",
+      optIssueId = Some(parentIssueId),
+      optContent = None,
+      changeLogs = Seq(
+        BacklogChangeLog(
+          field = "status",
+          optOriginalValue = Some(oldStatusName),
+          optNewValue = Some(newStatusName),
+          optAttachmentInfo = None,
+          optAttributeInfo = None,
+          optNotificationInfo = None
+        )
+      ),
+      notifications = Seq(),
+      optCreatedUser = backlogOperation.optCreatedUser,
+      optCreated =  backlogOperation.optCreated
+    )
 }
