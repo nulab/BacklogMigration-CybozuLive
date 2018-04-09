@@ -219,13 +219,14 @@ object BacklogExport extends Logger {
     } yield ()
 
 
-  private def exportIssue(paths: BacklogPaths, backlogIssue: BacklogIssue, createdAt: DateTime): AppProgram[File] =
+  private def exportIssue(paths: BacklogPaths, backlogIssue: BacklogIssue, createdAt: DateTime): AppProgram[File] = {
+    val issueDirPath = paths.issueDirectoryPath("issue", backlogIssue.id, Date.from(createdAt.toInstant),0)
     AppDSL.export(
       Messages("export.issue"),
-      paths.issueDirectoryPath("issue", backlogIssue.id, Date.from(createdAt.toInstant),0),
+      paths.issueJson(issueDirPath),
       backlogIssue.toJson.prettyPrint
     )
-
+  }
 
   private def exportComments(paths: BacklogPaths,
                              issueId: AnyId,
@@ -248,8 +249,6 @@ object BacklogExport extends Logger {
     }
     sequence(programs)
   }
-
-
 
   private def sequence[A](prgs: Seq[AppProgram[A]]): AppProgram[Seq[A]] =
     prgs.foldLeft(AppDSL.pure(Seq.empty[A])) {
