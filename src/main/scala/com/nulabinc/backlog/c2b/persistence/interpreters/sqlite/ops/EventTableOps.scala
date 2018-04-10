@@ -15,6 +15,11 @@ private[sqlite] case class EventTableOps()(implicit exc: ExecutionContext) exten
   private val commentTableQuery = TableQuery[CommentTable]
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
 
+  lazy val count: DBIORead[Int] =
+    tableQuery
+      .length
+      .result
+
   def getEvent(id: AnyId): DBIORead[Option[CybozuEvent]] =
     for {
       optEvent <- tableQuery

@@ -57,6 +57,8 @@ object App extends Logger {
     }
     // TODO: check release version
 
+    AnsiConsole.systemInstall()
+
     val config = ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
       case Some(c) => c.commandType match {
         case InitCommand => c
@@ -113,7 +115,6 @@ object App extends Logger {
 
     for {
       // Initialize
-      _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
@@ -150,7 +151,6 @@ object App extends Logger {
 
     for {
       // Initialize
-      _ <- AppDSL.pure(AnsiConsole.systemInstall())
       _ <- AppDSL.setLanguage(language)
       _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(config.BACKLOG_PATHS))
       // Validation

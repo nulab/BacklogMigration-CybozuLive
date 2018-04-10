@@ -41,6 +41,21 @@ mapping.output_file={0}のマッピングファイルを作成しました。マ
 message.import.cancel=インポートを中止しました。
 message.init.finish=エクスポートが完了しました。 次のステップは \n\n1. マッピングファイルを編集します。\n2. importコマンドを実行します。\n\n
 
+# Export
+export.start=エクスポートを開始します。
+export.finish=エクスポートが完了しました。
+export.attachment.empty=添付ファイル: {0} -> {1}
+export.remaining_time=[残り時間:{0}]
+export.date.execute={0}の{1}を{2}
+export.project=プロジェクトをエクスポートしました。
+export.user=プロジェクトユーザーをエクスポートしました。
+export.category=カテゴリをエクスポートしました。
+export.version=バージョンをエクスポートしました。
+export.issue_type=課題種別をエクスポートしました。
+export.custom_field=カスタムフィールドをエクスポートしました。
+export.issue=({0}/{1}) 課題をエクスポートしました。 {2}
+export.comment=コメントをエクスポートしました。
+
 #
 # From importer
 #

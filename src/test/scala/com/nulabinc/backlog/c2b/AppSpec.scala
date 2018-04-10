@@ -80,6 +80,9 @@ class AppSpec extends FlatSpec with Matchers {
     override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = ???
     override def getEvent(id: AnyId): Task[Option[CybozuEvent]] = ???
     override def getForum(id: AnyId): Task[Option[CybozuForum]] = ???
+    override def getTodoCount: Task[AnyId] = ???
+    override def getEventCount: Task[AnyId] = ???
+    override def getForumCount: Task[AnyId] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {

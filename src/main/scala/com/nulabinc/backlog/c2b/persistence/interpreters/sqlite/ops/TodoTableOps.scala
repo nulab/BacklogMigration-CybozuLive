@@ -30,6 +30,11 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
       .distinct
       .result
 
+  lazy val count: DBIORead[Int] =
+    tableQuery
+      .length
+      .result
+
   def getTodo(id: AnyId): DBIORead[Option[CybozuTodo]] = {
     for {
       optTodo <- tableQuery

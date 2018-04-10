@@ -41,6 +41,21 @@ mapping.output_file=The mapping file about {0} is created. Check the mapping fil
 message.import.cancel=Import has been canceled.
 message.init.finish=Init completed. Next step \n\n1. Edit mapping files.\n2. Execute the import command.\n\n
 
+# Export
+export.start=Start export.
+export.finish=Export completed.
+export.attachment.empty=Attachment: {0} -> {1}
+export.remaining_time=[Remaining time:{0}]
+export.date.execute={2} {1} about {0}.
+export.project=Project is exported.
+export.user=Project users are exported.
+export.category=Categories are exported.
+export.version=Versions are exported.
+export.issue_type=Issue types are exported.
+export.custom_field=Custom fields are exported.
+export.issue=({0}/{1}) Issue is exported. {2}
+export.comment=Comment is exported.
+
 #
 # From importer
 #
@@ -73,7 +88,6 @@ common.access_key=access key
 common.filter=Filter
 common.importOnly=Only Import
 common.fitIssueKey=Fit Issue Key
-
 
 # Message
 message.exporting=Exporting

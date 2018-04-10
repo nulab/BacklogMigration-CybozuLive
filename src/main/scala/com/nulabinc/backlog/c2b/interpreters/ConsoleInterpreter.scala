@@ -3,10 +3,12 @@ package com.nulabinc.backlog.c2b.interpreters
 import cats.free.Free
 import cats.~>
 import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
+import com.nulabinc.backlog.migration.common.utils.ConsoleOut
 import monix.eval.Task
 
 sealed trait ConsoleADT[A]
 case class Print(str: String) extends ConsoleADT[Unit]
+case class PrintBold(str: String) extends ConsoleADT[Unit]
 case class Read(printMessage: String) extends ConsoleADT[String]
 
 object ConsoleDSL {
@@ -15,6 +17,9 @@ object ConsoleDSL {
 
   def print(str: String): ConsoleProgram[Unit] =
     Free.liftF(Print(str))
+
+  def printBold(str: String): ConsoleProgram[Unit] =
+    Free.liftF(PrintBold(str))
 
   def read(printMessage: String): ConsoleProgram[String] =
     Free.liftF(Read(printMessage))
@@ -31,12 +36,17 @@ class ConsoleInterpreter extends (ConsoleADT ~> Task) {
     ()
   }
 
+  def printBold(string: String): Task[Unit] = Task {
+    ConsoleOut.boldln(string)
+  }
+
   def read(printMessage: String): Task[String] = Task {
     scala.io.StdIn.readLine(printMessage)
   }
 
   def apply[A](fa: ConsoleADT[A]): Task[A] = fa match  {
     case Print(str) => print(str)
+    case PrintBold(str) => printBold(str)
     case Read(printMessage) => read(printMessage)
   }
 }

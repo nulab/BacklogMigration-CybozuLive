@@ -28,21 +28,30 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     db.run(todoTableOps.getTodo(id))
   }
 
+  override def getTodoCount: Task[Int] = Task.deferFuture {
+    db.run(todoTableOps.count)
+  }
+
   override def getEvent(id: AnyId): Task[Option[CybozuEvent]] = Task.deferFuture {
     db.run(eventTableOps.getEvent(id))
+  }
+
+  override def getEventCount: Task[AnyId] = Task.deferFuture {
+    db.run(eventTableOps.count)
   }
 
   override def getForum(id: AnyId): Task[Option[CybozuForum]] = Task.deferFuture {
     db.run(forumTableOps.getForum(id))
   }
 
+  override def getForumCount: Task[AnyId] = Task.deferFuture {
+    db.run(forumTableOps.count)
+  }
+
   def getCybozuUserById(id: AnyId): Task[Option[CybozuDBUser]] = Task.deferFuture {
     db.run(cybozuUserTableOps.select(Id[CybozuDBUser](id)))
   }
 
-
-  // https://monix.io/docs/2x/eval/task.html
-  // https://monix.io/docs/2x/reactive/observable.html
   override def apply[A](fa: StoreADT[A]): Task[A] = {
 
     import allTableOps._
@@ -69,6 +78,8 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
           db.stream(todoTableOps.stream)
         )
       }
+      case GetTodoCount =>
+        getTodoCount
       case GetTodo(id) =>
         getTodo(id)
       case StoreTodo(issue, writeType) => Task.deferFuture {
@@ -76,6 +87,8 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
       }
       case GetForum(id) =>
         getForum(id)
+      case GetForumCount =>
+        getForumCount
       case GetForums => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(forumTableOps.stream)
@@ -86,6 +99,8 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
       }
       case GetEvent(id) =>
         getEvent(id)
+      case GetEventCount =>
+        getEventCount
       case GetEvents => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(eventTableOps.stream)

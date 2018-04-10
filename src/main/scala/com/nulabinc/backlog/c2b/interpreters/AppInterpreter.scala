@@ -78,18 +78,20 @@ object AppDSL {
   def fromBacklogStream[A](prg: ApiStream[A]): AppProgram[Observable[Seq[A]]] =
     Free.liftF[AppADT, Observable[Seq[A]]](FromBacklogStream(prg))
 
-  def exit(reason: String, exitCode: Int): AppProgram[Unit] = {
+  def exit(reason: String, exitCode: Int): AppProgram[Unit] =
     for {
       _ <- fromConsole(ConsoleDSL.print(reason))
       _ <- Free.liftF(Exit(exitCode))
     } yield ()
-  }
 
   def setLanguage(lang: String): AppProgram[Unit] =
     Free.liftF(SetLanguage(lang))
 
-  def export(file: File, content: String): AppProgram[File] =
-    Free.liftF(Export(file, content))
+  def export(message: String, file: File, content: String): AppProgram[File] =
+    for {
+      _ <- fromConsole(ConsoleDSL.print(message))
+      file <- Free.liftF(Export(file, content))
+    } yield file
 
   def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
     Free.liftF(Import(backlogApiConfiguration))
@@ -153,7 +155,8 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       AnsiConsole.systemUninstall()
       sys.exit(statusCode)
     }
-    case SetLanguage(lang: String) => setLanguage(lang)
+    case SetLanguage(lang: String) =>
+      setLanguage(lang)
     case Export(file, content) => Task {
       IOUtil.output(file, content)
     }
