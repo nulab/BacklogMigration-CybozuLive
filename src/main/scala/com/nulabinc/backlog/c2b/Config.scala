@@ -13,7 +13,7 @@ case class Config(
   backlogUrl: String = "",
   backlogKey: String = "",
   projectKey: String = "",
-  commandType: CommandType = UndefinedCommand,
+  commandType: Option[CommandType] = None,
   dataDirectory: String = ""
 ) {
   val DATA_PATHS: Path = Paths.get(dataDirectory)
@@ -50,7 +50,6 @@ object Config {
 
   case object InitCommand extends CommandType
   case object ImportCommand extends CommandType
-  case object UndefinedCommand extends CommandType
 }
 
 

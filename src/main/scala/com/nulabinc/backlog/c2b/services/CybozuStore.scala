@@ -14,7 +14,7 @@ import com.osinka.i18n.Messages
 
 object CybozuStore extends Logger {
 
-  def all(csvFiles: Array[File]): AppProgram[Unit] = {
+  def copyToStore(csvFiles: Array[File]): AppProgram[Unit] = {
     val todoFiles = {
       csvFiles.filter(_.getName.contains("live_ToDo")) ++
       csvFiles.filter(_.getName.contains("live_To-Do List"))

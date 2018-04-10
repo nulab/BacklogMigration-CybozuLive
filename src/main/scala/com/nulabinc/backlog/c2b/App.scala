@@ -23,7 +23,6 @@ import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
-import scala.concurrent.duration.Duration
 
 object App extends Logger {
 
@@ -60,11 +59,11 @@ object App extends Logger {
 
     val config = ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
       case Some(c) => c.commandType match {
-        case InitCommand => c
-        case ImportCommand => c
-        case _ => throw new RuntimeException("It never happens")
+        case Some(InitCommand) => c
+        case Some(ImportCommand) => c
+        case None => throw new RuntimeException("No command found")
       }
-      case None => throw new RuntimeException("It never happens")
+      case None => throw new RuntimeException("Invalid configuration")
     }
 
     implicit val system: ActorSystem = ActorSystem("main")
@@ -81,16 +80,18 @@ object App extends Logger {
     val program = for {
       _ <- printBanner(appName, appVersion)
       _ <- config.commandType match {
-        case InitCommand => init(config, language)
-        case ImportCommand => `import`(config, language)
-        case _ => AppDSL.exit("Invalid command type. It never happens", 1)
+        case Some(InitCommand) => init(config, language)
+        case Some(ImportCommand) => `import`(config, language)
+        case None => AppDSL.exit("Invalid command type", 1)
       }
     } yield ()
 
-    interpreter.run(program).runSyncUnsafe(Duration.Inf)
-
-    system.terminate()
-    exit(0)
+    interpreter
+      .run(program)
+      .flatMap(_ => interpreter.terminate())
+      .runAsync
+      .flatMap(_ => system.terminate())
+      .onComplete(_ => exit(0))
   }
 
   def init(config: Config, language: String): AppProgram[Unit] = {
@@ -110,15 +111,15 @@ object App extends Logger {
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read CSV and to store
-      _ <- CybozuStore.all(csvFiles)
+      _ <- CybozuStore.copyToStore(csvFiles)
       // Collect Backlog data to store
-      _ <- BacklogToStore.priority(backlogApi.priorityApi)
-      _ <- BacklogToStore.status(backlogApi.statusApi)
-      _ <- BacklogToStore.user(backlogApi.userApi)
+      _ <- BacklogService.storePriorities(backlogApi.priorityApi)
+      _ <- BacklogService.storeStatuses(backlogApi.statusApi)
+      _ <- BacklogService.storeUsers(backlogApi.userApi)
       // Write mapping files
       _ <- MappingFiles.write(config)
       // Finalize
-      _ <- MappingFileConsole.to(config)
+      _ <- MappingFileConsole.show(config)
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.finish")))
     } yield ()
   }
