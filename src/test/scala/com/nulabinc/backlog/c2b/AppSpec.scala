@@ -83,6 +83,7 @@ class AppSpec extends FlatSpec with Matchers {
     override def getTodoCount: Task[AnyId] = ???
     override def getEventCount: Task[AnyId] = ???
     override def getForumCount: Task[AnyId] = ???
+    override def createDatabase: Task[Unit] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {

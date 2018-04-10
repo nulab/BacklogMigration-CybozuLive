@@ -10,6 +10,8 @@ trait StoreInterpreter[F[_]] extends (StoreADT ~> F) {
 
   def run[A](prg: StoreProgram[A]): F[A]
 
+  def createDatabase: F[Unit]
+
   def getTodo(id: AnyId): F[Option[CybozuTodo]]
 
   def getTodoCount: F[Int]
