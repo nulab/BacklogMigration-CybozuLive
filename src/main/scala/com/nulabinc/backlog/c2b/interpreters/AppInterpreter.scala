@@ -8,6 +8,7 @@ import cats.free.Free
 import cats.~>
 import com.github.chaabaj.backlog4s.dsl.ApiDsl.ApiPrg
 import com.github.chaabaj.backlog4s.dsl.BacklogHttpInterpret
+import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.github.chaabaj.backlog4s.streaming.ApiStream.ApiStream
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
@@ -95,7 +96,6 @@ object AppDSL {
 
   def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
     Free.liftF(Import(backlogApiConfiguration))
-
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -104,9 +104,18 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
                      consoleInterpreter: ConsoleInterpreter)
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
 
+  def terminate(): Task[Unit] = Task.deferFuture {
+    backlogInterpreter match {
+      case akkaInterpreter: AkkaHttpInterpret =>
+        akkaInterpreter.terminate()
+      case _ =>
+        Future.successful()
+    }
+
+  }
+
   def run[A](appProgram: AppProgram[A]): Task[A] =
     appProgram.foldMap(this)
-
 
   def setLanguage(lang: String): Task[Unit] = Task { // TODO: change to Locale
     lang match {
