@@ -109,10 +109,6 @@ object App extends Logger {
     }
     val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_")) // TODO: english version
 
-    val todoObservable = CybozuCSVReader.toCybozuTodo(todoFiles)
-    val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles)
-    val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles)
-
     for {
       // Initialize
       _ <- AppDSL.setLanguage(language)
@@ -124,9 +120,9 @@ object App extends Logger {
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read CSV and to store
-      _ <- CSVtoStore.todo(todoObservable)
-      _ <- CSVtoStore.event(eventObservable)
-      _ <- CSVtoStore.forum(forumObservable)
+      _ <- CybozuStore.todo(todoFiles)
+      _ <- CybozuStore.event(eventFiles)
+      _ <- CybozuStore.forum(forumFiles)
       // Collect Backlog data to store
       _ <- BacklogToStore.priority(backlogApi.priorityApi)
       _ <- BacklogToStore.status(backlogApi.statusApi)

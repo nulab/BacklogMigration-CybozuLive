@@ -1,21 +1,22 @@
 package com.nulabinc.backlog.c2b.services
 
+import java.io.File
+
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.readers.ReadResult
+import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, ReadResult}
 import monix.reactive.Observable
 
-object CSVtoStore {
+object CybozuStore {
 
-  def todo(observable: Observable[ReadResult[CybozuCSVTodo]]): AppProgram[Unit] = {
-
+  def todo(files: Array[File]): AppProgram[Unit] = {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
-        observable.map { result =>
+        CybozuCSVReader.toCybozuTodo(files).map { result =>
           val creator = CybozuDBUser.from(result.issue.creator)
           val updater = CybozuDBUser.from(result.issue.updater)
           val assignees = result.issue.assignees.map(u => CybozuDBUser.from(u))
@@ -41,14 +42,13 @@ object CSVtoStore {
         }
       )
     } yield ()
-
     AppDSL.fromDB(dbProgram)
   }
 
-  def event(observable: Observable[ReadResult[CybozuCSVEvent]]): AppProgram[Unit] = {
+  def event(files: Array[File]): AppProgram[Unit] = {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
-        observable.map { result =>
+        CybozuCSVReader.toCybozuEvent(files).map { result =>
           val creator = CybozuDBUser.from(result.issue.creator)
           for {
             // Save event
@@ -69,10 +69,10 @@ object CSVtoStore {
     AppDSL.fromDB(dbProgram)
   }
 
-  def forum(observable: Observable[ReadResult[CybozuCSVForum]]): AppProgram[Unit] = {
+  def forum(files: Array[File]): AppProgram[Unit] = {
     val dbProgram = for {
       _ <- StoreDSL.writeDBStream(
-        observable.map { result =>
+        CybozuCSVReader.toCybozuForum(files).map { result =>
           val creator = CybozuDBUser.from(result.issue.creator)
           val updater = CybozuDBUser.from(result.issue.updater)
           for {
