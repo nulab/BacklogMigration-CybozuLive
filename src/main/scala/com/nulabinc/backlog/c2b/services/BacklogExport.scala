@@ -61,7 +61,7 @@ object BacklogExport extends Logger {
 
     val userConverter = new BacklogUserConverter()
     for {
-      userStream <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
+      userStream <- AppDSL.fromStore(StoreDSL.getCybozuUsers)
       cybozuUsers <- AppDSL.streamAsSeq(userStream)
       result = cybozuUsers.map(userConverter.to).sequence
       _ <- result match {
@@ -122,8 +122,8 @@ object BacklogExport extends Logger {
     val commentConverter = new BacklogCommentConverter()
 
     for {
-      todos <- AppDSL.fromDB(StoreDSL.getTodos)
-      count <- AppDSL.fromDB(StoreDSL.getTodoCount)
+      todos <- AppDSL.fromStore(StoreDSL.getTodos)
+      count <- AppDSL.fromStore(StoreDSL.getTodoCount)
       _ <- AppDSL.consumeStream {
         todos.zipWithIndex.map {
           case (todo, index) =>
@@ -138,8 +138,8 @@ object BacklogExport extends Logger {
     val commentConverter = new BacklogCommentConverter()
 
     for {
-      events <- AppDSL.fromDB(StoreDSL.getEvents)
-      total <- AppDSL.fromDB(StoreDSL.getEventCount)
+      events <- AppDSL.fromStore(StoreDSL.getEvents)
+      total <- AppDSL.fromStore(StoreDSL.getEventCount)
       _ <- AppDSL.consumeStream {
         events.zipWithIndex.map {
           case (event, index) =>
@@ -154,8 +154,8 @@ object BacklogExport extends Logger {
     val commentConverter = new BacklogCommentConverter()
 
     for {
-      forums <- AppDSL.fromDB(StoreDSL.getForums)
-      total <- AppDSL.fromDB(StoreDSL.getForumCount)
+      forums <- AppDSL.fromStore(StoreDSL.getForums)
+      total <- AppDSL.fromStore(StoreDSL.getForumCount)
       _ <- AppDSL.consumeStream {
         forums.zipWithIndex.map {
           case (forum, index) =>
@@ -174,7 +174,7 @@ object BacklogExport extends Logger {
                          index: Long,
                          total: Long): AppProgram[Unit] =
     for {
-      optTodo <- AppDSL.fromDB(StoreDSL.getTodo(todoId))
+      optTodo <- AppDSL.fromStore(StoreDSL.getTodo(todoId))
       _ <- optTodo.map(todo =>
         issueConverter.from(todo, issueType) match {
           case Right(backlogIssue) =>
@@ -209,7 +209,7 @@ object BacklogExport extends Logger {
                           index: Long,
                           total: Long): AppProgram[Unit] =
     for {
-      optEvent <- AppDSL.fromDB(StoreDSL.getEvent(eventId))
+      optEvent <- AppDSL.fromStore(StoreDSL.getEvent(eventId))
       _ <- optEvent.map(event =>
         issueConverter.from(event, issueType) match {
           case Right(backlogIssue) =>
@@ -231,7 +231,7 @@ object BacklogExport extends Logger {
                           index: Long,
                           total: Long): AppProgram[Unit] =
     for {
-      optForum <- AppDSL.fromDB(StoreDSL.getForum(forumId))
+      optForum <- AppDSL.fromStore(StoreDSL.getForum(forumId))
       _ <- optForum.map(forum =>
         issueConverter.from(forum, issueType) match {
           case Right(backlogIssue) =>

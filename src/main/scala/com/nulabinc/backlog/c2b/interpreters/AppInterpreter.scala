@@ -64,8 +64,8 @@ object AppDSL {
     }
   }
 
-  def fromDB[A](dbProgram: StoreProgram[A]): AppProgram[A] =
-    Free.liftF(FromDB(dbProgram))
+  def fromStore[A](storeProgram: StoreProgram[A]): AppProgram[A] =
+    Free.liftF(FromDB(storeProgram))
 
   def fromStorage[A](storageProgram: StorageProgram[A]): AppProgram[A] =
     Free.liftF(FromStorage(storageProgram))
@@ -111,7 +111,6 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       case _ =>
         Future.successful()
     }
-
   }
 
   def run[A](appProgram: AppProgram[A]): Task[A] =

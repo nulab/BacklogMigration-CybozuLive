@@ -109,7 +109,7 @@ object App extends Logger {
       _ <- Validations.backlogProgram(config, backlogApi.spaceApi)
       // Delete operations
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
-      _ <- AppDSL.fromDB(StoreDSL.createDatabase)
+      _ <- AppDSL.fromStore(StoreDSL.createDatabase)
       // Read CSV and to store
       _ <- CybozuStore.copyToStore(csvFiles)
       // Collect Backlog data to store

@@ -35,7 +35,7 @@ object CybozuStore extends Logger {
   def todo(files: Array[File]): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.collect", Messages("issue.type.todo"))))
-      _ <- AppDSL.fromDB(
+      _ <- AppDSL.fromStore(
         StoreDSL.writeDBStream(
           CybozuCSVReader.toCybozuTodo(files).map { result =>
             val creator = CybozuDBUser.from(result.issue.creator)
@@ -68,7 +68,7 @@ object CybozuStore extends Logger {
   def event(files: Array[File]): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.collect", Messages("issue.type.event"))))
-      _ <- AppDSL.fromDB(
+      _ <- AppDSL.fromStore(
         StoreDSL.writeDBStream(
           CybozuCSVReader.toCybozuEvent(files).map { result =>
             val creator = CybozuDBUser.from(result.issue.creator)
@@ -93,7 +93,7 @@ object CybozuStore extends Logger {
   def forum(files: Array[File]): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.collect", Messages("issue.type.forum"))))
-      _ <- AppDSL.fromDB(
+      _ <- AppDSL.fromStore(
         StoreDSL.writeDBStream(
           CybozuCSVReader.toCybozuForum(files).map { result =>
             val creator = CybozuDBUser.from(result.issue.creator)

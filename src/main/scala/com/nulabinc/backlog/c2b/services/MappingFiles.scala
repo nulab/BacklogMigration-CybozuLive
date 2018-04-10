@@ -84,7 +84,7 @@ object MappingFiles {
       _ <- AppDSL.fromStorage(
         StorageDSL.copy(config.USERS_PATH, config.USERS_TEMP_PATH)
       )
-      cybozuUsersStream <- AppDSL.fromDB(StoreDSL.getCybozuUsers)
+      cybozuUsersStream <- AppDSL.fromStore(StoreDSL.getCybozuUsers)
       cybozuUsers <- AppDSL.streamAsSeq(cybozuUsersStream)
       newCybozuUsersMap = cybozuUsers.foldLeft(HashMap.empty[String, String]) {
         case (acc, cybozuUser) =>
@@ -101,7 +101,7 @@ object MappingFiles {
           )
         )
       )
-      backlogUserStream <- AppDSL.fromDB(StoreDSL.getBacklogUsers)
+      backlogUserStream <- AppDSL.fromStore(StoreDSL.getBacklogUsers)
       _ <- AppDSL.fromStorage(
         StorageDSL.writeNewFile(config.BACKLOG_USER_PATH,
           Observable(CSVRecordSerializer.backlogHeader("User")) ++
@@ -116,7 +116,7 @@ object MappingFiles {
       _ <- AppDSL.fromStorage(
         StorageDSL.copy(config.PRIORITIES_PATH, config.PRIORITIES_TEMP_PATH)
       )
-      cybozuPrioritiesStream <- AppDSL.fromDB(StoreDSL.getCybozuPriorities)
+      cybozuPrioritiesStream <- AppDSL.fromStore(StoreDSL.getCybozuPriorities)
       cybozuPriorities <- AppDSL.streamAsSeq(cybozuPrioritiesStream)
       newCybozuPrioritiesMap = cybozuPriorities.foldLeft(HashMap.empty[String, String]) {
         case (acc, cybozuPriority) =>
@@ -133,7 +133,7 @@ object MappingFiles {
           )
         )
       )
-      backlogPriorityStream <- AppDSL.fromDB(StoreDSL.getBacklogPriorities)
+      backlogPriorityStream <- AppDSL.fromStore(StoreDSL.getBacklogPriorities)
       _ <- AppDSL.fromStorage(
         StorageDSL.writeNewFile(config.BACKLOG_PRIORITY_PATH,
           Observable(CSVRecordSerializer.backlogHeader("Priority")) ++
@@ -147,7 +147,7 @@ object MappingFiles {
       _ <- AppDSL.fromStorage(
         StorageDSL.copy(config.STATUSES_PATH, config.STATUSES_TEMP_PATH)
       )
-      cybozuStatusesStream <- AppDSL.fromDB(StoreDSL.getCybozuStatuses)
+      cybozuStatusesStream <- AppDSL.fromStore(StoreDSL.getCybozuStatuses)
       cybozuStatuses <- AppDSL.streamAsSeq(cybozuStatusesStream)
       newCybozuStatusesMap = cybozuStatuses.foldLeft(HashMap.empty[String, String]) {
         case (acc, cybozuStatus) =>
@@ -164,7 +164,7 @@ object MappingFiles {
             )
         )
       )
-      backlogStatusStream <- AppDSL.fromDB(StoreDSL.getBacklogStatuses)
+      backlogStatusStream <- AppDSL.fromStore(StoreDSL.getBacklogStatuses)
       _ <- AppDSL.fromStorage(
         StorageDSL.writeNewFile(config.BACKLOG_STATUS_PATH,
           Observable(CSVRecordSerializer.backlogHeader("Status")) ++
