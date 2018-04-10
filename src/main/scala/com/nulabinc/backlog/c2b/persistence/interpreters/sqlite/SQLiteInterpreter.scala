@@ -24,6 +24,10 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
   override def run[A](prg: StoreProgram[A]): Task[A] =
     prg.foldMap(this)
 
+  override def createDatabase: Task[Unit] = Task.deferFuture {
+    db.run(createDatabaseOps)
+  }
+
   override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = Task.deferFuture {
     db.run(todoTableOps.getTodo(id))
   }
@@ -59,20 +63,8 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     fa match {
       case Pure(a) =>
         Task(a)
-      case CreateDatabase => Task.deferFuture {
-        val sqls = DBIO.seq(
-          todoTableOps.createTable,
-          commentTableOps.createTable,
-          eventTableOps.createTable,
-          forumTableOps.createTable,
-          backlogUserTableOps.createTable,
-          backlogPriorityTableOps.createTable,
-          backlogStatusTableOps.createTable,
-          cybozuUserTableOps.createTable,
-          cybozuIssueUserTableOps.createTable
-        )
-        db.run(sqls)
-      }
+      case CreateDatabase =>
+        createDatabase
       case GetTodos => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(todoTableOps.stream)

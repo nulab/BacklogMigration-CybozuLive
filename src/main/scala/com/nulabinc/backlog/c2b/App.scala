@@ -15,7 +15,6 @@ import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
-import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
 import com.nulabinc.backlog.c2b.services._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
 import com.osinka.i18n.Messages
@@ -99,19 +98,6 @@ object App extends Logger {
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
     val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
-    val todoFiles = {
-      csvFiles.filter(_.getName.contains("live_ToDo")) ++
-      csvFiles.filter(_.getName.contains("live_To-Do List"))
-    }
-    val eventFiles = {
-      csvFiles.filter(_.getName.contains("live_Events_")) ++
-      csvFiles.filter(_.getName.contains("live_イベント_"))
-    }
-    val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_")) // TODO: english version
-
-    val todoObservable = CybozuCSVReader.toCybozuTodo(todoFiles)
-    val eventObservable = CybozuCSVReader.toCybozuEvent(eventFiles)
-    val forumObservable = CybozuCSVReader.toCybozuForum(forumFiles)
 
     for {
       // Initialize
@@ -124,9 +110,7 @@ object App extends Logger {
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       _ <- AppDSL.fromDB(StoreDSL.createDatabase)
       // Read CSV and to store
-      _ <- CSVtoStore.todo(todoObservable)
-      _ <- CSVtoStore.event(eventObservable)
-      _ <- CSVtoStore.forum(forumObservable)
+      _ <- CybozuStore.all(csvFiles)
       // Collect Backlog data to store
       _ <- BacklogToStore.priority(backlogApi.priorityApi)
       _ <- BacklogToStore.status(backlogApi.statusApi)

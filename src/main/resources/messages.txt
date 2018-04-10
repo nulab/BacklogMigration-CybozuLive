@@ -39,6 +39,7 @@ mapping.output_file=The mapping file about {0} is created. Check the mapping fil
 
 # Messages
 message.import.cancel=Import has been canceled.
+message.init.collect=Processing {0}.
 message.init.finish=Init completed. Next step \n\n1. Edit mapping files.\n2. Execute the import command.\n\n
 
 # Export
