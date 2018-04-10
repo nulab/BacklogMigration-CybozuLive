@@ -8,10 +8,27 @@ import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, ReadResult}
-import monix.reactive.Observable
+import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
 
 object CybozuStore {
+
+  def all(csvFiles: Array[File]): AppProgram[Unit] = {
+    val todoFiles = {
+      csvFiles.filter(_.getName.contains("live_ToDo")) ++
+      csvFiles.filter(_.getName.contains("live_To-Do List"))
+    }
+    val eventFiles = {
+      csvFiles.filter(_.getName.contains("live_Events_")) ++
+        csvFiles.filter(_.getName.contains("live_イベント_"))
+    }
+    val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_")) // TODO: english version
+
+    for {
+      _ <- todo(todoFiles)
+      _ <- event(eventFiles)
+      _ <- forum(forumFiles)
+    } yield ()
+  }
 
   def todo(files: Array[File]): AppProgram[Unit] = {
     val dbProgram = for {
