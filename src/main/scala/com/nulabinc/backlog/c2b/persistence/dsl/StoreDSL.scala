@@ -36,6 +36,9 @@ object StoreDSL {
   lazy val getTodos: StoreProgram[Observable[CybozuDBTodo]] =
     Free.liftF(GetTodos)
 
+  lazy val getTodoCount: StoreProgram[Int] =
+    Free.liftF(GetTodoCount)
+
   def getTodo(id: AnyId): StoreProgram[Option[CybozuTodo]] =
     Free.liftF(GetTodo(id))
 
@@ -60,6 +63,9 @@ object StoreDSL {
   lazy val getEvents: StoreProgram[Observable[CybozuDBEvent]] =
     Free.liftF(GetEvents)
 
+  lazy val getEventCount: StoreProgram[Int] =
+    Free.liftF(GetEventCount)
+
   def getEvent(id: AnyId): StoreProgram[Option[CybozuEvent]] =
     Free.liftF(GetEvent(id))
 
@@ -71,6 +77,9 @@ object StoreDSL {
   //
   lazy val getForums: StoreProgram[Observable[CybozuDBForum]] =
     Free.liftF(GetForums)
+
+  lazy val getForumCount: StoreProgram[Int] =
+    Free.liftF(GetForumCount)
 
   def getForum(id: AnyId): StoreProgram[Option[CybozuForum]] =
     Free.liftF(GetForum(id))
