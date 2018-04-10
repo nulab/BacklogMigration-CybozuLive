@@ -163,33 +163,30 @@ object BacklogExport extends Logger {
                          openStatusName: String): AppProgram[Unit] =
     for {
       optTodo <- AppDSL.fromDB(StoreDSL.getTodo(todoId))
-      _ <- optTodo match {
-        case Some(todo) =>
-          issueConverter.from(todo, issueType) match {
-            case Right(backlogIssue) =>
-              for {
-                _ <- exportIssue(paths, backlogIssue, todo.todo.createdAt)
-                _ <- if (backlogIssue.statusName != openStatusName) {
-                  val comment = createBacklogCommentWithStatusChangelog(
-                    parentIssueId = todo.todo.id,
-                    oldStatusName = openStatusName,
-                    newStatusName = backlogIssue.statusName,
-                    backlogOperation = backlogIssue.operation
-                  )
-                  for {
-                    _ <- exportComment(paths, todo.todo.id, comment, todo.todo.createdAt, 0)
-                    _ <- exportComments(paths, todo.todo.id, todo.comments, commentConverter, 1)
-                  } yield ()
-                } else {
-                  exportComments(paths, todo.todo.id, todo.comments, commentConverter)
-                }
-              } yield ()
-            case Left(error) =>
-              AppDSL.exit("ToDo convert error. " + error.toString, 1)
-          }
-        case None =>
-          AppDSL.exit("ToDo not found", 1)
-      }
+      _ <- optTodo.map(todo =>
+        issueConverter.from(todo, issueType) match {
+          case Right(backlogIssue) =>
+            for {
+              _ <- exportIssue(paths, backlogIssue, todo.todo.createdAt)
+              _ <- if (backlogIssue.statusName != openStatusName) {
+                val comment = createBacklogCommentWithStatusChangelog(
+                  parentIssueId = todo.todo.id,
+                  oldStatusName = openStatusName,
+                  newStatusName = backlogIssue.statusName,
+                  backlogOperation = backlogIssue.operation
+                )
+                for {
+                  _ <- exportComment(paths, todo.todo.id, comment, todo.todo.createdAt, 0)
+                  _ <- exportComments(paths, todo.todo.id, todo.comments, commentConverter, 1)
+                } yield ()
+              } else {
+                exportComments(paths, todo.todo.id, todo.comments, commentConverter)
+              }
+            } yield ()
+          case Left(error) =>
+            AppDSL.exit("ToDo convert error. " + error.toString, 1)
+        }
+      ).getOrElse(AppDSL.exit("ToDo not found", 1))
     } yield ()
 
   private def exportEvent(paths: BacklogPaths,
@@ -199,20 +196,17 @@ object BacklogExport extends Logger {
                           commentConverter: BacklogCommentConverter): AppProgram[Unit] =
     for {
       optEvent <- AppDSL.fromDB(StoreDSL.getEvent(eventId))
-      _ <- optEvent match {
-        case Some(event) =>
-          issueConverter.from(event, issueType) match {
-            case Right(backlogIssue) =>
-              for {
-                _ <- exportIssue(paths, backlogIssue, event.event.startDateTime)
-                _ <- exportComments(paths, event.event.id, event.comments, commentConverter)
-              } yield ()
-            case Left(error) =>
-              AppDSL.exit("Event convert error. " + error.toString, 1)
-          }
-        case None =>
-          AppDSL.exit("Event not found", 1)
-      }
+      _ <- optEvent.map(event =>
+        issueConverter.from(event, issueType) match {
+          case Right(backlogIssue) =>
+            for {
+              _ <- exportIssue(paths, backlogIssue, event.event.startDateTime)
+              _ <- exportComments(paths, event.event.id, event.comments, commentConverter)
+            } yield ()
+          case Left(error) =>
+            AppDSL.exit("Event convert error. " + error.toString, 1)
+        }
+      ).getOrElse(AppDSL.exit("Event not found", 1))
     } yield ()
 
   private def exportForum(paths: BacklogPaths,
@@ -222,20 +216,17 @@ object BacklogExport extends Logger {
                           commentConverter: BacklogCommentConverter): AppProgram[Unit] =
     for {
       optForum <- AppDSL.fromDB(StoreDSL.getForum(forumId))
-      _ <- optForum match {
-        case Some(forum) =>
-          issueConverter.from(forum, issueType) match {
-            case Right(backlogIssue) =>
-              for {
-                _ <- exportIssue(paths, backlogIssue, forum.forum.createdAt)
-                _ <- exportComments(paths, forum.forum.id, forum.comments, commentConverter)
-              } yield ()
-            case Left(error) =>
-              AppDSL.exit("Forum convert error. " + error.toString, 1)
-          }
-        case None =>
-          AppDSL.exit("Forum not found", 1)
-      }
+      _ <- optForum.map(forum =>
+        issueConverter.from(forum, issueType) match {
+          case Right(backlogIssue) =>
+            for {
+              _ <- exportIssue(paths, backlogIssue, forum.forum.createdAt)
+              _ <- exportComments(paths, forum.forum.id, forum.comments, commentConverter)
+            } yield ()
+          case Left(error) =>
+            AppDSL.exit("Forum convert error. " + error.toString, 1)
+        }
+      ).getOrElse(AppDSL.exit("Forum not found", 1))
     } yield ()
 
 
@@ -255,7 +246,11 @@ object BacklogExport extends Logger {
                             index: Int): AppProgram[Unit] = {
     val createdDate = Date.from(commentCreatedAt.toInstant)
     val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
-    AppDSL.export(Messages("export.comment"), paths.issueJson(issueDirPath), backlogComment.toJson.prettyPrint).map(_ => ())
+    AppDSL.export(
+      Messages("export.comment"),
+      paths.issueJson(issueDirPath),
+      backlogComment.toJson.prettyPrint
+    ).map(_ => ())
   }
 
   private def exportComment(paths: BacklogPaths,
