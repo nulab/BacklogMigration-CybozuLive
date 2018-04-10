@@ -8,10 +8,10 @@ import com.github.chaabaj.backlog4s.dsl.BacklogHttpOp.HttpF
 import com.github.chaabaj.backlog4s.dsl.{BacklogHttpInterpret, HttpQuery}
 import com.github.chaabaj.backlog4s.dsl.HttpADT.{ByteStream, Response}
 import cats.Monad
-import com.nulabinc.backlog.c2b.datas.{CybozuEvent, CybozuForum, CybozuTodo}
+import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter}
-import com.nulabinc.backlog.c2b.persistence.dsl.{StorageADT, StoreADT}
+import com.nulabinc.backlog.c2b.persistence.dsl.{StorageADT, StoreADT, WriteType}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.{StorageInterpreter, StoreInterpreter}
@@ -84,6 +84,12 @@ class AppSpec extends FlatSpec with Matchers {
     override def getEventCount: Task[AnyId] = ???
     override def getForumCount: Task[AnyId] = ???
     override def createDatabase: Task[Unit] = ???
+    override def getTodos(): Task[Observable[CybozuDBTodo]] = ???
+    override def storeTodo(issue: CybozuDBTodo, writeType: WriteType): Task[AnyId] = ???
+    override def getEvents: Task[Observable[CybozuDBEvent]] = ???
+    override def storeEvent(event: CybozuDBEvent, writeType: WriteType): Task[AnyId] = ???
+    override def getForums: Task[Observable[CybozuDBForum]] = ???
+    override def storeForum(forum: CybozuDBForum, writeType: WriteType): Task[AnyId] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {
