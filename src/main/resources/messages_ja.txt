@@ -39,6 +39,7 @@ mapping.output_file={0}のマッピングファイルを作成しました。マ
 
 # Messages
 message.import.cancel=インポートを中止しました。
+message.init.collect={0}のデータを処理しています。
 message.init.finish=エクスポートが完了しました。 次のステップは \n\n1. マッピングファイルを編集します。\n2. importコマンドを実行します。\n\n
 
 # Export
