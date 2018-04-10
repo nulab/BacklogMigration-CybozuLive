@@ -20,8 +20,8 @@ object BacklogExport extends Logger {
 
   import com.nulabinc.backlog.migration.common.domain.BacklogJsonProtocol._
 
-  val start: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.print(Messages("export.start")))
-  val finish: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.print(Messages("export.finish")))
+  val start: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.printBold(Messages("export.start")))
+  val finish: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.printBold(Messages("export.finish")))
 
   def all(config: Config,
           issueTypes: Map[IssueType, CybozuIssueType],
@@ -123,10 +123,12 @@ object BacklogExport extends Logger {
 
     for {
       todos <- AppDSL.fromDB(StoreDSL.getTodos)
+      count <- AppDSL.fromDB(StoreDSL.getTodoCount)
       _ <- AppDSL.consumeStream {
-        todos.map(todo =>
-          exportTodo(config.backlogPaths, todo.id, issueType, issueConverter, commentConverter, openStatusName)
-        )
+        todos.zipWithIndex.map {
+          case (todo, index) =>
+            exportTodo(config.backlogPaths, todo.id, issueType, issueConverter, commentConverter, openStatusName, index, count)
+        }
       }
     } yield ()
   }
@@ -137,8 +139,12 @@ object BacklogExport extends Logger {
 
     for {
       events <- AppDSL.fromDB(StoreDSL.getEvents)
+      total <- AppDSL.fromDB(StoreDSL.getEventCount)
       _ <- AppDSL.consumeStream {
-        events.map(event => exportEvent(config.backlogPaths, event.id, issueType, issueConverter, commentConverter))
+        events.zipWithIndex.map {
+          case (event, index) =>
+            exportEvent(config.backlogPaths, event.id, issueType, issueConverter, commentConverter, index, total)
+        }
       }
     } yield ()
   }
@@ -149,8 +155,12 @@ object BacklogExport extends Logger {
 
     for {
       forums <- AppDSL.fromDB(StoreDSL.getForums)
+      total <- AppDSL.fromDB(StoreDSL.getForumCount)
       _ <- AppDSL.consumeStream {
-        forums.map(forum => exportForum(config.backlogPaths, forum.id, issueType, issueConverter, commentConverter))
+        forums.zipWithIndex.map {
+          case (forum, index) =>
+            exportForum(config.backlogPaths, forum.id, issueType, issueConverter, commentConverter, index, total)
+        }
       }
     } yield ()
   }
@@ -160,14 +170,16 @@ object BacklogExport extends Logger {
                          issueType: CybozuIssueType,
                          issueConverter: IssueConverter,
                          commentConverter: BacklogCommentConverter,
-                         openStatusName: String): AppProgram[Unit] =
+                         openStatusName: String,
+                         index: Long,
+                         total: Long): AppProgram[Unit] =
     for {
       optTodo <- AppDSL.fromDB(StoreDSL.getTodo(todoId))
       _ <- optTodo.map(todo =>
         issueConverter.from(todo, issueType) match {
           case Right(backlogIssue) =>
             for {
-              _ <- exportIssue(paths, backlogIssue, todo.todo.createdAt)
+              _ <- exportIssue(paths, backlogIssue, todo.todo.createdAt, index, total)
               _ <- if (backlogIssue.statusName != openStatusName) {
                 val comment = createBacklogCommentWithStatusChangelog(
                   parentIssueId = todo.todo.id,
@@ -193,14 +205,16 @@ object BacklogExport extends Logger {
                           eventId: AnyId,
                           issueType: CybozuIssueType,
                           issueConverter: IssueConverter,
-                          commentConverter: BacklogCommentConverter): AppProgram[Unit] =
+                          commentConverter: BacklogCommentConverter,
+                          index: Long,
+                          total: Long): AppProgram[Unit] =
     for {
       optEvent <- AppDSL.fromDB(StoreDSL.getEvent(eventId))
       _ <- optEvent.map(event =>
         issueConverter.from(event, issueType) match {
           case Right(backlogIssue) =>
             for {
-              _ <- exportIssue(paths, backlogIssue, event.event.startDateTime)
+              _ <- exportIssue(paths, backlogIssue, event.event.startDateTime, index, total)
               _ <- exportComments(paths, event.event.id, event.comments, commentConverter)
             } yield ()
           case Left(error) =>
@@ -213,14 +227,16 @@ object BacklogExport extends Logger {
                           forumId: AnyId,
                           issueType: CybozuIssueType,
                           issueConverter: IssueConverter,
-                          commentConverter: BacklogCommentConverter): AppProgram[Unit] =
+                          commentConverter: BacklogCommentConverter,
+                          index: Long,
+                          total: Long): AppProgram[Unit] =
     for {
       optForum <- AppDSL.fromDB(StoreDSL.getForum(forumId))
       _ <- optForum.map(forum =>
         issueConverter.from(forum, issueType) match {
           case Right(backlogIssue) =>
             for {
-              _ <- exportIssue(paths, backlogIssue, forum.forum.createdAt)
+              _ <- exportIssue(paths, backlogIssue, forum.forum.createdAt, index, total)
               _ <- exportComments(paths, forum.forum.id, forum.comments, commentConverter)
             } yield ()
           case Left(error) =>
@@ -230,10 +246,14 @@ object BacklogExport extends Logger {
     } yield ()
 
 
-  private def exportIssue(paths: BacklogPaths, backlogIssue: BacklogIssue, createdAt: DateTime): AppProgram[File] = {
+  private def exportIssue(paths: BacklogPaths,
+                          backlogIssue: BacklogIssue,
+                          createdAt: DateTime,
+                          index: Long,
+                          total: Long): AppProgram[File] = {
     val issueDirPath = paths.issueDirectoryPath("issue", backlogIssue.id, Date.from(createdAt.toInstant),0)
     AppDSL.export(
-      Messages("export.issue"),
+      Messages("export.issue", index + 1, total, backlogIssue.summary.value),
       paths.issueJson(issueDirPath),
       backlogIssue.toJson.prettyPrint
     )
@@ -247,7 +267,7 @@ object BacklogExport extends Logger {
     val createdDate = Date.from(commentCreatedAt.toInstant)
     val issueDirPath = paths.issueDirectoryPath("comment", issueId, createdDate, index)
     AppDSL.export(
-      Messages("export.comment"),
+      "  " + Messages("export.comment"),
       paths.issueJson(issueDirPath),
       backlogComment.toJson.prettyPrint
     ).map(_ => ())

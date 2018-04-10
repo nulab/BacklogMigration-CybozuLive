@@ -53,7 +53,7 @@ export.category=カテゴリをエクスポートしました。
 export.version=バージョンをエクスポートしました。
 export.issue_type=課題種別をエクスポートしました。
 export.custom_field=カスタムフィールドをエクスポートしました。
-export.issue=課題をエクスポートしました。
+export.issue=({0}/{1}) 課題をエクスポートしました。 {2}
 export.comment=コメントをエクスポートしました。
 
 #

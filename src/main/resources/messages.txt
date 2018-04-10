@@ -53,7 +53,7 @@ export.category=Categories are exported.
 export.version=Versions are exported.
 export.issue_type=Issue types are exported.
 export.custom_field=Custom fields are exported.
-export.issue=Issue is exported.
+export.issue=({0}/{1}) Issue is exported. {2}
 export.comment=Comment is exported.
 
 #
