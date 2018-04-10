@@ -7,11 +7,11 @@ import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
 import monix.reactive.Observable
 
-object BacklogToStore {
+object BacklogService {
 
   import com.github.chaabaj.backlog4s.dsl.syntax._
 
-  def user(api: UserApi): AppProgram[Unit] =
+  def storeUsers(api: UserApi): AppProgram[Unit] =
     for {
       users <- AppDSL.fromBacklog(api.all.orFail)
       _ <- AppDSL.consumeStream(
@@ -24,7 +24,7 @@ object BacklogToStore {
       )
     } yield ()
 
-  def priority(api: PriorityApi): AppProgram[Unit] =
+  def storePriorities(api: PriorityApi): AppProgram[Unit] =
     for {
       backlogPriorities <- AppDSL.fromBacklog(api.all)
       _ <- backlogPriorities match {
@@ -36,7 +36,7 @@ object BacklogToStore {
       }
     } yield ()
 
-  def status(api: StatusApi): AppProgram[Unit] =
+  def storeStatuses(api: StatusApi): AppProgram[Unit] =
     for {
       backlogStatuses <- AppDSL.fromBacklog(api.all)
       _ <- backlogStatuses match {

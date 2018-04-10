@@ -40,7 +40,7 @@ class AppSpec extends FlatSpec with Matchers {
 
   "App" should "validationProgram" in {
 
-    val program = Validations.backlogProgram(config, backlogApi)
+    val program = Validations.backlogProgram(config, backlogApi.spaceApi)
 
     appInterpreter.run(program)
   }
@@ -80,6 +80,10 @@ class AppSpec extends FlatSpec with Matchers {
     override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = ???
     override def getEvent(id: AnyId): Task[Option[CybozuEvent]] = ???
     override def getForum(id: AnyId): Task[Option[CybozuForum]] = ???
+    override def getTodoCount: Task[AnyId] = ???
+    override def getEventCount: Task[AnyId] = ???
+    override def getForumCount: Task[AnyId] = ???
+    override def createDatabase: Task[Unit] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {

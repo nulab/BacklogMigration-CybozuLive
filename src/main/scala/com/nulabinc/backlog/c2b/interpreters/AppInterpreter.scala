@@ -8,6 +8,7 @@ import cats.free.Free
 import cats.~>
 import com.github.chaabaj.backlog4s.dsl.ApiDsl.ApiPrg
 import com.github.chaabaj.backlog4s.dsl.BacklogHttpInterpret
+import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.github.chaabaj.backlog4s.streaming.ApiStream.ApiStream
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
@@ -78,22 +79,23 @@ object AppDSL {
   def fromBacklogStream[A](prg: ApiStream[A]): AppProgram[Observable[Seq[A]]] =
     Free.liftF[AppADT, Observable[Seq[A]]](FromBacklogStream(prg))
 
-  def exit(reason: String, exitCode: Int): AppProgram[Unit] = {
+  def exit(reason: String, exitCode: Int): AppProgram[Unit] =
     for {
       _ <- fromConsole(ConsoleDSL.print(reason))
       _ <- Free.liftF(Exit(exitCode))
     } yield ()
-  }
 
   def setLanguage(lang: String): AppProgram[Unit] =
     Free.liftF(SetLanguage(lang))
 
-  def export(file: File, content: String): AppProgram[File] =
-    Free.liftF(Export(file, content))
+  def export(message: String, file: File, content: String): AppProgram[File] =
+    for {
+      _ <- fromConsole(ConsoleDSL.print(message))
+      file <- Free.liftF(Export(file, content))
+    } yield file
 
   def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
     Free.liftF(Import(backlogApiConfiguration))
-
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -102,9 +104,18 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
                      consoleInterpreter: ConsoleInterpreter)
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
 
+  def terminate(): Task[Unit] = Task.deferFuture {
+    backlogInterpreter match {
+      case akkaInterpreter: AkkaHttpInterpret =>
+        akkaInterpreter.terminate()
+      case _ =>
+        Future.successful()
+    }
+
+  }
+
   def run[A](appProgram: AppProgram[A]): Task[A] =
     appProgram.foldMap(this)
-
 
   def setLanguage(lang: String): Task[Unit] = Task { // TODO: change to Locale
     lang match {
@@ -153,7 +164,8 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       AnsiConsole.systemUninstall()
       sys.exit(statusCode)
     }
-    case SetLanguage(lang: String) => setLanguage(lang)
+    case SetLanguage(lang: String) =>
+      setLanguage(lang)
     case Export(file, content) => Task {
       IOUtil.output(file, content)
     }

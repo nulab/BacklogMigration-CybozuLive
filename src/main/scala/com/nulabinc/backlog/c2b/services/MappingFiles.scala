@@ -35,11 +35,11 @@ object MappingFiles {
         .map(record => (record.get(0), record.get(1)))
     )
 
+  private def indexSeqToHashMap(seq: IndexedSeq[(String, String)]): HashMap[String, String] =
+    HashMap(seq map { a => a._1 -> a._2 }: _*)
+
+
   def createMappingContext(config: Config): AppProgram[MappingContext] = {
-
-    def indexSeqToHashMap(seq: IndexedSeq[(String, String)]): HashMap[String, String] =
-      HashMap(seq map { a => a._1 -> a._2 }: _*)
-
     for {
       userMappingStream <- read(config.USERS_PATH)
       users <- AppDSL.streamAsSeq(userMappingStream)
@@ -182,7 +182,7 @@ object MappingFileConsole extends Logger {
       ConsoleDSL.print("\n--------------------------------------------------")
     )
 
-  def to(config: Config): AppProgram[Unit] = {
+  def show(config: Config): AppProgram[Unit] = {
     import MappingFiles._
 
     for {

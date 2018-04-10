@@ -12,6 +12,9 @@ private[sqlite] case class CommentTableOps()(implicit exc: Scheduler) extends Ba
   protected val tableQuery = TableQuery[CommentTable]
 
   def streamByParentId(id: AnyId): DBIOStream[CybozuDBComment] =
-    tableQuery.filter(_.parentId === id).result
+    tableQuery
+      .filter(_.parentId === id)
+      .sortBy(_.id.desc) // Comments are stored by desc. It means getting by asc.
+      .result
 
 }

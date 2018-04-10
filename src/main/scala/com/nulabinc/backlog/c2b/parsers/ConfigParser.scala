@@ -33,10 +33,10 @@ object ConfigParser {
       opt[String]("projectKey").required().action( (x, c) =>
         c.copy(projectKey = x) ).text("Backlog Project key")
 
-      cmd("init").action( (_, c) => c.copy(commandType = InitCommand) ).
+      cmd("init").action( (_, c) => c.copy(commandType = Some(InitCommand)) ).
         text("Prepare project information")
 
-      cmd("import").action { (_, c) => c.copy(commandType = ImportCommand) }
+      cmd("import").action { (_, c) => c.copy(commandType = Some(ImportCommand)) }
         .text("Import project to Backlog.")
 
       help("help") text "print this usage text."

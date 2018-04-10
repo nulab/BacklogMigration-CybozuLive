@@ -15,6 +15,11 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
   private val commentTableQuery = TableQuery[CommentTable]
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
 
+  lazy val count: DBIORead[Int] =
+    tableQuery
+      .length
+      .result
+
   def getForum(id: AnyId): DBIORead[Option[CybozuForum]] = {
     for {
       optForum <- tableQuery
