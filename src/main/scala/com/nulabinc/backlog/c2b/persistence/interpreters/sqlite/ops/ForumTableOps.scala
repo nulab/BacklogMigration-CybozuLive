@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
-import com.nulabinc.backlog.c2b.datas.{CybozuComment, CybozuDBForum, CybozuForum}
+import com.nulabinc.backlog.c2b.datas.{CybozuDBComment, CybozuDBForum, CybozuForum}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIORead
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.{CommentTable, CybozuUserTable, ForumTable}
@@ -48,13 +48,7 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
             updatedAt = forum.updatedAt,
             comments = comments.map {
               case (comment, commentCreator) =>
-                CybozuComment(
-                  id = comment.id,
-                  parentId = comment.parentId,
-                  creator = commentCreator,
-                  createdAt = comment.createdAt,
-                  content = comment.content
-                )
+                CybozuDBComment.to(comment, commentCreator)
             }
           )
       }

@@ -67,6 +67,15 @@ object CybozuDBComment {
       createdAt = comment.createdAt,
       content = comment.content
     )
+
+  def to(comment: CybozuDBComment, creator: CybozuDBUser): CybozuComment =
+    CybozuComment(
+      id = comment.id,
+      parentId = comment.parentId,
+      creator = creator,
+      createdAt = comment.createdAt,
+      content = comment.content
+    )
 }
 
 case class CybozuDBEvent(
