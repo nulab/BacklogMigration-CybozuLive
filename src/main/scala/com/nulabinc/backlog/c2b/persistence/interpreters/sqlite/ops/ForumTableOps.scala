@@ -34,6 +34,7 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
         .filter(_.parentId === id)
         .join(cybozuUserTableQuery)
         .on(_.creator === _.id)
+        .sortBy(_._1.id.desc)
         .result
     } yield {
       optForum.map {

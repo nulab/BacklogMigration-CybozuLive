@@ -50,6 +50,7 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
         .filter(_.parentId === id)
         .join(cybozuUserTableQuery)
         .on(_.creator === _.id)
+        .sortBy(_._1.id.desc)
         .result
       // SELECT userfields... FROM issue_user JOIN cybozu_user ON cybozu_user.userId = id WHERE issueId = ?
       assignees <- issueUserTableQuery

@@ -32,6 +32,7 @@ private[sqlite] case class EventTableOps()(implicit exc: ExecutionContext) exten
         .filter(_.parentId === id)
         .join(cybozuUserTableQuery)
         .on(_.creator === _.id)
+        .sortBy(_._1.id.desc)
         .result
     } yield {
       optEvent.map {
