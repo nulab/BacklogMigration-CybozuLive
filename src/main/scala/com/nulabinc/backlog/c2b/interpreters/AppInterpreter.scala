@@ -104,15 +104,6 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
                      consoleInterpreter: ConsoleInterpreter)
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
 
-  def terminate(): Task[Unit] = Task.deferFuture {
-    backlogInterpreter match {
-      case akkaInterpreter: AkkaHttpInterpret =>
-        akkaInterpreter.terminate()
-      case _ =>
-        Future.successful()
-    }
-  }
-
   def run[A](appProgram: AppProgram[A]): Task[A] =
     appProgram.foldMap(this)
 
@@ -124,8 +115,55 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     }
   }
 
+  def export[A](file: File, content: String) = Task {
+    IOUtil.output(file, content)
+  }
+
+  def `import`(config: BacklogApiConfiguration): Task[PrintStream] = Task {
+    Boot.execute(config, false)
+  }
+
+  def exit(exitCode: Int): Task[Unit] = Task {
+    AnsiConsole.systemUninstall()
+    sys.exit(exitCode)
+  }
+
+  def fromBacklogStream[A](stream: ApiStream[A]): Task[Observable[Seq[A]]] = Task.eval {
+    Observable.fromReactivePublisher[Seq[A]](
+      (s: Subscriber[_ >: Seq[A]]) => {
+        backlogInterpreter.runStream(
+          stream.map { value =>
+            s.onNext(value) // publish data
+            Seq(value)
+          }
+        )
+        .onComplete {
+          case Success(_) => s.onComplete()
+          case Failure(ex) => s.onError(ex)
+        }
+      }
+    )
+  }
+
+  def consumeStream(programs: Observable[AppProgram[Unit]]): Task[Unit] =
+    programs.consumeWith(
+      Consumer.foreachParallelTask[AppProgram[Unit]](1) { prg =>
+        prg.foldMap(this).map(_ => ())
+      }
+    )
+
+  def terminate(): Task[Unit] = Task.deferFuture {
+    backlogInterpreter match {
+      case akkaInterpreter: AkkaHttpInterpret =>
+        akkaInterpreter.terminate()
+      case _ =>
+        Future.successful()
+    }
+  }
+
   override def apply[A](fa: AppADT[A]): Task[A] = fa match {
     case Pure(a) => Task(a)
+    case FromTask(task) => task
     case FromStorage(storePrg) =>
       storageInterpreter.run(storePrg)
     case FromDB(dbPrg) =>
@@ -135,41 +173,11 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case FromBacklog(backlogPrg) => Task.deferFuture {
       backlogInterpreter.run(backlogPrg)
     }
-    case FromBacklogStream(stream) => Task.eval {
-      Observable.fromReactivePublisher[Seq[A]](
-        (s: Subscriber[_ >: Seq[A]]) => {
-          backlogInterpreter.runStream(
-            stream.map { value =>
-              val a = value.asInstanceOf[Seq[A]]
-              s.onNext(a) // publish data
-              Seq(a)
-            }
-          )
-          .onComplete {
-            case Success(_) => s.onComplete()
-            case Failure(ex) => s.onError(ex)
-          }
-        }
-      )
-    }
-    case ConsumeStream(prgs) =>
-      prgs.consumeWith(
-        Consumer.foreachParallelTask[AppProgram[Unit]](1) { prg =>
-          prg.foldMap(this).map(_ => ())
-        }
-      )
-    case FromTask(task) => task
-    case Exit(statusCode) => Task {
-      AnsiConsole.systemUninstall()
-      sys.exit(statusCode)
-    }
-    case SetLanguage(lang: String) =>
-      setLanguage(lang)
-    case Export(file, content) => Task {
-      IOUtil.output(file, content)
-    }
-    case Import(config) => Task {
-      Boot.execute(config, false)
-    }
+    case FromBacklogStream(stream) => fromBacklogStream(stream)
+    case ConsumeStream(prgs) => consumeStream(prgs)
+    case SetLanguage(lang: String) => setLanguage(lang)
+    case Export(file, content) => export(file, content)
+    case Import(config) => `import`(config)
+    case Exit(statusCode) => exit(statusCode)
   }
 }
