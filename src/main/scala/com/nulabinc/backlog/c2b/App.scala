@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
+import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger, ProxyConfig}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -72,7 +72,7 @@ object App extends Logger {
     implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
 
     val interpreter = new AppInterpreter(
-      backlogInterpreter = new AkkaHttpInterpret,
+      backlogInterpreter = new AkkaHttpInterpret(ProxyConfig.create),
       storageInterpreter = new LocalStorageInterpreter,
       storeInterpreter = new SQLiteInterpreter(config.DB_PATH),
       consoleInterpreter = new ConsoleInterpreter
@@ -180,5 +180,4 @@ object App extends Logger {
       case "en" => Locale.setDefault(Locale.US)
       case _ => ()
     }
-
 }
