@@ -28,31 +28,30 @@ object ProxyConfig {
   }
 
   private[core] def createAuth(proxyUser: String, proxyPassword: String): Option[BasicHttpCredentials] =
-    (proxyUser, proxyPassword) match {
-      case (user, password) => Some(headers.BasicHttpCredentials(user, password))
-      case _ => None
+    if (proxyUser != null && proxyPassword != null) {
+      Some(headers.BasicHttpCredentials(proxyUser, proxyPassword))
+    } else {
+      None
     }
 
   private[core] def createProxyTransport(proxyHost: String,
                                          proxyPort: String,
-                                         optProxyCredentials: Option[HttpCredentials]): Option[ClientTransport] = {
-    (proxyHost, proxyPort) match {
-      case (host, port) =>
-        try {
-          val clientTransport = optProxyCredentials.map(credentials =>
-            ClientTransport.httpsProxy(
-              InetSocketAddress.createUnresolved(host, port.toInt),
-              credentials
-            )
-          ).getOrElse(
-            ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(host, port.toInt))
+                                         optProxyCredentials: Option[HttpCredentials]): Option[ClientTransport] =
+    if (proxyHost != null && proxyPort != null) {
+      try {
+        val clientTransport = optProxyCredentials.map(credentials =>
+          ClientTransport.httpsProxy(
+            InetSocketAddress.createUnresolved(proxyHost, proxyPort.toInt),
+            credentials
           )
-          Some(clientTransport)
-        } catch {
-          case _: Throwable => None
-        }
-      case _ => None
+        ).getOrElse(
+          ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(proxyHost, proxyPort.toInt))
+        )
+        Some(clientTransport)
+      } catch {
+        case _: Throwable => None
+      }
+    } else {
+      None
     }
-  }
-
 }
