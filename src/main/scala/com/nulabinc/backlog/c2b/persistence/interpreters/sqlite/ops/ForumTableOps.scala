@@ -48,7 +48,13 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
             updatedAt = forum.updatedAt,
             comments = comments.map {
               case (comment, commentCreator) =>
-                CybozuComment(comment, commentCreator)
+                CybozuComment(
+                  id = comment.id,
+                  parentId = comment.parentId,
+                  creator = commentCreator,
+                  createdAt = comment.createdAt,
+                  content = comment.content
+                )
             }
           )
       }

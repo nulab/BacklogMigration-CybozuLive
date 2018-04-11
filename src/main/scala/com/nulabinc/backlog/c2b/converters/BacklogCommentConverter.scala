@@ -17,11 +17,11 @@ class BacklogCommentConverter()(implicit ctx: MappingContext) {
       BacklogComment(
         eventType = "comment",
         optIssueId = Some(issueId),
-        optContent = Option(from.comment.content).map(StringUtil.toSafeString),
+        optContent = Option(from.content).map(StringUtil.toSafeString),
         changeLogs = Seq(),
         notifications = Seq(),
         optCreatedUser = Some(convertedCreator),
-        optCreated =  Some(DateUtil.toDateTimeString(from.comment.createdAt))
+        optCreated =  Some(DateUtil.toDateTimeString(from.createdAt))
       )
     }
 

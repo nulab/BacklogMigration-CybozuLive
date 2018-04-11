@@ -40,8 +40,11 @@ case class CybozuForum(
 )
 
 case class CybozuComment(
-  comment: CybozuDBComment,
-  creator: CybozuDBUser
+  id: AnyId,
+  parentId: AnyId,
+  creator: CybozuDBUser,
+  createdAt: DateTime,
+  content: String
 )
 
 case class CybozuIssueType(value: String) extends AnyVal

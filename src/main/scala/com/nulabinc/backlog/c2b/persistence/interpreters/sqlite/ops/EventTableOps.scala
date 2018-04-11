@@ -45,7 +45,13 @@ private[sqlite] case class EventTableOps()(implicit exc: ExecutionContext) exten
             memo = event.memo,
             comments = comments.map {
               case (comment, commentCreator) =>
-                CybozuComment(comment, commentCreator)
+                CybozuComment(
+                  id = comment.id,
+                  parentId = comment.parentId,
+                  creator = commentCreator,
+                  createdAt = comment.createdAt,
+                  content = comment.content
+                )
             },
             creator = creator
           )

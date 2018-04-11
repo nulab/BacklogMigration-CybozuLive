@@ -286,7 +286,7 @@ object BacklogExport extends Logger {
                             converter: BacklogCommentConverter): AppProgram[Unit] = {
     converter.from(issueId, cybozuComment) match {
       case Right(backlogComment) =>
-        exportComment(paths, issueId, backlogComment, cybozuComment.comment.createdAt, index)
+        exportComment(paths, issueId, backlogComment, cybozuComment.createdAt, index)
       case Left(error) =>
         AppDSL.exit("Comment convert error. " + error.toString, 1)
     }

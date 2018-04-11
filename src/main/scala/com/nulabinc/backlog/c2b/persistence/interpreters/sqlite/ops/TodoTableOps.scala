@@ -74,7 +74,13 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
             assignees = assignees,
             comments = comments.map {
               case (comment, commentCreator) =>
-                CybozuComment(comment, commentCreator)
+                CybozuComment(
+                  id = comment.id,
+                  parentId = comment.parentId,
+                  creator = commentCreator,
+                  createdAt = comment.createdAt,
+                  content = comment.content
+                )
             }
           )
       }
