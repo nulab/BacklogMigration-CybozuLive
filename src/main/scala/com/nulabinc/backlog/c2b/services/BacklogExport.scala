@@ -195,10 +195,10 @@ object BacklogExport extends Logger {
                 )
                 for {
                   _ <- exportComment(paths, todo.id, comment, todo.createdAt, 0)
-                  _ <- exportComments(paths, todo.id, todo.comments, commentConverter, 1)
+                  _ <- exportComments(paths, todo.comments, commentConverter, 1)
                 } yield ()
               } else {
-                exportComments(paths, todo.id, todo.comments, commentConverter)
+                exportComments(paths, todo.comments, commentConverter)
               }
             } yield ()
           case Left(error) =>
@@ -221,7 +221,7 @@ object BacklogExport extends Logger {
           case Right(backlogIssue) =>
             for {
               _ <- exportIssue(paths, backlogIssue, event.startDateTime, index, total)
-              _ <- exportComments(paths, event.id, event.comments, commentConverter)
+              _ <- exportComments(paths, event.comments, commentConverter)
             } yield ()
           case Left(error) =>
             AppDSL.exit("Event convert error. " + error.toString, 1)
@@ -243,7 +243,7 @@ object BacklogExport extends Logger {
           case Right(backlogIssue) =>
             for {
               _ <- exportIssue(paths, backlogIssue, forum.createdAt, index, total)
-              _ <- exportComments(paths, forum.id, forum.comments, commentConverter)
+              _ <- exportComments(paths, forum.comments, commentConverter)
             } yield ()
           case Left(error) =>
             AppDSL.exit("Forum convert error. " + error.toString, 1)
@@ -280,20 +280,18 @@ object BacklogExport extends Logger {
   }
 
   private def exportComment(paths: BacklogPaths,
-                            issueId: AnyId,
                             cybozuComment: CybozuComment,
                             index: Int,
                             converter: BacklogCommentConverter): AppProgram[Unit] = {
-    converter.from(issueId, cybozuComment) match {
+    converter.to(cybozuComment) match {
       case Right(backlogComment) =>
-        exportComment(paths, issueId, backlogComment, cybozuComment.createdAt, index)
+        exportComment(paths, cybozuComment.parentId, backlogComment, cybozuComment.createdAt, index)
       case Left(error) =>
         AppDSL.exit("Comment convert error. " + error.toString, 1)
     }
   }
 
   private def exportComments(paths: BacklogPaths,
-                             issueId: AnyId,
                              comments: Seq[CybozuComment],
                              converter: BacklogCommentConverter,
                              offset: Int = 0): AppProgram[Seq[Unit]] = {
@@ -301,7 +299,7 @@ object BacklogExport extends Logger {
     
     comments.zipWithIndex.map {
       case (cybozuComment, index) =>
-        exportComment(paths, issueId, cybozuComment, index + offset, converter)
+        exportComment(paths, cybozuComment, index + offset, converter)
     }.sequence
   }
 
