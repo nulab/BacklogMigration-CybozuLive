@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
+import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DataDirectoryChecker, DisableSSLCertificateChecker, Logger}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -37,21 +37,15 @@ object App extends Logger {
     val dataDirectory = appConfig.getString("dataDirectory")
 
     // Check
-    try {
-      Paths.get(dataDirectory).toRealPath()
-    } catch {
-      case _: Throwable =>
-        exit(1, Messages("error.data_folder_not_found", dataDirectory))
-    }
-    ClassVersionChecker.check() match {
+    (for {
+      _ <- DataDirectoryChecker.check(dataDirectory)
+      _ <- ClassVersionChecker.check()
+      _ <- DisableSSLCertificateChecker.check()
+    } yield ()) match {
       case Failure(ex) => exit(1, ex)
       case _ => ()
     }
-    DisableSSLCertificateChecker.check() match {
-      case Failure(ex) => exit(1, ex)
-      case _ => ()
-    }
-
+    
     // check release version
 
     // Initialize
