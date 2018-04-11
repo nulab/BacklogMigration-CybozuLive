@@ -18,10 +18,10 @@ object StoreDSL {
   lazy val createDatabase: StoreProgram[Unit] =
     Free.liftF(CreateDatabase)
 
-  lazy val getCybozuPriorities: StoreProgram[Observable[CybozuDBPriority]] =
+  lazy val getCybozuPriorities: StoreProgram[Observable[CybozuPriority]] =
     Free.liftF(GetCybozuPriorities)
 
-  lazy val getCybozuStatuses: StoreProgram[Observable[CybozuDBStatus]] =
+  lazy val getCybozuStatuses: StoreProgram[Observable[CybozuStatus]] =
     Free.liftF(GetCybozuStatuses)
 
   lazy val getBacklogPriorities: StoreProgram[Observable[BacklogPriority]] =

@@ -41,8 +41,8 @@ case class GetCybozuUserById(id: AnyId) extends StoreADT[Option[CybozuDBUser]]
 case class GetCybozuUserBykey(key: String) extends StoreADT[Option[CybozuDBUser]]
 case class StoreCybozuUser(user: CybozuDBUser, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
-case object GetCybozuPriorities extends StoreADT[Observable[CybozuDBPriority]]
-case object GetCybozuStatuses extends StoreADT[Observable[CybozuDBStatus]]
+case object GetCybozuPriorities extends StoreADT[Observable[CybozuPriority]]
+case object GetCybozuStatuses extends StoreADT[Observable[CybozuStatus]]
 
 case class WriteDBStream[A](stream: Observable[StoreProgram[A]]) extends StoreADT[Unit]
 

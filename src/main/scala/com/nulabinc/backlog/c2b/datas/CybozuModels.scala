@@ -3,18 +3,18 @@ package com.nulabinc.backlog.c2b.datas
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 
 case class CybozuTodo(
-  id: AnyId,
-  title: String,
-  content: String,
-  creator: CybozuDBUser,
-  createdAt: DateTime,
-  updater: CybozuDBUser,
-  updatedAt: DateTime,
-  status: CybozuDBStatus,
-  priority: CybozuDBPriority,
-  dueDate: Option[DateTime],
-  comments: Seq[CybozuComment],
-  assignees: Seq[CybozuDBUser]
+                       id: AnyId,
+                       title: String,
+                       content: String,
+                       creator: CybozuDBUser,
+                       createdAt: DateTime,
+                       updater: CybozuDBUser,
+                       updatedAt: DateTime,
+                       status: CybozuStatus,
+                       priority: CybozuPriority,
+                       dueDate: Option[DateTime],
+                       comments: Seq[CybozuComment],
+                       assignees: Seq[CybozuDBUser]
 )
 
 case class CybozuEvent(
@@ -48,3 +48,5 @@ case class CybozuComment(
 )
 
 case class CybozuIssueType(value: String) extends AnyVal
+case class CybozuStatus(value: String) extends AnyVal
+case class CybozuPriority(value: String) extends AnyVal

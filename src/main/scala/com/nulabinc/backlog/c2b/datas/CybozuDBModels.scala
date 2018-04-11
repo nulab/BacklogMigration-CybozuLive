@@ -2,9 +2,6 @@ package com.nulabinc.backlog.c2b.datas
 
 import com.nulabinc.backlog.c2b.datas.Types._
 
-case class CybozuDBStatus(value: String) extends AnyVal
-case class CybozuDBPriority(value: String) extends AnyVal
-
 case class CybozuDBUser(
   id: AnyId,
   userId: String
@@ -26,8 +23,8 @@ case class CybozuDBTodo(
   createdAt: DateTime,
   updater: AnyId,
   updatedAt: DateTime,
-  status: CybozuDBStatus,
-  priority: CybozuDBPriority,
+  status: CybozuStatus,
+  priority: CybozuPriority,
   dueDate: Option[DateTime]
 ) extends Entity
 
@@ -44,8 +41,8 @@ object CybozuDBTodo {
       createdAt = todo.createdAt,
       updater = updaterId,
       updatedAt = todo.updatedAt,
-      status = CybozuDBStatus(todo.status.value),
-      priority = CybozuDBPriority(todo.priority.value),
+      status = CybozuStatus(todo.status.value),
+      priority = CybozuPriority(todo.priority.value),
       dueDate = todo.dueDate
     )
 }

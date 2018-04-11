@@ -18,13 +18,13 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
   private val issueUserTableQuery = TableQuery[CybozuIssueUserTable]
 
-  lazy val distinctPriorities: DBIOStream[CybozuDBPriority] =
+  lazy val distinctPriorities: DBIOStream[CybozuPriority] =
     tableQuery
       .map(_.priority)
       .distinct
       .result
 
-  lazy val distinctStatuses: DBIOStream[CybozuDBStatus] =
+  lazy val distinctStatuses: DBIOStream[CybozuStatus] =
     tableQuery
       .map(_.status)
       .distinct
