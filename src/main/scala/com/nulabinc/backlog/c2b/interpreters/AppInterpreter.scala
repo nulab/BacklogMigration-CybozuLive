@@ -1,7 +1,6 @@
 package com.nulabinc.backlog.c2b.interpreters
 
 import java.io.PrintStream
-import java.util.Locale
 
 import better.files.File
 import cats.free.Free
@@ -37,7 +36,6 @@ case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq
 case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
 private case class FromTask[A](task: Task[A]) extends AppADT[A]
-case class SetLanguage(lang: String) extends AppADT[Unit]
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
 
@@ -85,9 +83,6 @@ object AppDSL {
       _ <- Free.liftF(Exit(exitCode))
     } yield ()
 
-  def setLanguage(lang: String): AppProgram[Unit] =
-    Free.liftF(SetLanguage(lang))
-
   def export(message: String, file: File, content: String): AppProgram[File] =
     for {
       _ <- fromConsole(ConsoleDSL.print(message))
@@ -106,14 +101,6 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
 
   def run[A](appProgram: AppProgram[A]): Task[A] =
     appProgram.foldMap(this)
-
-  def setLanguage(lang: String): Task[Unit] = Task { // TODO: change to Locale
-    lang match {
-      case "ja" => Locale.setDefault(Locale.JAPAN)
-      case "en" => Locale.setDefault(Locale.US)
-      case _ => ()
-    }
-  }
 
   def export[A](file: File, content: String) = Task {
     IOUtil.output(file, content)
@@ -175,7 +162,6 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     }
     case FromBacklogStream(stream) => fromBacklogStream(stream)
     case ConsumeStream(prgs) => consumeStream(prgs)
-    case SetLanguage(lang: String) => setLanguage(lang)
     case Export(file, content) => export(file, content)
     case Import(config) => `import`(config)
     case Exit(statusCode) => exit(statusCode)
