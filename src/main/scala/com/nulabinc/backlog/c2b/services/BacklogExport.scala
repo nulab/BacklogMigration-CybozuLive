@@ -47,7 +47,7 @@ object BacklogExport extends Logger {
     } yield ()
 
   def project(config: Config): AppProgram[Unit] = {
-    val projectResult = BacklogProjectConverter.to(config.projectKey)
+    val projectResult = ProjectConverter.to(config.projectKey)
     for {
       _ <- projectResult match {
         case Right(project) =>
@@ -65,7 +65,7 @@ object BacklogExport extends Logger {
   def users(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
-    val userConverter = new BacklogUserConverter()
+    val userConverter = new UserConverter()
     for {
       userStream <- AppDSL.fromStore(StoreDSL.getCybozuUsers)
       cybozuUsers <- AppDSL.streamAsSeq(userStream)
@@ -100,7 +100,7 @@ object BacklogExport extends Logger {
   def exportIssueTypes(config: Config, issueTypes: Map[IssueType, CybozuIssueType]): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
-    issueTypes.values.toSeq.map(s => BacklogIssueTypeConverter.to(s)).sequence match {
+    issueTypes.values.toSeq.map(s => IssueTypeConverter.to(s)).sequence match {
       case Right(backlogIssueTypes) =>
         for {
           _ <- AppDSL.export(
@@ -125,7 +125,7 @@ object BacklogExport extends Logger {
             issueType: CybozuIssueType,
             openStatusName: String)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
-    val commentConverter = new BacklogCommentConverter()
+    val commentConverter = new CommentConverter()
 
     for {
       todos <- AppDSL.fromStore(StoreDSL.getTodos)
@@ -141,7 +141,7 @@ object BacklogExport extends Logger {
 
   def events(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
-    val commentConverter = new BacklogCommentConverter()
+    val commentConverter = new CommentConverter()
 
     for {
       events <- AppDSL.fromStore(StoreDSL.getEvents)
@@ -157,7 +157,7 @@ object BacklogExport extends Logger {
 
   def forums(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     val issueConverter = new IssueConverter()
-    val commentConverter = new BacklogCommentConverter()
+    val commentConverter = new CommentConverter()
 
     for {
       forums <- AppDSL.fromStore(StoreDSL.getForums)
@@ -175,7 +175,7 @@ object BacklogExport extends Logger {
                          todoId: AnyId,
                          issueType: CybozuIssueType,
                          issueConverter: IssueConverter,
-                         commentConverter: BacklogCommentConverter,
+                         commentConverter: CommentConverter,
                          openStatusName: String,
                          index: Long,
                          total: Long): AppProgram[Unit] =
@@ -211,7 +211,7 @@ object BacklogExport extends Logger {
                           eventId: AnyId,
                           issueType: CybozuIssueType,
                           issueConverter: IssueConverter,
-                          commentConverter: BacklogCommentConverter,
+                          commentConverter: CommentConverter,
                           index: Long,
                           total: Long): AppProgram[Unit] =
     for {
@@ -233,7 +233,7 @@ object BacklogExport extends Logger {
                           forumId: AnyId,
                           issueType: CybozuIssueType,
                           issueConverter: IssueConverter,
-                          commentConverter: BacklogCommentConverter,
+                          commentConverter: CommentConverter,
                           index: Long,
                           total: Long): AppProgram[Unit] =
     for {
@@ -282,7 +282,7 @@ object BacklogExport extends Logger {
   private def exportComment(paths: BacklogPaths,
                             cybozuComment: CybozuComment,
                             index: Int,
-                            converter: BacklogCommentConverter): AppProgram[Unit] = {
+                            converter: CommentConverter): AppProgram[Unit] = {
     converter.to(cybozuComment) match {
       case Right(backlogComment) =>
         exportComment(paths, cybozuComment.parentId, backlogComment, cybozuComment.createdAt, index)
@@ -293,7 +293,7 @@ object BacklogExport extends Logger {
 
   private def exportComments(paths: BacklogPaths,
                              comments: Seq[CybozuComment],
-                             converter: BacklogCommentConverter,
+                             converter: CommentConverter,
                              offset: Int = 0): AppProgram[Seq[Unit]] = {
     import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
     

@@ -11,7 +11,7 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
 
   import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
-  private val userConverter = new BacklogUserConverter()
+  private val userConverter = new UserConverter()
   private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
 
   def from(from: CybozuTodo, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] =

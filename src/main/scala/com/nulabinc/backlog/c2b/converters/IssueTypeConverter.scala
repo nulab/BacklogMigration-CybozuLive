@@ -4,7 +4,7 @@ import com.nulabinc.backlog.c2b.datas.CybozuIssueType
 import com.nulabinc.backlog.migration.common.conf.BacklogConstantValue
 import com.nulabinc.backlog.migration.common.domain.BacklogIssueType
 
-object BacklogIssueTypeConverter extends Converter[CybozuIssueType, BacklogIssueType] {
+object IssueTypeConverter extends Converter[CybozuIssueType, BacklogIssueType] {
   override def to(a: CybozuIssueType): Either[ConvertError, BacklogIssueType] =
     Right(
       BacklogIssueType(

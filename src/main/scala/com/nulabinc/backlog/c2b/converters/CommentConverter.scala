@@ -5,9 +5,9 @@ import com.nulabinc.backlog.c2b.datas.{CybozuComment, MappingContext}
 import com.nulabinc.backlog.migration.common.domain.BacklogComment
 import com.nulabinc.backlog.migration.common.utils.StringUtil
 
-class BacklogCommentConverter()(implicit ctx: MappingContext) extends Converter[CybozuComment, BacklogComment] {
+class CommentConverter()(implicit ctx: MappingContext) extends Converter[CybozuComment, BacklogComment] {
 
-  val userConverter = new BacklogUserConverter()
+  val userConverter = new UserConverter()
 
   def to(from: CybozuComment): Either[ConvertError, BacklogComment] =
     for {
