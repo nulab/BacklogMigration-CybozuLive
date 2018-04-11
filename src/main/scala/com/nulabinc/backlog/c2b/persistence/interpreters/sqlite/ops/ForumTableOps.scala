@@ -33,7 +33,7 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
       comments <- commentTableQuery
         .filter(_.parentId === id)
         .join(cybozuUserTableQuery)
-        .on(_.parentId === _.id)
+        .on(_.creator === _.id)
         .result
     } yield {
       optForum.map {
