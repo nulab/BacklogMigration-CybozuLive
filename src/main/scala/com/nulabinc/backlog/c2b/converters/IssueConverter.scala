@@ -51,19 +51,19 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
       convertedCreator <- userConverter.to(from.creator)
     } yield {
       val description =
-        from.event.memo + "\n\n" +
-        from.event.menu + "\n\n" +
-        formatter.format(from.event.startDateTime) + " ~ " + formatter.format(from.event.endDateTime)
+        from.memo + "\n\n" +
+        from.menu + "\n\n" +
+        formatter.format(from.startDateTime) + " ~ " + formatter.format(from.endDateTime)
       defaultBacklogIssue.copy(
-        id                = from.event.id,
-        summary           = createBacklogIssueSummary(from.event.title),
+        id                = from.id,
+        summary           = createBacklogIssueSummary(from.title),
         description       = description,
         optStartDate      = None,
         optDueDate        = None,
         optIssueTypeName  = Some(issueType.value),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
-          optCreated        = Some(DateUtil.toDateTimeString(from.event.startDateTime)),
+          optCreated        = Some(DateUtil.toDateTimeString(from.startDateTime)),
           optUpdatedUser    = None,
           optUpdated        = None
         )

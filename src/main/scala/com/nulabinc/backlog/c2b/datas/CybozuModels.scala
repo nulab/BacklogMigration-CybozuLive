@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b.datas
 
+import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
+
 case class CybozuTodo(
   todo: CybozuDBTodo,
   comments: Seq[CybozuComment],
@@ -9,9 +11,14 @@ case class CybozuTodo(
 )
 
 case class CybozuEvent(
-  event: CybozuDBEvent,
+  id: AnyId,
+  startDateTime: DateTime,
+  endDateTime: DateTime,
+  menu: String,
+  title: String,
+  memo: String,
+  creator: CybozuDBUser,
   comments: Seq[CybozuComment],
-  creator: CybozuDBUser
 )
 
 case class CybozuForum(

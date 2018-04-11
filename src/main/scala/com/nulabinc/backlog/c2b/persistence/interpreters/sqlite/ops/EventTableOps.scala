@@ -37,7 +37,12 @@ private[sqlite] case class EventTableOps()(implicit exc: ExecutionContext) exten
       optEvent.map {
         case (event, creator) =>
           CybozuEvent(
-            event = event,
+            id = event.id,
+            startDateTime = event.startDateTime,
+            endDateTime = event.endDateTime,
+            menu = event.menu,
+            title = event.title,
+            memo = event.memo,
             comments = comments.map {
               case (comment, commentCreator) =>
                 CybozuComment(comment, commentCreator)

@@ -220,8 +220,8 @@ object BacklogExport extends Logger {
         issueConverter.from(event, issueType) match {
           case Right(backlogIssue) =>
             for {
-              _ <- exportIssue(paths, backlogIssue, event.event.startDateTime, index, total)
-              _ <- exportComments(paths, event.event.id, event.comments, commentConverter)
+              _ <- exportIssue(paths, backlogIssue, event.startDateTime, index, total)
+              _ <- exportComments(paths, event.id, event.comments, commentConverter)
             } yield ()
           case Left(error) =>
             AppDSL.exit("Event convert error. " + error.toString, 1)

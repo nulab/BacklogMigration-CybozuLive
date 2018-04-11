@@ -1,6 +1,5 @@
 package com.nulabinc.backlog.c2b
 
-import java.nio.file.Paths
 import java.util.Locale
 
 import akka.actor.ActorSystem
@@ -45,7 +44,7 @@ object App extends Logger {
       case Failure(ex) => exit(1, ex)
       case _ => ()
     }
-    
+
     // check release version
 
     // Initialize
