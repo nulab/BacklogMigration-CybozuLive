@@ -1,4 +1,4 @@
-package com.nulabinc.backlog.c2b.converters
+package com.nulabinc.backlog.c2b.serializers
 
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.datas._

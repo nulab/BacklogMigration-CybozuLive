@@ -5,12 +5,12 @@ import java.nio.file.Path
 
 import scala.collection.JavaConverters._
 import com.nulabinc.backlog.c2b.Config
-import com.nulabinc.backlog.c2b.converters.CSVRecordSerializer
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas.MappingContext
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
+import com.nulabinc.backlog.c2b.serializers.CSVRecordSerializer
 import com.osinka.i18n.Messages
 import monix.reactive.Observable
 import org.apache.commons.csv.CSVParser
