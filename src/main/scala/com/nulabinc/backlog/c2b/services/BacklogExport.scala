@@ -23,9 +23,15 @@ object BacklogExport extends Logger {
   val start: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.printBold(Messages("export.start")))
   val finish: AppProgram[Unit] = AppDSL.fromConsole(ConsoleDSL.printBold(Messages("export.finish")))
 
-  def all(config: Config,
-          issueTypes: Map[IssueType, CybozuIssueType],
-          openStatusName: String)(implicit mappingContext: MappingContext): AppProgram[Unit] =
+  val issueTypes: Map[IssueType, CybozuIssueType] = Map(
+    IssueType.ToDo -> CybozuIssueType(Messages("issue.type.todo")),
+    IssueType.Event -> CybozuIssueType(Messages("issue.type.event")),
+    IssueType.Forum -> CybozuIssueType(Messages("issue.type.forum"))
+  )
+
+  val openStatusName: String = Messages("name.status.open")
+
+  def all(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] =
     for {
       _ <- start
       _ <- project(config)

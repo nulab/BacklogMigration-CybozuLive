@@ -9,7 +9,6 @@ import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
-import com.nulabinc.backlog.c2b.datas.{CybozuIssueType, IssueType}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -146,7 +145,7 @@ object App extends Logger {
       _ <- Validations.projectsExists(config, backlogApi.projectApi)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext(config)
-      _ <- BacklogExport.all(config, issueTypes, Messages("name.status.open"))(mappingContext)
+      _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
     } yield ()
   }
@@ -174,13 +173,6 @@ object App extends Logger {
     Console.println(error)
     exit(exitCode)
   }
-
-  private def issueTypes: Map[IssueType, CybozuIssueType] =
-    Map(
-      IssueType.ToDo -> CybozuIssueType(Messages("issue.type.todo")),
-      IssueType.Event -> CybozuIssueType(Messages("issue.type.event")),
-      IssueType.Forum -> CybozuIssueType(Messages("issue.type.forum"))
-    )
 
   private def setLanguage(locale: String): Unit =
     locale match {
