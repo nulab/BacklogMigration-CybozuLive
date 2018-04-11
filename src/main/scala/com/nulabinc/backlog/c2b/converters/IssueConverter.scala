@@ -77,17 +77,17 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
       convertedUpdater <- userConverter.to(from.updater)
     } yield {
       defaultBacklogIssue.copy(
-        id                = from.forum.id,
-        summary           = createBacklogIssueSummary(from.forum.title),
-        description       = from.forum.content,
+        id                = from.id,
+        summary           = createBacklogIssueSummary(from.title),
+        description       = from.content,
         optStartDate      = None,
         optDueDate        = None,
         optIssueTypeName  = Some(issueType.value),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
-          optCreated        = Some(DateUtil.toDateTimeString(from.forum.createdAt)),
+          optCreated        = Some(DateUtil.toDateTimeString(from.createdAt)),
           optUpdatedUser    = Some(convertedUpdater),
-          optUpdated        = Some(DateUtil.toDateTimeString(from.forum.updatedAt))
+          optUpdated        = Some(DateUtil.toDateTimeString(from.updatedAt))
         )
       )
     }

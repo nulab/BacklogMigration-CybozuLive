@@ -242,8 +242,8 @@ object BacklogExport extends Logger {
         issueConverter.from(forum, issueType) match {
           case Right(backlogIssue) =>
             for {
-              _ <- exportIssue(paths, backlogIssue, forum.forum.createdAt, index, total)
-              _ <- exportComments(paths, forum.forum.id, forum.comments, commentConverter)
+              _ <- exportIssue(paths, backlogIssue, forum.createdAt, index, total)
+              _ <- exportComments(paths, forum.id, forum.comments, commentConverter)
             } yield ()
           case Left(error) =>
             AppDSL.exit("Forum convert error. " + error.toString, 1)

@@ -22,10 +22,14 @@ case class CybozuEvent(
 )
 
 case class CybozuForum(
-  forum: CybozuDBForum,
-  comments: Seq[CybozuComment],
+  id: AnyId,
+  title: String,
+  content: String,
   creator: CybozuDBUser,
-  updater: CybozuDBUser
+  createdAt: DateTime,
+  updater: CybozuDBUser,
+  updatedAt: DateTime,
+  comments: Seq[CybozuComment]
 )
 
 case class CybozuComment(

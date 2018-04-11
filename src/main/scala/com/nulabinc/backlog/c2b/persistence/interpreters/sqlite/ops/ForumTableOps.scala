@@ -39,13 +39,17 @@ private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) exten
       optForum.map {
         case ((forum, creator), updater) =>
           CybozuForum(
-            forum = forum,
+            id = forum.id,
+            title = forum.title,
+            content = forum.content,
+            creator = creator,
+            createdAt = forum.createdAt,
+            updater = updater,
+            updatedAt = forum.updatedAt,
             comments = comments.map {
               case (comment, commentCreator) =>
                 CybozuComment(comment, commentCreator)
-            },
-            creator = creator,
-            updater = updater
+            }
           )
       }
     }
