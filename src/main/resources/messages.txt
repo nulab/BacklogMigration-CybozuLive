@@ -57,6 +57,9 @@ export.custom_field=Custom fields are exported.
 export.issue=({0}/{1}) Issue is exported. {2}
 export.comment=Comment is exported.
 
+# Convert
+convert.other_assignees=Other assignees
+
 #
 # From importer
 #

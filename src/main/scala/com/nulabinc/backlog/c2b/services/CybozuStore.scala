@@ -16,14 +16,17 @@ object CybozuStore extends Logger {
 
   def copyToStore(csvFiles: Array[File]): AppProgram[Unit] = {
     val todoFiles = {
-      csvFiles.filter(_.getName.contains("live_ToDo")) ++
-      csvFiles.filter(_.getName.contains("live_To-Do List"))
+      csvFiles.filter(_.getName.contains("live_ToDoリスト_")) ++
+      csvFiles.filter(_.getName.contains("live_To-Do List_"))
     }
     val eventFiles = {
-      csvFiles.filter(_.getName.contains("live_Events_")) ++
-      csvFiles.filter(_.getName.contains("live_イベント_"))
+      csvFiles.filter(_.getName.contains("live_イベント_")) ++
+      csvFiles.filter(_.getName.contains("live_Events_"))
     }
-    val forumFiles = csvFiles.filter(_.getName.contains("live_掲示板_")) // TODO: english version
+    val forumFiles = {
+      csvFiles.filter(_.getName.contains("live_掲示板_"))
+      csvFiles.filter(_.getName.contains("live_Forum_"))
+    }
 
     for {
       _ <- todo(todoFiles)

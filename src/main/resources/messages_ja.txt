@@ -57,6 +57,9 @@ export.custom_field=カスタムフィールドをエクスポートしました
 export.issue=({0}/{1}) 課題をエクスポートしました。 {2}
 export.comment=コメントをエクスポートしました。
 
+# Convert
+convert.other_assignees=その他の担当者
+
 #
 # From importer
 #

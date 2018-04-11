@@ -1,7 +1,6 @@
 package com.nulabinc.backlog.c2b.interpreters
 
 import java.io.PrintStream
-import java.util.Locale
 
 import better.files.File
 import cats.free.Free
@@ -37,7 +36,6 @@ case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq
 case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
 private case class FromTask[A](task: Task[A]) extends AppADT[A]
-case class SetLanguage(lang: String) extends AppADT[Unit]
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
 
@@ -85,9 +83,6 @@ object AppDSL {
       _ <- Free.liftF(Exit(exitCode))
     } yield ()
 
-  def setLanguage(lang: String): AppProgram[Unit] =
-    Free.liftF(SetLanguage(lang))
-
   def export(message: String, file: File, content: String): AppProgram[File] =
     for {
       _ <- fromConsole(ConsoleDSL.print(message))
@@ -104,6 +99,46 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
                      consoleInterpreter: ConsoleInterpreter)
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
 
+  def run[A](appProgram: AppProgram[A]): Task[A] =
+    appProgram.foldMap(this)
+
+  def export[A](file: File, content: String) = Task {
+    IOUtil.output(file, content)
+  }
+
+  def `import`(config: BacklogApiConfiguration): Task[PrintStream] = Task {
+    Boot.execute(config, false)
+  }
+
+  def exit(exitCode: Int): Task[Unit] = Task {
+    AnsiConsole.systemUninstall()
+    sys.exit(exitCode)
+  }
+
+  def fromBacklogStream[A](stream: ApiStream[A]): Task[Observable[Seq[A]]] = Task.eval {
+    Observable.fromReactivePublisher[Seq[A]](
+      (s: Subscriber[_ >: Seq[A]]) => {
+        backlogInterpreter.runStream(
+          stream.map { value =>
+            s.onNext(value) // publish data
+            Seq(value)
+          }
+        )
+        .onComplete {
+          case Success(_) => s.onComplete()
+          case Failure(ex) => s.onError(ex)
+        }
+      }
+    )
+  }
+
+  def consumeStream(programs: Observable[AppProgram[Unit]]): Task[Unit] =
+    programs.consumeWith(
+      Consumer.foreachParallelTask[AppProgram[Unit]](1) { prg =>
+        prg.foldMap(this).map(_ => ())
+      }
+    )
+
   def terminate(): Task[Unit] = Task.deferFuture {
     backlogInterpreter match {
       case akkaInterpreter: AkkaHttpInterpret =>
@@ -113,19 +148,9 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     }
   }
 
-  def run[A](appProgram: AppProgram[A]): Task[A] =
-    appProgram.foldMap(this)
-
-  def setLanguage(lang: String): Task[Unit] = Task { // TODO: change to Locale
-    lang match {
-      case "ja" => Locale.setDefault(Locale.JAPAN)
-      case "en" => Locale.setDefault(Locale.US)
-      case _ => ()
-    }
-  }
-
   override def apply[A](fa: AppADT[A]): Task[A] = fa match {
     case Pure(a) => Task(a)
+    case FromTask(task) => task
     case FromStorage(storePrg) =>
       storageInterpreter.run(storePrg)
     case FromDB(dbPrg) =>
@@ -135,41 +160,10 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case FromBacklog(backlogPrg) => Task.deferFuture {
       backlogInterpreter.run(backlogPrg)
     }
-    case FromBacklogStream(stream) => Task.eval {
-      Observable.fromReactivePublisher[Seq[A]](
-        (s: Subscriber[_ >: Seq[A]]) => {
-          backlogInterpreter.runStream(
-            stream.map { value =>
-              val a = value.asInstanceOf[Seq[A]]
-              s.onNext(a) // publish data
-              Seq(a)
-            }
-          )
-          .onComplete {
-            case Success(_) => s.onComplete()
-            case Failure(ex) => s.onError(ex)
-          }
-        }
-      )
-    }
-    case ConsumeStream(prgs) =>
-      prgs.consumeWith(
-        Consumer.foreachParallelTask[AppProgram[Unit]](1) { prg =>
-          prg.foldMap(this).map(_ => ())
-        }
-      )
-    case FromTask(task) => task
-    case Exit(statusCode) => Task {
-      AnsiConsole.systemUninstall()
-      sys.exit(statusCode)
-    }
-    case SetLanguage(lang: String) =>
-      setLanguage(lang)
-    case Export(file, content) => Task {
-      IOUtil.output(file, content)
-    }
-    case Import(config) => Task {
-      Boot.execute(config, false)
-    }
+    case FromBacklogStream(stream) => fromBacklogStream(stream)
+    case ConsumeStream(prgs) => consumeStream(prgs)
+    case Export(file, content) => export(file, content)
+    case Import(config) => `import`(config)
+    case Exit(statusCode) => exit(statusCode)
   }
 }

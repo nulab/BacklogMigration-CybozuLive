@@ -2,11 +2,12 @@ package com.nulabinc.backlog.c2b.converters
 
 import java.time.format.DateTimeFormatter
 
-import com.nulabinc.backlog.c2b.core.DateUtil
+import com.nulabinc.backlog.c2b.core.{DateUtil, Logger}
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.migration.common.domain._
+import com.osinka.i18n.Messages
 
-class IssueConverter()(implicit ctx: MappingContext) {
+class IssueConverter()(implicit ctx: MappingContext) extends Logger {
 
   import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
@@ -23,7 +24,7 @@ class IssueConverter()(implicit ctx: MappingContext) {
     } yield {
         val description = if (assignees.length > 1) {
           val otherAssignees = assignees.tail
-          from.todo.content + "\n\nその他担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",") // TODO: english
+          from.todo.content + s"\n\n${Messages("convert.other_assignees")}: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
         } else {
           from.todo.content
         }

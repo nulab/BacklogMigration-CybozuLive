@@ -1,6 +1,7 @@
 package com.nulabinc.backlog.c2b
 
 import java.nio.file.Paths
+import java.util.Locale
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -28,7 +29,7 @@ object App extends Logger {
 
   def main(args: Array[String]): Unit = {
 
-    // config
+    // Config
     val configFactory = ConfigFactory.load()
     val appConfig = configFactory.getConfig("app")
     val appName = appConfig.getString("name")
@@ -36,9 +37,7 @@ object App extends Logger {
     val language = appConfig.getString("language")
     val dataDirectory = appConfig.getString("dataDirectory")
 
-    // ------------------------------------------------------------------------
-    // check
-    // ------------------------------------------------------------------------
+    // Check
     try {
       Paths.get(dataDirectory).toRealPath()
     } catch {
@@ -53,9 +52,12 @@ object App extends Logger {
       case Failure(ex) => exit(1, ex)
       case _ => ()
     }
-    // TODO: check release version
 
+    // check release version
+
+    // Initialize
     AnsiConsole.systemInstall()
+    setLanguage(language)
 
     val config = ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
       case Some(c) => c.commandType match {
@@ -102,7 +104,6 @@ object App extends Logger {
 
     for {
       // Initialize
-      _ <- AppDSL.setLanguage(language)
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
       // Validation
@@ -136,7 +137,6 @@ object App extends Logger {
 
     for {
       // Initialize
-      _ <- AppDSL.setLanguage(language)
       _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(config.BACKLOG_PATHS))
       // Validation
       _ <- Validations.backlogProgram(config, backlogApi.spaceApi)
@@ -181,5 +181,12 @@ object App extends Logger {
       IssueType.Event -> CybozuIssueType(Messages("issue.type.event")),
       IssueType.Forum -> CybozuIssueType(Messages("issue.type.forum"))
     )
+
+  private def setLanguage(locale: String): Unit =
+    locale match {
+      case "ja" => Locale.setDefault(Locale.JAPAN)
+      case "en" => Locale.setDefault(Locale.US)
+      case _ => ()
+    }
 
 }
