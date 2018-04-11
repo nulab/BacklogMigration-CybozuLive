@@ -19,8 +19,7 @@ object Validations extends Logger {
   private val priorityMappingName = Messages("name.mapping.priority")
   private val statusMappingName = Messages("name.mapping.status")
 
-  def backlogProgram(config: Config, spaceApi: SpaceApi): AppProgram[Unit] = {
-
+  def checkBacklog(config: Config, spaceApi: SpaceApi): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.interpreters.AppDSL._
     import com.nulabinc.backlog.c2b.syntax.BacklogResponseOps._
 
@@ -42,7 +41,7 @@ object Validations extends Logger {
     } yield ()
   }
 
-  def projectsExists(config: Config, projectApi: ProjectApi): AppProgram[Unit] = {
+  def projectExists(config: Config, projectApi: ProjectApi): AppProgram[Unit] = {
     for {
       exists <- AppDSL.fromBacklog(
         projectApi.byIdOrKey(
@@ -66,7 +65,7 @@ object Validations extends Logger {
 
   }
 
-  def dbExistsProgram(dbPath: Path): AppProgram[Unit] = {
+  def checkDBExists(dbPath: Path): AppProgram[Unit] = {
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.db.exists")))
       exists <- AppDSL.fromStorage(StorageDSL.exists(dbPath))
@@ -78,7 +77,7 @@ object Validations extends Logger {
     } yield ()
   }
 
-  def mappingFilesExistProgram(config: Config): AppProgram[Unit] = {
+  def checkMappingFilesExist(config: Config): AppProgram[Unit] = {
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists")))
       user <- AppDSL.fromStorage(StorageDSL.exists(config.USERS_PATH))
@@ -99,7 +98,7 @@ object Validations extends Logger {
     } yield ()
   }
 
-  def mappingFileItems(config: Config, api: AllApi): AppProgram[Unit] =
+  def checkMappingFileItems(config: Config, api: AllApi): AppProgram[Unit] =
     for {
       _ <- userMappingFileItems(api.userApi, config)
       _ <- priorityMappingFileItems(api.priorityApi, config)

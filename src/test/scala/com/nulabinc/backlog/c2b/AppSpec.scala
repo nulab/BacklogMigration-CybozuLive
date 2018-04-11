@@ -40,7 +40,7 @@ class AppSpec extends FlatSpec with Matchers {
 
   "App" should "validationProgram" in {
 
-    val program = Validations.backlogProgram(config, backlogApi.spaceApi)
+    val program = Validations.checkBacklog(config, backlogApi.spaceApi)
 
     appInterpreter.run(program)
   }

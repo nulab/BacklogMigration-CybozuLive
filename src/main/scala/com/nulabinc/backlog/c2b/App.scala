@@ -99,7 +99,7 @@ object App extends Logger {
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
       // Validation
-      _ <- Validations.backlogProgram(config, backlogApi.spaceApi)
+      _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
       // Delete operations
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       _ <- AppDSL.fromStore(StoreDSL.createDatabase)
@@ -131,11 +131,11 @@ object App extends Logger {
       // Initialize
       _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(config.BACKLOG_PATHS))
       // Validation
-      _ <- Validations.backlogProgram(config, backlogApi.spaceApi)
-      _ <- Validations.dbExistsProgram(config.DB_PATH)
-      _ <- Validations.mappingFilesExistProgram(config)
-      _ <- Validations.mappingFileItems(config, backlogApi)
-      _ <- Validations.projectsExists(config, backlogApi.projectApi)
+      _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
+      _ <- Validations.checkDBExists(config.DB_PATH)
+      _ <- Validations.checkMappingFilesExist(config)
+      _ <- Validations.checkMappingFileItems(config, backlogApi)
+      _ <- Validations.projectExists(config, backlogApi.projectApi)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext(config)
       _ <- BacklogExport.all(config)(mappingContext)

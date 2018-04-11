@@ -8,7 +8,6 @@ import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.migration.common.conf.BacklogPaths
 import org.apache.commons.csv.CSVFormat
 
-
 case class Config(
   backlogUrl: String = "",
   backlogKey: String = "",

@@ -16,10 +16,7 @@ object BacklogService {
       users <- AppDSL.fromBacklog(api.all.orFail)
       _ <- AppDSL.consumeStream(
         Observable.fromIterator(users.iterator).map { user =>
-          for {
-            _ <- AppDSL.pure(user)
-            _ <- AppDSL.fromStore(StoreDSL.storeBacklogUser(BacklogUser.from(user)))
-          } yield ()
+          AppDSL.fromStore(StoreDSL.storeBacklogUser(BacklogUser.from(user))).map(_ => ())
         }
       )
     } yield ()
