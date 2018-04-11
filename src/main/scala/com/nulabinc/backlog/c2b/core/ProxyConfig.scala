@@ -20,11 +20,7 @@ object ProxyConfig {
     val httpsProxyTransport = createProxyTransport(httpsProxyHost, httpsProxyPort, optAuth)
     val httpProxyTransport = createProxyTransport(httpProxyHost, httpProxyPort, optAuth)
 
-    (httpsProxyTransport, httpProxyTransport) match {
-      case (Some(https), _) => Some(https)
-      case (None, Some(http)) => Some(http)
-      case _ => None
-    }
+    prioritizedDecision(httpsProxyTransport, httpProxyTransport)
   }
 
   private[core] def createAuth(proxyUser: String, proxyPassword: String): Option[BasicHttpCredentials] =
@@ -53,5 +49,12 @@ object ProxyConfig {
       }
     } else {
       None
+    }
+
+  private[core] def prioritizedDecision[A](high: Option[A], low: Option[A]): Option[A] =
+    (high, low) match {
+      case (Some(aa), _) => Some(aa)
+      case (None, Some(bb)) => Some(bb)
+      case _ => None
     }
 }

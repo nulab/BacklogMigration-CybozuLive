@@ -28,4 +28,14 @@ class ProxyConfigSpec extends FlatSpec with Matchers {
     actual.isDefined shouldEqual true
   }
 
+  "ProxyConfig.prioritizedDecision" should "return high" in {
+    val actual = ProxyConfig.prioritizedDecision(Some("high"), Some("low"))
+    actual shouldEqual Some("high")
+  }
+
+  "ProxyConfig.prioritizedDecision" should "return low" in {
+    val actual = ProxyConfig.prioritizedDecision(None, Some("low"))
+    actual shouldEqual Some("low")
+  }
+
 }
