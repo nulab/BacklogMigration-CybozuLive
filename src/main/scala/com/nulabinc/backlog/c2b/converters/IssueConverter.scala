@@ -19,29 +19,29 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
       convertedCreator <- userConverter.to(from.creator)
       convertedUpdater <- userConverter.to(from.updater)
       assignees <- from.assignees.map(u => userConverter.to(u)).sequence
-      status <- ctx.getStatusName(from.todo.status)
-      priority <- ctx.getPriorityName(from.todo.priority)
+      status <- ctx.getStatusName(from.status)
+      priority <- ctx.getPriorityName(from.priority)
     } yield {
         val description = if (assignees.length > 1) {
           val otherAssignees = assignees.tail
-          from.todo.content + s"\n\n${Messages("convert.other_assignees")}: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
+          from.content + s"\n\n${Messages("convert.other_assignees")}: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
         } else {
-          from.todo.content
+          from.content
         }
         defaultBacklogIssue.copy(
-          id                = from.todo.id,
-          summary           = createBacklogIssueSummary(from.todo.title),
+          id                = from.id,
+          summary           = createBacklogIssueSummary(from.title),
           description       = description,
-          optDueDate        = from.todo.dueDate.map(DateUtil.toDateString),
+          optDueDate        = from.dueDate.map(DateUtil.toDateString),
           optIssueTypeName  = Some(issueType.value),
           statusName        = status,
           priorityName      = priority,
           optAssignee       = assignees.headOption,
           operation         = BacklogOperation(
             optCreatedUser    = Some(convertedCreator),
-            optCreated        = Some(DateUtil.toDateTimeString(from.todo.createdAt)),
+            optCreated        = Some(DateUtil.toDateTimeString(from.createdAt)),
             optUpdatedUser    = Some(convertedUpdater),
-            optUpdated        = Some(DateUtil.toDateTimeString(from.todo.updatedAt))
+            optUpdated        = Some(DateUtil.toDateTimeString(from.updatedAt))
           )
         )
     }

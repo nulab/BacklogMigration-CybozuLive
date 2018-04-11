@@ -61,14 +61,21 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
       optTodo.map {
         case ((todo, creator), updater) =>
           CybozuTodo(
-            todo = todo,
+            id = todo.id,
+            title = todo.title,
+            content = todo.content,
+            creator = creator,
+            createdAt = todo.createdAt,
+            updater = updater,
+            updatedAt = todo.updatedAt,
+            status = todo.status,
+            priority = todo.priority,
+            dueDate = todo.dueDate,
+            assignees = assignees,
             comments = comments.map {
               case (comment, commentCreator) =>
                 CybozuComment(comment, commentCreator)
-            },
-            creator = creator,
-            updater = updater,
-            assignees = assignees
+            }
           )
       }
     }

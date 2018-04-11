@@ -185,20 +185,20 @@ object BacklogExport extends Logger {
         issueConverter.from(todo, issueType) match {
           case Right(backlogIssue) =>
             for {
-              _ <- exportIssue(paths, backlogIssue, todo.todo.createdAt, index, total)
+              _ <- exportIssue(paths, backlogIssue, todo.createdAt, index, total)
               _ <- if (backlogIssue.statusName != openStatusName) {
                 val comment = createBacklogCommentWithStatusChangelog(
-                  parentIssueId = todo.todo.id,
+                  parentIssueId = todo.id,
                   oldStatusName = openStatusName,
                   newStatusName = backlogIssue.statusName,
                   backlogOperation = backlogIssue.operation
                 )
                 for {
-                  _ <- exportComment(paths, todo.todo.id, comment, todo.todo.createdAt, 0)
-                  _ <- exportComments(paths, todo.todo.id, todo.comments, commentConverter, 1)
+                  _ <- exportComment(paths, todo.id, comment, todo.createdAt, 0)
+                  _ <- exportComments(paths, todo.id, todo.comments, commentConverter, 1)
                 } yield ()
               } else {
-                exportComments(paths, todo.todo.id, todo.comments, commentConverter)
+                exportComments(paths, todo.id, todo.comments, commentConverter)
               }
             } yield ()
           case Left(error) =>

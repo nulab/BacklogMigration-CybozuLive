@@ -3,10 +3,17 @@ package com.nulabinc.backlog.c2b.datas
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 
 case class CybozuTodo(
-  todo: CybozuDBTodo,
-  comments: Seq[CybozuComment],
+  id: AnyId,
+  title: String,
+  content: String,
   creator: CybozuDBUser,
+  createdAt: DateTime,
   updater: CybozuDBUser,
+  updatedAt: DateTime,
+  status: CybozuDBStatus,
+  priority: CybozuDBPriority,
+  dueDate: Option[DateTime],
+  comments: Seq[CybozuComment],
   assignees: Seq[CybozuDBUser]
 )
 
