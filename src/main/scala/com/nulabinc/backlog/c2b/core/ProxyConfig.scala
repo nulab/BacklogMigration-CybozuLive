@@ -33,19 +33,19 @@ object ProxyConfig {
       case _ => None
     }
 
-  private[core] def createProxyTransport(host: String,
-                                         port: String,
+  private[core] def createProxyTransport(proxyHost: String,
+                                         proxyPort: String,
                                          optProxyCredentials: Option[HttpCredentials]): Option[ClientTransport] = {
-    (host, port) match {
-      case (h, p) =>
+    (proxyHost, proxyPort) match {
+      case (host, port) =>
         try {
           val clientTransport = optProxyCredentials.map(credentials =>
             ClientTransport.httpsProxy(
-              InetSocketAddress.createUnresolved(h, p.toInt),
+              InetSocketAddress.createUnresolved(host, port.toInt),
               credentials
             )
           ).getOrElse(
-            ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(h, p.toInt))
+            ClientTransport.httpsProxy(InetSocketAddress.createUnresolved(host, port.toInt))
           )
           Some(clientTransport)
         } catch {
