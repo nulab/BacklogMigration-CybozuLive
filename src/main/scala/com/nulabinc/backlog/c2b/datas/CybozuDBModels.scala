@@ -2,19 +2,6 @@ package com.nulabinc.backlog.c2b.datas
 
 import com.nulabinc.backlog.c2b.datas.Types._
 
-case class CybozuDBUser(
-  id: AnyId,
-  userId: String
-) extends Entity
-
-object CybozuDBUser {
-
-  val tupled = (this.apply _).tupled
-
-  def from(user: CybozuCSVUser): CybozuDBUser =
-    new CybozuDBUser(0, user.value)
-}
-
 case class CybozuDBTodo(
   id: AnyId,
   title: String,
@@ -68,7 +55,7 @@ object CybozuDBComment {
       content = comment.content
     )
 
-  def to(comment: CybozuDBComment, creator: CybozuDBUser): CybozuComment =
+  def to(comment: CybozuDBComment, creator: CybozuUser): CybozuComment =
     CybozuComment(
       id = comment.id,
       parentId = comment.parentId,

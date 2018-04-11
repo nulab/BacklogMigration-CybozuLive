@@ -14,7 +14,7 @@ case class MappingContext(
   def getUserName(source: String): Either[ConvertError, String] =
     userMappings.get(source)
       .map(dst => Right(dst))
-      .getOrElse(Left(MappingFail[CybozuDBUser](source)))
+      .getOrElse(Left(MappingFail[CybozuUser](source)))
 
   def getStatusName(source: CybozuStatus): Either[ConvertError, String] =
     statusMappings.get(source.value)

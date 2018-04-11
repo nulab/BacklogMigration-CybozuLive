@@ -82,8 +82,8 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     db.run(forumTableOps.count)
   }
 
-  def getCybozuUserById(id: AnyId): Task[Option[CybozuDBUser]] = Task.deferFuture {
-    db.run(cybozuUserTableOps.select(Id[CybozuDBUser](id)))
+  def getCybozuUserById(id: AnyId): Task[Option[CybozuUser]] = Task.deferFuture {
+    db.run(cybozuUserTableOps.select(Id[CybozuUser](id)))
   }
 
 

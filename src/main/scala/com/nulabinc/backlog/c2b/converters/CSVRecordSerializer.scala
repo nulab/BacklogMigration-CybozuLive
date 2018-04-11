@@ -19,8 +19,8 @@ object CSVRecordSerializer {
     (user: BacklogUser) =>
       s""""${user.userId.getOrElse("")}"\n""".stripMargin.getBytes(charset)
 
-  implicit val cybozuUserSerializer: Serializer[CybozuDBUser, Array[Byte]] =
-    (user: CybozuDBUser) =>
+  implicit val cybozuUserSerializer: Serializer[CybozuUser, Array[Byte]] =
+    (user: CybozuUser) =>
       s""""${user.userId}",""\n""".stripMargin.getBytes(charset)
 
   implicit val backlogPrioritySerializer: Serializer[BacklogPriority, Array[Byte]] =

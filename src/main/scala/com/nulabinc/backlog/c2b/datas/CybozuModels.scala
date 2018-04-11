@@ -2,19 +2,30 @@ package com.nulabinc.backlog.c2b.datas
 
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 
+case class CybozuUser(
+  id: AnyId,
+  userId: String
+) extends Entity
+
+object CybozuUser {
+  val tupled = (this.apply _).tupled
+  def from(user: CybozuCSVUser): CybozuUser =
+    new CybozuUser(0, user.value)
+}
+
 case class CybozuTodo(
-                       id: AnyId,
-                       title: String,
-                       content: String,
-                       creator: CybozuDBUser,
-                       createdAt: DateTime,
-                       updater: CybozuDBUser,
-                       updatedAt: DateTime,
-                       status: CybozuStatus,
-                       priority: CybozuPriority,
-                       dueDate: Option[DateTime],
-                       comments: Seq[CybozuComment],
-                       assignees: Seq[CybozuDBUser]
+  id: AnyId,
+  title: String,
+  content: String,
+  creator: CybozuUser,
+  createdAt: DateTime,
+  updater: CybozuUser,
+  updatedAt: DateTime,
+  status: CybozuStatus,
+  priority: CybozuPriority,
+  dueDate: Option[DateTime],
+  comments: Seq[CybozuComment],
+  assignees: Seq[CybozuUser]
 )
 
 case class CybozuEvent(
@@ -24,7 +35,7 @@ case class CybozuEvent(
   menu: String,
   title: String,
   memo: String,
-  creator: CybozuDBUser,
+  creator: CybozuUser,
   comments: Seq[CybozuComment],
 )
 
@@ -32,9 +43,9 @@ case class CybozuForum(
   id: AnyId,
   title: String,
   content: String,
-  creator: CybozuDBUser,
+  creator: CybozuUser,
   createdAt: DateTime,
-  updater: CybozuDBUser,
+  updater: CybozuUser,
   updatedAt: DateTime,
   comments: Seq[CybozuComment]
 )
@@ -42,7 +53,7 @@ case class CybozuForum(
 case class CybozuComment(
   id: AnyId,
   parentId: AnyId,
-  creator: CybozuDBUser,
+  creator: CybozuUser,
   createdAt: DateTime,
   content: String
 )

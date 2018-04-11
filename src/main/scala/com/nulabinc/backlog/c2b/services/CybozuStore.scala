@@ -41,9 +41,9 @@ object CybozuStore extends Logger {
       _ <- AppDSL.fromStore(
         StoreDSL.writeDBStream(
           CybozuCSVReader.toCybozuTodo(files).map { result =>
-            val creator = CybozuDBUser.from(result.issue.creator)
-            val updater = CybozuDBUser.from(result.issue.updater)
-            val assignees = result.issue.assignees.map(u => CybozuDBUser.from(u))
+            val creator = CybozuUser.from(result.issue.creator)
+            val updater = CybozuUser.from(result.issue.updater)
+            val assignees = result.issue.assignees.map(u => CybozuUser.from(u))
             for {
               // Save issues
               creatorId <- insertOrUpdateUser(creator)
@@ -74,7 +74,7 @@ object CybozuStore extends Logger {
       _ <- AppDSL.fromStore(
         StoreDSL.writeDBStream(
           CybozuCSVReader.toCybozuEvent(files).map { result =>
-            val creator = CybozuDBUser.from(result.issue.creator)
+            val creator = CybozuUser.from(result.issue.creator)
             for {
               // Save event
               creatorId <- insertOrUpdateUser(creator)
@@ -99,8 +99,8 @@ object CybozuStore extends Logger {
       _ <- AppDSL.fromStore(
         StoreDSL.writeDBStream(
           CybozuCSVReader.toCybozuForum(files).map { result =>
-            val creator = CybozuDBUser.from(result.issue.creator)
-            val updater = CybozuDBUser.from(result.issue.updater)
+            val creator = CybozuUser.from(result.issue.creator)
+            val updater = CybozuUser.from(result.issue.updater)
             for {
               // Save event
               creatorId <- insertOrUpdateUser(creator)
@@ -131,7 +131,7 @@ object CybozuStore extends Logger {
         }
     }
 
-  private def insertOrUpdateUser(cybozuUser: CybozuDBUser): StoreProgram[AnyId] =
+  private def insertOrUpdateUser(cybozuUser: CybozuUser): StoreProgram[AnyId] =
     for {
       optId <- StoreDSL.getCybozuUserByKey(cybozuUser.userId)
       id <- optId match {
@@ -142,7 +142,7 @@ object CybozuStore extends Logger {
 
   private def comments(issueId: AnyId, csvComments: Seq[CybozuCSVComment]): StoreProgram[Unit] = {
     val commentsPrograms = csvComments.map { comment =>
-      val commentCreator = CybozuDBUser.from(comment.creator)
+      val commentCreator = CybozuUser.from(comment.creator)
       for {
         creatorId <- insertOrUpdateUser(commentCreator)
       } yield CybozuDBComment.from(issueId, comment, creatorId)

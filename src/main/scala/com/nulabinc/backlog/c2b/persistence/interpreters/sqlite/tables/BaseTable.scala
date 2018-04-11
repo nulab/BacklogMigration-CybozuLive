@@ -2,7 +2,7 @@ package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
 
-import com.nulabinc.backlog.c2b.datas.{CybozuPriority, CybozuStatus, CybozuDBUser, Entity}
+import com.nulabinc.backlog.c2b.datas.{CybozuPriority, CybozuStatus, CybozuUser, Entity}
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
