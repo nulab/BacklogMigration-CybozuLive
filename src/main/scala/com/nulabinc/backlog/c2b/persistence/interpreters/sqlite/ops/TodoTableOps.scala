@@ -45,10 +45,11 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
         .on(_._1.updater === _.id)
         .result
         .headOption
+      // SELECT * from cybozu_comments JOIN cybozu_users ON cybozu_users.id = cybozu_comments.creator_id where parent_id = {id};
       comments <- commentTableQuery
         .filter(_.parentId === id)
         .join(cybozuUserTableQuery)
-        .on(_.parentId === _.id)
+        .on(_.creator === _.id)
         .result
       // SELECT userfields... FROM issue_user JOIN cybozu_user ON cybozu_user.userId = id WHERE issueId = ?
       assignees <- issueUserTableQuery
