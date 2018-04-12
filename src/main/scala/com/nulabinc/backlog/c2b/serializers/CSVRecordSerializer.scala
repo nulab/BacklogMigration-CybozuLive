@@ -1,4 +1,4 @@
-package com.nulabinc.backlog.c2b.converters
+package com.nulabinc.backlog.c2b.serializers
 
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.datas._
@@ -19,24 +19,24 @@ object CSVRecordSerializer {
     (user: BacklogUser) =>
       s""""${user.userId.getOrElse("")}"\n""".stripMargin.getBytes(charset)
 
-  implicit val cybozuUserSerializer: Serializer[CybozuDBUser, Array[Byte]] =
-    (user: CybozuDBUser) =>
+  implicit val cybozuUserSerializer: Serializer[CybozuUser, Array[Byte]] =
+    (user: CybozuUser) =>
       s""""${user.userId}",""\n""".stripMargin.getBytes(charset)
 
   implicit val backlogPrioritySerializer: Serializer[BacklogPriority, Array[Byte]] =
     (priority: BacklogPriority) =>
       s""""${priority.name}"\n""".stripMargin.getBytes(charset)
 
-  implicit val cybozuPrioritySerializer: Serializer[CybozuDBPriority, Array[Byte]] =
-    (priority: CybozuDBPriority) =>
+  implicit val cybozuPrioritySerializer: Serializer[CybozuPriority, Array[Byte]] =
+    (priority: CybozuPriority) =>
       s""""${priority.value}",""\n""".stripMargin.getBytes(charset)
 
   implicit val backlogStatusSerializer: Serializer[BacklogStatus, Array[Byte]] =
     (status: BacklogStatus) =>
       s""""${status.name}"\n""".stripMargin.getBytes(charset)
 
-  implicit val cybozuStatusSerializer: Serializer[CybozuDBStatus, Array[Byte]] =
-    (status: CybozuDBStatus) =>
+  implicit val cybozuStatusSerializer: Serializer[CybozuStatus, Array[Byte]] =
+    (status: CybozuStatus) =>
       s""""${status.value}",""\n""".stripMargin.getBytes(charset)
 
   implicit val stringTupleSerializer: Serializer[(String, String), Array[Byte]] =

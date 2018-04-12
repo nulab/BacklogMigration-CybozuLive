@@ -1,6 +1,6 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables
 
-import com.nulabinc.backlog.c2b.datas.{CybozuDBForum, CybozuDBUser}
+import com.nulabinc.backlog.c2b.datas.{CybozuDBForum, CybozuUser}
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import slick.lifted.{ProvenShape, Tag}
 import slick.jdbc.SQLiteProfile.api._

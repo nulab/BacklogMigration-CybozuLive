@@ -1,8 +1,8 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
-import com.nulabinc.backlog.c2b.datas.{CybozuComment, CybozuDBEvent, CybozuEvent}
+import com.nulabinc.backlog.c2b.datas.{CybozuDBComment, CybozuDBEvent, CybozuEvent}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
-import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOWrite}
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIORead
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.{CommentTable, CybozuUserTable, EventTable}
 import slick.lifted.TableQuery
 import slick.jdbc.SQLiteProfile.api._
@@ -31,16 +31,22 @@ private[sqlite] case class EventTableOps()(implicit exc: ExecutionContext) exten
       comments <- commentTableQuery
         .filter(_.parentId === id)
         .join(cybozuUserTableQuery)
-        .on(_.parentId === _.id)
+        .on(_.creator === _.id)
+        .sortBy(_._1.id.desc)
         .result
     } yield {
       optEvent.map {
         case (event, creator) =>
           CybozuEvent(
-            event = event,
+            id = event.id,
+            startDateTime = event.startDateTime,
+            endDateTime = event.endDateTime,
+            menu = event.menu,
+            title = event.title,
+            memo = event.memo,
             comments = comments.map {
               case (comment, commentCreator) =>
-                CybozuComment(comment, commentCreator)
+                CybozuDBComment.to(comment, commentCreator)
             },
             creator = creator
           )

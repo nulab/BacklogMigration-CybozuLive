@@ -1,29 +1,63 @@
 package com.nulabinc.backlog.c2b.datas
 
+import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
+
+case class CybozuUser(
+  id: AnyId,
+  userId: String
+) extends Entity
+
+object CybozuUser {
+  val tupled = (this.apply _).tupled
+  def from(user: CybozuCSVUser): CybozuUser =
+    new CybozuUser(0, user.value)
+}
+
 case class CybozuTodo(
-  todo: CybozuDBTodo,
+  id: AnyId,
+  title: String,
+  content: String,
+  creator: CybozuUser,
+  createdAt: DateTime,
+  updater: CybozuUser,
+  updatedAt: DateTime,
+  status: CybozuStatus,
+  priority: CybozuPriority,
+  dueDate: Option[DateTime],
   comments: Seq[CybozuComment],
-  creator: CybozuDBUser,
-  updater: CybozuDBUser,
-  assignees: Seq[CybozuDBUser]
+  assignees: Seq[CybozuUser]
 )
 
 case class CybozuEvent(
-  event: CybozuDBEvent,
+  id: AnyId,
+  startDateTime: DateTime,
+  endDateTime: DateTime,
+  menu: String,
+  title: String,
+  memo: String,
+  creator: CybozuUser,
   comments: Seq[CybozuComment],
-  creator: CybozuDBUser
 )
 
 case class CybozuForum(
-  forum: CybozuDBForum,
-  comments: Seq[CybozuComment],
-  creator: CybozuDBUser,
-  updater: CybozuDBUser
+  id: AnyId,
+  title: String,
+  content: String,
+  creator: CybozuUser,
+  createdAt: DateTime,
+  updater: CybozuUser,
+  updatedAt: DateTime,
+  comments: Seq[CybozuComment]
 )
 
 case class CybozuComment(
-  comment: CybozuDBComment,
-  creator: CybozuDBUser
+  id: AnyId,
+  parentId: AnyId,
+  creator: CybozuUser,
+  createdAt: DateTime,
+  content: String
 )
 
 case class CybozuIssueType(value: String) extends AnyVal
+case class CybozuStatus(value: String) extends AnyVal
+case class CybozuPriority(value: String) extends AnyVal

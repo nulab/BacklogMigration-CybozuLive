@@ -15,8 +15,8 @@ private[sqlite] class TodoTable(tag: Tag) extends BaseTable[CybozuDBTodo](tag, "
   def createdAt: Rep[DateTime] = column[DateTime]("created_at")
   def updater: Rep[AnyId] = column[AnyId]("updater_id")
   def updatedAt: Rep[DateTime] = column[DateTime]("updated_at")
-  def status: Rep[CybozuDBStatus] = column[CybozuDBStatus]("status")
-  def priority: Rep[CybozuDBPriority] = column[CybozuDBPriority]("priority")
+  def status: Rep[CybozuStatus] = column[CybozuStatus]("status")
+  def priority: Rep[CybozuPriority] = column[CybozuPriority]("priority")
   def dueDate: Rep[Option[DateTime]] = column[Option[DateTime]]("due_date")
 
   override def * : ProvenShape[CybozuDBTodo] =

@@ -24,83 +24,89 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
   override def run[A](prg: StoreProgram[A]): Task[A] =
     prg.foldMap(this)
 
-  override def createDatabase: Task[Unit] = Task.deferFuture {
+  override def createDatabase(): Task[Unit] = Task.deferFuture {
     db.run(createDatabaseOps)
+  }
+
+  override def getTodos: Task[Observable[CybozuDBTodo]] = Task.eval {
+    Observable.fromReactivePublisher(
+      db.stream(todoTableOps.stream)
+    )
   }
 
   override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = Task.deferFuture {
     db.run(todoTableOps.getTodo(id))
   }
 
+  override def storeTodo(issue: CybozuDBTodo, writeType: WriteType): Task[AnyId] = Task.deferFuture {
+    db.run(todoTableOps.write(issue, writeType))
+  }
+
   override def getTodoCount: Task[Int] = Task.deferFuture {
     db.run(todoTableOps.count)
+  }
+
+  override def getEvents: Task[Observable[CybozuDBEvent]] = Task.eval {
+    Observable.fromReactivePublisher(
+      db.stream(eventTableOps.stream)
+    )
   }
 
   override def getEvent(id: AnyId): Task[Option[CybozuEvent]] = Task.deferFuture {
     db.run(eventTableOps.getEvent(id))
   }
 
+  override def storeEvent(event: CybozuDBEvent, writeType: WriteType): Task[AnyId] = Task.deferFuture {
+    db.run(eventTableOps.write(event, writeType))
+  }
+
   override def getEventCount: Task[AnyId] = Task.deferFuture {
     db.run(eventTableOps.count)
+  }
+
+  override def getForums: Task[Observable[CybozuDBForum]] = Task.eval {
+    Observable.fromReactivePublisher(
+      db.stream(forumTableOps.stream)
+    )
   }
 
   override def getForum(id: AnyId): Task[Option[CybozuForum]] = Task.deferFuture {
     db.run(forumTableOps.getForum(id))
   }
 
+  override def storeForum(forum: CybozuDBForum, writeType: WriteType): Task[AnyId] = Task.deferFuture {
+    db.run(forumTableOps.write(forum, writeType))
+  }
+
   override def getForumCount: Task[AnyId] = Task.deferFuture {
     db.run(forumTableOps.count)
   }
 
-  def getCybozuUserById(id: AnyId): Task[Option[CybozuDBUser]] = Task.deferFuture {
-    db.run(cybozuUserTableOps.select(Id[CybozuDBUser](id)))
+  def getCybozuUserById(id: AnyId): Task[Option[CybozuUser]] = Task.deferFuture {
+    db.run(cybozuUserTableOps.select(Id[CybozuUser](id)))
   }
+
+
 
   override def apply[A](fa: StoreADT[A]): Task[A] = {
 
     import allTableOps._
 
     fa match {
-      case Pure(a) =>
-        Task(a)
-      case CreateDatabase =>
-        createDatabase
-      case GetTodos => Task.eval {
-        Observable.fromReactivePublisher(
-          db.stream(todoTableOps.stream)
-        )
-      }
-      case GetTodoCount =>
-        getTodoCount
-      case GetTodo(id) =>
-        getTodo(id)
-      case StoreTodo(issue, writeType) => Task.deferFuture {
-        db.run(todoTableOps.write(issue, writeType))
-      }
-      case GetForum(id) =>
-        getForum(id)
-      case GetForumCount =>
-        getForumCount
-      case GetForums => Task.eval {
-        Observable.fromReactivePublisher(
-          db.stream(forumTableOps.stream)
-        )
-      }
-      case StoreForum(forum, writeType) => Task.deferFuture {
-        db.run(forumTableOps.write(forum, writeType))
-      }
-      case GetEvent(id) =>
-        getEvent(id)
-      case GetEventCount =>
-        getEventCount
-      case GetEvents => Task.eval {
-        Observable.fromReactivePublisher(
-          db.stream(eventTableOps.stream)
-        )
-      }
-      case StoreEvent(event, writeType) => Task.deferFuture {
-        db.run(eventTableOps.write(event, writeType))
-      }
+      case Pure(a) => Task(a)
+      case CreateDatabase => createDatabase()
+      case GetTodos => getTodos
+      case GetTodoCount => getTodoCount
+      case GetTodo(id) => getTodo(id)
+      case StoreTodo(issue, writeType) => storeTodo(issue, writeType)
+      case GetForum(id) => getForum(id)
+      case GetForumCount => getForumCount
+      case GetForums => getForums
+      case StoreForum(forum, writeType) => storeForum(forum, writeType)
+      case GetEvent(id) => getEvent(id)
+      case GetEventCount => getEventCount
+      case GetEvents => getEvents
+      case StoreEvent(event, writeType) => storeEvent(event, writeType)
       case GetComments(issue) => Task.eval {
         Observable.fromReactivePublisher(
           db.stream(commentTableOps.streamByParentId(issue.id))
@@ -120,8 +126,7 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
           db.stream(cybozuUserTableOps.stream)
         )
       }
-      case GetCybozuUserById(id) =>
-        getCybozuUserById(id)
+      case GetCybozuUserById(id) => getCybozuUserById(id)
       case GetCybozuUserBykey(key) => Task.deferFuture {
         db.run(cybozuUserTableOps.findByKey(key))
       }
@@ -170,5 +175,4 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
         }
     }
   }
-
 }

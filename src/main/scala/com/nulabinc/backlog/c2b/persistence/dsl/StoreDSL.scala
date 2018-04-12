@@ -18,10 +18,10 @@ object StoreDSL {
   lazy val createDatabase: StoreProgram[Unit] =
     Free.liftF(CreateDatabase)
 
-  lazy val getCybozuPriorities: StoreProgram[Observable[CybozuDBPriority]] =
+  lazy val getCybozuPriorities: StoreProgram[Observable[CybozuPriority]] =
     Free.liftF(GetCybozuPriorities)
 
-  lazy val getCybozuStatuses: StoreProgram[Observable[CybozuDBStatus]] =
+  lazy val getCybozuStatuses: StoreProgram[Observable[CybozuStatus]] =
     Free.liftF(GetCybozuStatuses)
 
   lazy val getBacklogPriorities: StoreProgram[Observable[BacklogPriority]] =
@@ -90,16 +90,16 @@ object StoreDSL {
   //
   // Cybozu user
   //
-  lazy val getCybozuUsers: StoreProgram[Observable[CybozuDBUser]] =
+  lazy val getCybozuUsers: StoreProgram[Observable[CybozuUser]] =
     Free.liftF(GetCybozuUsers)
 
-  def getCybozuUserById(id: AnyId): StoreProgram[Option[CybozuDBUser]] =
+  def getCybozuUserById(id: AnyId): StoreProgram[Option[CybozuUser]] =
     Free.liftF(GetCybozuUserById(id))
 
-  def getCybozuUserByKey(key: String): StoreProgram[Option[CybozuDBUser]] =
+  def getCybozuUserByKey(key: String): StoreProgram[Option[CybozuUser]] =
     Free.liftF(GetCybozuUserBykey(key))
 
-  def storeCybozuUser(user: CybozuDBUser, writeType: WriteType): StoreProgram[AnyId] =
+  def storeCybozuUser(user: CybozuUser, writeType: WriteType): StoreProgram[AnyId] =
     Free.liftF(StoreCybozuUser(user, writeType))
 
   //

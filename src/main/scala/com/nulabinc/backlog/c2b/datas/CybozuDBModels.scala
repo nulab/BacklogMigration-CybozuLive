@@ -2,22 +2,6 @@ package com.nulabinc.backlog.c2b.datas
 
 import com.nulabinc.backlog.c2b.datas.Types._
 
-case class CybozuDBStatus(value: String) extends AnyVal
-case class CybozuDBPriority(value: String) extends AnyVal
-
-case class CybozuDBUser(
-  id: AnyId,
-  userId: String
-) extends Entity
-
-object CybozuDBUser {
-
-  val tupled = (this.apply _).tupled
-
-  def from(user: CybozuCSVUser): CybozuDBUser =
-    new CybozuDBUser(0, user.value)
-}
-
 case class CybozuDBTodo(
   id: AnyId,
   title: String,
@@ -26,8 +10,8 @@ case class CybozuDBTodo(
   createdAt: DateTime,
   updater: AnyId,
   updatedAt: DateTime,
-  status: CybozuDBStatus,
-  priority: CybozuDBPriority,
+  status: CybozuStatus,
+  priority: CybozuPriority,
   dueDate: Option[DateTime]
 ) extends Entity
 
@@ -44,8 +28,8 @@ object CybozuDBTodo {
       createdAt = todo.createdAt,
       updater = updaterId,
       updatedAt = todo.updatedAt,
-      status = CybozuDBStatus(todo.status.value),
-      priority = CybozuDBPriority(todo.priority.value),
+      status = CybozuStatus(todo.status.value),
+      priority = CybozuPriority(todo.priority.value),
       dueDate = todo.dueDate
     )
 }
@@ -67,6 +51,15 @@ object CybozuDBComment {
       id = 0,
       parentId = parentIssueId,
       creator = creatorId,
+      createdAt = comment.createdAt,
+      content = comment.content
+    )
+
+  def to(comment: CybozuDBComment, creator: CybozuUser): CybozuComment =
+    CybozuComment(
+      id = comment.id,
+      parentId = comment.parentId,
+      creator = creator,
       createdAt = comment.createdAt,
       content = comment.content
     )

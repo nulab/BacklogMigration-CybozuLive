@@ -1,14 +1,13 @@
 package com.nulabinc.backlog.c2b
 
-import java.nio.file.Paths
+import java.util.Locale
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
-import com.nulabinc.backlog.c2b.core.{ClassVersionChecker, DisableSSLCertificateChecker, Logger}
-import com.nulabinc.backlog.c2b.datas.{CybozuIssueType, IssueType}
+import com.nulabinc.backlog.c2b.core._
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -28,7 +27,7 @@ object App extends Logger {
 
   def main(args: Array[String]): Unit = {
 
-    // config
+    // Config
     val configFactory = ConfigFactory.load()
     val appConfig = configFactory.getConfig("app")
     val appName = appConfig.getString("name")
@@ -36,26 +35,21 @@ object App extends Logger {
     val language = appConfig.getString("language")
     val dataDirectory = appConfig.getString("dataDirectory")
 
-    // ------------------------------------------------------------------------
-    // check
-    // ------------------------------------------------------------------------
-    try {
-      Paths.get(dataDirectory).toRealPath()
-    } catch {
-      case _: Throwable =>
-        exit(1, Messages("error.data_folder_not_found", dataDirectory))
-    }
-    ClassVersionChecker.check() match {
+    // Check
+    (for {
+      _ <- DataDirectoryChecker.check(dataDirectory)
+      _ <- ClassVersionChecker.check()
+      _ <- DisableSSLCertificateChecker.check()
+    } yield ()) match {
       case Failure(ex) => exit(1, ex)
       case _ => ()
     }
-    DisableSSLCertificateChecker.check() match {
-      case Failure(ex) => exit(1, ex)
-      case _ => ()
-    }
-    // TODO: check release version
 
+    // check release version
+
+    // Initialize
     AnsiConsole.systemInstall()
+    setLanguage(language)
 
     val config = ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
       case Some(c) => c.commandType match {
@@ -71,7 +65,7 @@ object App extends Logger {
     implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
 
     val interpreter = new AppInterpreter(
-      backlogInterpreter = new AkkaHttpInterpret,
+      backlogInterpreter = new AkkaHttpInterpret(ProxyConfig.create),
       storageInterpreter = new LocalStorageInterpreter,
       storeInterpreter = new SQLiteInterpreter(config.DB_PATH),
       consoleInterpreter = new ConsoleInterpreter
@@ -102,14 +96,13 @@ object App extends Logger {
 
     for {
       // Initialize
-      _ <- AppDSL.setLanguage(language)
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
       // Validation
-      _ <- Validations.backlogProgram(config, backlogApi.spaceApi)
+      _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
       // Delete operations
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
-      _ <- AppDSL.fromDB(StoreDSL.createDatabase)
+      _ <- AppDSL.fromStore(StoreDSL.createDatabase)
       // Read CSV and to store
       _ <- CybozuStore.copyToStore(csvFiles)
       // Collect Backlog data to store
@@ -136,17 +129,16 @@ object App extends Logger {
 
     for {
       // Initialize
-      _ <- AppDSL.setLanguage(language)
       _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(config.BACKLOG_PATHS))
       // Validation
-      _ <- Validations.backlogProgram(config, backlogApi.spaceApi)
-      _ <- Validations.dbExistsProgram(config.DB_PATH)
-      _ <- Validations.mappingFilesExistProgram(config)
-      _ <- Validations.mappingFileItems(config, backlogApi)
-      _ <- Validations.projectsExists(config, backlogApi.projectApi)
+      _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
+      _ <- Validations.checkDBExists(config.DB_PATH)
+      _ <- Validations.checkMappingFilesExist(config)
+      _ <- Validations.checkMappingFileItems(config, backlogApi)
+      _ <- Validations.projectExists(config, backlogApi.projectApi)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext(config)
-      _ <- BacklogExport.all(config, issueTypes, Messages("name.status.open"))(mappingContext)
+      _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
     } yield ()
   }
@@ -175,11 +167,10 @@ object App extends Logger {
     exit(exitCode)
   }
 
-  private def issueTypes: Map[IssueType, CybozuIssueType] =
-    Map(
-      IssueType.ToDo -> CybozuIssueType(Messages("issue.type.todo")),
-      IssueType.Event -> CybozuIssueType(Messages("issue.type.event")),
-      IssueType.Forum -> CybozuIssueType(Messages("issue.type.forum"))
-    )
-
+  private def setLanguage(locale: String): Unit =
+    locale match {
+      case "ja" => Locale.setDefault(Locale.JAPAN)
+      case "en" => Locale.setDefault(Locale.US)
+      case _ => ()
+    }
 }

@@ -18,13 +18,13 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
   private val issueUserTableQuery = TableQuery[CybozuIssueUserTable]
 
-  lazy val distinctPriorities: DBIOStream[CybozuDBPriority] =
+  lazy val distinctPriorities: DBIOStream[CybozuPriority] =
     tableQuery
       .map(_.priority)
       .distinct
       .result
 
-  lazy val distinctStatuses: DBIOStream[CybozuDBStatus] =
+  lazy val distinctStatuses: DBIOStream[CybozuStatus] =
     tableQuery
       .map(_.status)
       .distinct
@@ -45,10 +45,12 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
         .on(_._1.updater === _.id)
         .result
         .headOption
+      // SELECT * from cybozu_comments JOIN cybozu_users ON cybozu_users.id = cybozu_comments.creator_id where parent_id = {id};
       comments <- commentTableQuery
         .filter(_.parentId === id)
         .join(cybozuUserTableQuery)
-        .on(_.parentId === _.id)
+        .on(_.creator === _.id)
+        .sortBy(_._1.id.desc)
         .result
       // SELECT userfields... FROM issue_user JOIN cybozu_user ON cybozu_user.userId = id WHERE issueId = ?
       assignees <- issueUserTableQuery
@@ -61,14 +63,21 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
       optTodo.map {
         case ((todo, creator), updater) =>
           CybozuTodo(
-            todo = todo,
+            id = todo.id,
+            title = todo.title,
+            content = todo.content,
+            creator = creator,
+            createdAt = todo.createdAt,
+            updater = updater,
+            updatedAt = todo.updatedAt,
+            status = todo.status,
+            priority = todo.priority,
+            dueDate = todo.dueDate,
+            assignees = assignees,
             comments = comments.map {
               case (comment, commentCreator) =>
-                CybozuComment(comment, commentCreator)
-            },
-            creator = creator,
-            updater = updater,
-            assignees = assignees
+                CybozuDBComment.to(comment, commentCreator)
+            }
           )
       }
     }

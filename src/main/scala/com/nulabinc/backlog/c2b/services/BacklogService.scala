@@ -16,10 +16,7 @@ object BacklogService {
       users <- AppDSL.fromBacklog(api.all.orFail)
       _ <- AppDSL.consumeStream(
         Observable.fromIterator(users.iterator).map { user =>
-          for {
-            _ <- AppDSL.pure(user)
-            _ <- AppDSL.fromDB(StoreDSL.storeBacklogUser(BacklogUser.from(user)))
-          } yield ()
+          AppDSL.fromStore(StoreDSL.storeBacklogUser(BacklogUser.from(user))).map(_ => ())
         }
       )
     } yield ()
@@ -30,7 +27,7 @@ object BacklogService {
       _ <- backlogPriorities match {
         case Right(data) =>
           val items = data.map(p => BacklogPriority(0, p.name))
-          AppDSL.fromDB(StoreDSL.storeBacklogPriorities(items))
+          AppDSL.fromStore(StoreDSL.storeBacklogPriorities(items))
         case Left(error) =>
           AppDSL.exit(error.toString, 1)
       }
@@ -42,7 +39,7 @@ object BacklogService {
       _ <- backlogStatuses match {
         case Right(data) =>
           val items = data.map(p => BacklogStatus(0, p.name))
-          AppDSL.fromDB(StoreDSL.storeBacklogStatuses(items))
+          AppDSL.fromStore(StoreDSL.storeBacklogStatuses(items))
         case Left(error) =>
           AppDSL.exit(error.toString, 1)
       }

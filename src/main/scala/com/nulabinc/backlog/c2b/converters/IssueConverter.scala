@@ -2,15 +2,16 @@ package com.nulabinc.backlog.c2b.converters
 
 import java.time.format.DateTimeFormatter
 
-import com.nulabinc.backlog.c2b.core.DateUtil
+import com.nulabinc.backlog.c2b.core.{DateUtil, Logger}
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.migration.common.domain._
+import com.osinka.i18n.Messages
 
-class IssueConverter()(implicit ctx: MappingContext) {
+class IssueConverter()(implicit ctx: MappingContext) extends Logger {
 
   import com.nulabinc.backlog.c2b.syntax.EitherOps._
 
-  private val userConverter = new BacklogUserConverter()
+  private val userConverter = new UserConverter()
   private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
 
   def from(from: CybozuTodo, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] =
@@ -18,29 +19,29 @@ class IssueConverter()(implicit ctx: MappingContext) {
       convertedCreator <- userConverter.to(from.creator)
       convertedUpdater <- userConverter.to(from.updater)
       assignees <- from.assignees.map(u => userConverter.to(u)).sequence
-      status <- ctx.getStatusName(from.todo.status)
-      priority <- ctx.getPriorityName(from.todo.priority)
+      status <- ctx.getStatusName(from.status)
+      priority <- ctx.getPriorityName(from.priority)
     } yield {
         val description = if (assignees.length > 1) {
           val otherAssignees = assignees.tail
-          from.todo.content + "\n\nその他担当者: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",") // TODO: english
+          from.content + s"\n\n${Messages("convert.other_assignees")}: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
         } else {
-          from.todo.content
+          from.content
         }
         defaultBacklogIssue.copy(
-          id                = from.todo.id,
-          summary           = createBacklogIssueSummary(from.todo.title),
+          id                = from.id,
+          summary           = createBacklogIssueSummary(from.title),
           description       = description,
-          optDueDate        = from.todo.dueDate.map(DateUtil.toDateString),
+          optDueDate        = from.dueDate.map(DateUtil.toDateString),
           optIssueTypeName  = Some(issueType.value),
           statusName        = status,
           priorityName      = priority,
           optAssignee       = assignees.headOption,
           operation         = BacklogOperation(
             optCreatedUser    = Some(convertedCreator),
-            optCreated        = Some(DateUtil.toDateTimeString(from.todo.createdAt)),
+            optCreated        = Some(DateUtil.toDateTimeString(from.createdAt)),
             optUpdatedUser    = Some(convertedUpdater),
-            optUpdated        = Some(DateUtil.toDateTimeString(from.todo.updatedAt))
+            optUpdated        = Some(DateUtil.toDateTimeString(from.updatedAt))
           )
         )
     }
@@ -50,19 +51,19 @@ class IssueConverter()(implicit ctx: MappingContext) {
       convertedCreator <- userConverter.to(from.creator)
     } yield {
       val description =
-        from.event.memo + "\n\n" +
-        from.event.menu + "\n\n" +
-        formatter.format(from.event.startDateTime) + " ~ " + formatter.format(from.event.endDateTime)
+        from.memo + "\n\n" +
+        from.menu + "\n\n" +
+        formatter.format(from.startDateTime) + " ~ " + formatter.format(from.endDateTime)
       defaultBacklogIssue.copy(
-        id                = from.event.id,
-        summary           = createBacklogIssueSummary(from.event.title),
+        id                = from.id,
+        summary           = createBacklogIssueSummary(from.title),
         description       = description,
         optStartDate      = None,
         optDueDate        = None,
         optIssueTypeName  = Some(issueType.value),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
-          optCreated        = Some(DateUtil.toDateTimeString(from.event.startDateTime)),
+          optCreated        = Some(DateUtil.toDateTimeString(from.startDateTime)),
           optUpdatedUser    = None,
           optUpdated        = None
         )
@@ -76,17 +77,17 @@ class IssueConverter()(implicit ctx: MappingContext) {
       convertedUpdater <- userConverter.to(from.updater)
     } yield {
       defaultBacklogIssue.copy(
-        id                = from.forum.id,
-        summary           = createBacklogIssueSummary(from.forum.title),
-        description       = from.forum.content,
+        id                = from.id,
+        summary           = createBacklogIssueSummary(from.title),
+        description       = from.content,
         optStartDate      = None,
         optDueDate        = None,
         optIssueTypeName  = Some(issueType.value),
         operation         = BacklogOperation(
           optCreatedUser    = Some(convertedCreator),
-          optCreated        = Some(DateUtil.toDateTimeString(from.forum.createdAt)),
+          optCreated        = Some(DateUtil.toDateTimeString(from.createdAt)),
           optUpdatedUser    = Some(convertedUpdater),
-          optUpdated        = Some(DateUtil.toDateTimeString(from.forum.updatedAt))
+          optUpdated        = Some(DateUtil.toDateTimeString(from.updatedAt))
         )
       )
     }
