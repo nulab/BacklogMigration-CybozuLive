@@ -1,4 +1,167 @@
 # Backlog Migration for CybozuLive
+CybozuLiveのグループを[Backlog]に移行するためのツールです。
+(English document is described after Japanese)
+
+**Backlog Migration for CybozuLiveはベータバージョンです。Backlog上の既存プロジェクトにインポートする場合は、先に新しく別プロジェクトを作成し、こちらにインポートし内容を確認後、正式なプロジェクトにインポートしてください**
+
+* Backlog
+    * [https://backlog.com](https://backlog.com/)
+
+## 必須要件
+* **Java 8**
+* Backlogの **管理者権限**
+
+ダウンロード
+------------
+
+こちらのリンクからjarファイルをダウンロードし、以下のようにコマンドラインから実行します。
+
+[URL]
+
+    java -jar backlog-migration-cybozulive-[最新バージョン].jar
+
+プロキシ経由で使用する場合は、以下のように実行します。
+
+    java -Dhttp.proxyHost=[プロキシサーバのホスト名] -Dhttp.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
+または
+
+    java -Dhttps.proxyHost=[プロキシサーバのホスト名] -Dhttps.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
+    
+## 使い方
+### 前準備
+
+作業用のディレクトリを作成します。
+
+    $ mkdir work
+    $ cd work
+    
+jarファイルをダウンロードします。
+
+データディレクトリを作成します。
+
+    $ mkdir backlog-migration
+    
+CybozuLiveからエクスポートしたCSVファイルをデータディレクトリ内に配置します。
+
+
+### Init コマンド
+
+[**init**]コマンドを実行し、CSVファイルの解析とマッピングファイルを準備する必要があります。
+(マッピングファイルはCybozuLiveとBacklogのデータを対応付けるために使用します。)
+
+    java -jar backlog-migration-cybozulive-[latest version].jar \
+      init \
+      --backlog.key   [BacklogのAPIキー] \
+      --backlog.url   [BacklogのURL] \
+      --projectKey    [Backlogプロジェクトキー]
+      
+サンプルコマンド：
+
+    java -jar backlog-migration-cybozulive-[最新バージョン].jar \
+      init \
+      --backlog.key XXXXXXXXXXXXX \
+      --backlog.url https://xxxxx.backlog.com \
+      --projectKey BACKLOG_PROJECT
+
+- backlog-migration/mappings/users.json (ユーザー)
+- backlog-migration/mappings/priorities.json (優先度)
+- backlog-migration/mappings/statuses.json (状態)
+
+### マッピングファイルを修正
+自動作成されるファイルは以下のようにCSV形式で出力されます。
+Backlog側の空白の項目は自動設定できなかった項目になります。
+以下のファイルからBacklog側の項目をコピーして、空白を埋める必要が有ります。
+
+- backlog-migration/mappings/users_list.json (ユーザー)
+- backlog-migration/mappings/priorities_list.json (優先度)
+- backlog-migration/mappings/statuses_list.json (状態)
+
+### Import コマンド
+
+[**import**]コマンドを実行することでインポートを実行します。
+
+    java -jar backlog-migration-cybozulive-[latest version].jar \
+      import \
+      --backlog.key   [BacklogのAPIキー] \
+      --backlog.url   [BacklogのURL] \
+      --projectKey    [Backlogプロジェクトキー]
+      
+サンプルコマンド：
+
+    java -jar backlog-migration-cybozulive-[最新バージョン].jar \
+      import \
+      --backlog.key XXXXXXXXXXXXX \
+      --backlog.url https://xxxxx.backlog.com \
+      --projectKey BACKLOG_PROJECT
+
+## 制限事項
+
+### 実行できるユーザー
+Backlogの **管理者権限** が必要になります。
+
+### プロジェクトについて
+* テキスト整形のルール： **markdown**
+
+### CybozuLive側の制限について
+- 掲示板/ToDoリスト
+  - コメント数：最新から10,000件
+- イベント
+  - 日付：現在より1日前から365日後まで
+  - コメント数：最新から10,000件
+- 掲示板やイベントの添付ファイルは移行できません
+- ToDoのカテゴリは移行できません。
+
+### Backlog側の制限について
+* Backlogで登録可能なユーザー数を超えた場合、インポートは中断されます。
+
+## 再インポートの仕様
+
+Backlog側に同一プロジェクトキーがある場合は、以下の仕様でインポートされます。
+
+※ 対象のプロジェクトに参加していない場合
+
+対象プロジェクトはインポートされず以下のメッセージが表示されます。対象プロジェクトをインポートする場合は、対象プロジェクトに参加してください。[⭕️⭕️を移行しようとしましたが⭕️⭕️に参加していません。移行したい場合は⭕️⭕️に参加してください。]
+
+|項目|仕様|
+|:-----------|------------|
+|プロジェクト|同じプロジェクトキーのプロジェクトがある場合、プロジェクトを作成せず対象のプロジェクトに課題やWikiを登録します。|
+|課題|件名、作成者、作成日が一致する課題は登録されません。|
+
+## 第三者のトラッキングシステム
+
+当アプリケーションでは、利用状況把握のために、サードパーティのサービス(Mixpanel)によって、移行先のURL、移行先のプロジェクトキーなどの情報を収集します。
+トラッキングするデータについてはMixpanelのプライバシーポリシーを参照してください。また、お客様のデータがMixpanelで使用されることを望まない場合は、以下に掲げる方法で使用停止（オプトアウト）することができます。
+
+次のようにoptOutオプションを使用することで使用停止（オプトアウト）することができます。
+
+    java -jar backlog-migration-cybozulive-[latest version].jar \
+      import \
+      --backlog.key XXXXXXXXXXXXX \
+      --backlog.url https://xxxxxxx.backlog.jp \
+      --projectKey BACKLOG_PROJECT
+      --optOut
+
+### Mixpanel
+
+[Mixpanelのプライバシーポリシー](https://mixpanel.com/privacy/ "Mixpanelのプライバシーポリシー")
+
+## License
+
+MIT License
+
+* http://www.opensource.org/licenses/mit-license.php
+
+## お問い合わせ
+
+お問い合わせは下記サイトからご連絡ください。
+
+https://backlog.com/ja/contact/
+
+[Backlog]: https://backlog.com/ja/
+
+
+
+# Backlog Migration for CybozuLive
 
 Migrate your projects from CybozuLive to [Backlog].
 (英語の下に日本文が記載されています)
@@ -158,163 +321,3 @@ MIT License
 Please contact us if you encounter any problems during the CybozuLive to Backlog migration.
 
 https://backlog.com/contact/
-      
-# Backlog Migration for CybozuLive
-CybozuLiveのグループを[Backlog]に移行するためのツールです。
-
-**Backlog Migration for CybozuLiveはベータバージョンです。Backlog上の既存プロジェクトにインポートする場合は、先に新しく別プロジェクトを作成し、こちらにインポートし内容を確認後、正式なプロジェクトにインポートしてください**
-
-* Backlog
-    * [https://backlog.com](https://backlog.com/)
-
-## 必須要件
-* **Java 8**
-* Backlogの **管理者権限**
-
-ダウンロード
-------------
-
-こちらのリンクからjarファイルをダウンロードし、以下のようにコマンドラインから実行します。
-
-[URL]
-
-    java -jar backlog-migration-cybozulive-[最新バージョン].jar
-
-プロキシ経由で使用する場合は、以下のように実行します。
-
-    java -Dhttp.proxyHost=[プロキシサーバのホスト名] -Dhttp.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
-または
-
-    java -Dhttps.proxyHost=[プロキシサーバのホスト名] -Dhttps.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
-    
-## 使い方
-### 前準備
-
-作業用のディレクトリを作成します。
-
-    $ mkdir work
-    $ cd work
-    
-jarファイルをダウンロードします。
-
-データディレクトリを作成します。
-
-    $ mkdir backlog-migration
-    
-CybozuLiveからエクスポートしたCSVファイルをデータディレクトリ内に配置します。
-
-
-### Init コマンド
-
-[**init**]コマンドを実行し、CSVファイルの解析とマッピングファイルを準備する必要があります。
-(マッピングファイルはCybozuLiveとBacklogのデータを対応付けるために使用します。)
-
-    java -jar backlog-migration-cybozulive-[latest version].jar \
-      init \
-      --backlog.key   [BacklogのAPIキー] \
-      --backlog.url   [BacklogのURL] \
-      --projectKey    [Backlogプロジェクトキー]
-      
-サンプルコマンド：
-
-    java -jar backlog-migration-cybozulive-[最新バージョン].jar \
-      init \
-      --backlog.key XXXXXXXXXXXXX \
-      --backlog.url https://xxxxx.backlog.com \
-      --projectKey BACKLOG_PROJECT
-
-- backlog-migration/mappings/users.json (ユーザー)
-- backlog-migration/mappings/priorities.json (優先度)
-- backlog-migration/mappings/statuses.json (状態)
-
-### マッピングファイルを修正
-自動作成されるファイルは以下のようにCSV形式で出力されます。
-Backlog側の空白の項目は自動設定できなかった項目になります。
-以下のファイルからBacklog側の項目をコピーして、空白を埋める必要が有ります。
-
-- backlog-migration/mappings/users_list.json (ユーザー)
-- backlog-migration/mappings/priorities_list.json (優先度)
-- backlog-migration/mappings/statuses_list.json (状態)
-
-### Import コマンド
-
-[**import**]コマンドを実行することでインポートを実行します。
-
-    java -jar backlog-migration-cybozulive-[latest version].jar \
-      import \
-      --backlog.key   [BacklogのAPIキー] \
-      --backlog.url   [BacklogのURL] \
-      --projectKey    [Backlogプロジェクトキー]
-      
-サンプルコマンド：
-
-    java -jar backlog-migration-cybozulive-[最新バージョン].jar \
-      import \
-      --backlog.key XXXXXXXXXXXXX \
-      --backlog.url https://xxxxx.backlog.com \
-      --projectKey BACKLOG_PROJECT
-
-## 制限事項
-
-### 実行できるユーザー
-Backlogの **管理者権限** が必要になります。
-
-### プロジェクトについて
-* テキスト整形のルール： **markdown**
-
-### CybozuLive側の制限について
-- 掲示板/ToDoリスト
-  - コメント数：最新から10,000件
-- イベント
-  - 日付：現在より1日前から365日後まで
-  - コメント数：最新から10,000件
-- 掲示板やイベントの添付ファイルは移行できません
-- ToDoのカテゴリは移行できません。
-
-### Backlog側の制限について
-* Backlogで登録可能なユーザー数を超えた場合、インポートは中断されます。
-
-## 再インポートの仕様
-
-Backlog側に同一プロジェクトキーがある場合は、以下の仕様でインポートされます。
-
-※ 対象のプロジェクトに参加していない場合
-
-対象プロジェクトはインポートされず以下のメッセージが表示されます。対象プロジェクトをインポートする場合は、対象プロジェクトに参加してください。[⭕️⭕️を移行しようとしましたが⭕️⭕️に参加していません。移行したい場合は⭕️⭕️に参加してください。]
-
-|項目|仕様|
-|:-----------|------------|
-|プロジェクト|同じプロジェクトキーのプロジェクトがある場合、プロジェクトを作成せず対象のプロジェクトに課題やWikiを登録します。|
-|課題|件名、作成者、作成日が一致する課題は登録されません。|
-
-## 第三者のトラッキングシステム
-
-当アプリケーションでは、利用状況把握のために、サードパーティのサービス(Mixpanel)によって、移行先のURL、移行先のプロジェクトキーなどの情報を収集します。
-トラッキングするデータについてはMixpanelのプライバシーポリシーを参照してください。また、お客様のデータがMixpanelで使用されることを望まない場合は、以下に掲げる方法で使用停止（オプトアウト）することができます。
-
-次のようにoptOutオプションを使用することで使用停止（オプトアウト）することができます。
-
-    java -jar backlog-migration-cybozulive-[latest version].jar \
-      import \
-      --backlog.key XXXXXXXXXXXXX \
-      --backlog.url https://xxxxxxx.backlog.jp \
-      --projectKey BACKLOG_PROJECT
-      --optOut
-
-### Mixpanel
-
-[Mixpanelのプライバシーポリシー](https://mixpanel.com/privacy/ "Mixpanelのプライバシーポリシー")
-
-## License
-
-MIT License
-
-* http://www.opensource.org/licenses/mit-license.php
-
-## お問い合わせ
-
-お問い合わせは下記サイトからご連絡ください。
-
-https://backlog.com/ja/contact/
-
-[Backlog]: https://backlog.com/ja/
