@@ -41,7 +41,7 @@ jarファイルをダウンロードします。
 
     $ mkdir backlog-migration
     
-CybozuLiveからエクスポートしたCSVファイルをデータディレクトリ内に配置します。
+CybozuLiveからエクスポートしたCSVファイルを、作成した`backlog-migration`ディレクトリ内に配置します。
 
 
 ### Init コマンド
@@ -206,7 +206,7 @@ Create a data directory.
 
     $ mkdir backlog-migration
     
-Put exported files into data directory.
+Put exported files into `backlog-migration` directory.
     
     
 ### Init command
