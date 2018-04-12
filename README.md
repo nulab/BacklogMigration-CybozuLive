@@ -24,6 +24,7 @@ To use via proxy server, run from the command line as follows.
 
     java -Dhttp.proxyHost=[proxy host name] -Dhttp.proxyPort=[proxy port] -jar backlog-migration-cybozulive-[latest version].jar
 Or
+
     java -Dhttps.proxyHost=[proxy host name] -Dhttps.proxyPort=[proxy port] -jar backlog-migration-cybozulive-[latest version].jar
             
 ## How to use
