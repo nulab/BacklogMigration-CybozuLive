@@ -40,6 +40,10 @@ jarファイルをダウンロードします。
 データディレクトリを作成します。
 
     $ mkdir backlog-migration
+
+### CybozuLiveからCSVファイルのエクスポート
+1. 該当のグループを開き、[設定] > [エクスポート]をクリックする
+2. 形式を`標準`、文字コードが`Shift_JIS`であることを確認し、[ダウンロード]をクリックする
     
 CybozuLiveからエクスポートしたCSVファイルを、作成した`backlog-migration`ディレクトリ内に配置します。
 
@@ -205,7 +209,11 @@ Download jar file.
 Create a data directory.
 
     $ mkdir backlog-migration
-    
+   
+### Export CSV file from CybozuLive
+1. Open the appropriate group and click [Settings] > [Export]
+2. Confirm that the 形式 is `標準` and the 文字コード is `Shift_JIS` and click [Download]
+ 
 Put exported files into `backlog-migration` directory.
     
     
