@@ -65,6 +65,7 @@ Sample commands:
       --projectKey BACKLOG_PROJECT
 
 The mapping files are created as follows.
+
 - backlog-migration/mappings/users.json (user)
 - backlog-migration/mappings/priorities.json (priorities)
 - backlog-migration/mappings/statuses.json (status)
@@ -73,6 +74,7 @@ The mapping files are created as follows.
 A file in CSV format will be automatically created.
 The right side is Backlog item. 
 For the assignable items, please refer to the following file by reference.
+
 - backlog-migration/mappings/users_list.json (user)
 - backlog-migration/mappings/priorities_list.json (priority)
 - backlog-migration/mappings/statuses_list.json (status)
@@ -82,7 +84,7 @@ For the assignable items, please refer to the following file by reference.
 Run the [**import**] command to import data.
 
     java -jar backlog-migration-cybozulive-[latest version].jar \
-      init \
+      import \
       --backlog.key   [API key of Backlog] \
       --backlog.url   [URL of Backlog] \
       --projectKey    [Backlog project key]
@@ -90,7 +92,7 @@ Run the [**import**] command to import data.
 Sample commands:
 
     java -jar backlog-migration-cybozulive-[latest version].jar \
-      init \
+      import \
       --backlog.key XXXXXXXXXXXXX \
       --backlog.url https://xxxxxxx.backlog.jp \
       --projectKey BACKLOG_PROJECT
@@ -101,9 +103,9 @@ Sample commands:
 This program is for the users with the Space's **administrator** roles.
 
 ### About limitations in CybozuLive
-- Forum／ToDo-list
+- Forum/ToDo-list
   - Comments：10,000 from the latest
-- イベント
+- Event
   - Date：From today before 365 days after present
   - Comments：10,000 from the latest
 - Can not migrate bulletin forum and event attachments
@@ -181,6 +183,7 @@ CybozuLiveのグループを[Backlog]に移行するためのツールです。
 
     java -Dhttp.proxyHost=[プロキシサーバのホスト名] -Dhttp.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
 または
+
     java -Dhttps.proxyHost=[プロキシサーバのホスト名] -Dhttps.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
     
 ## 使い方
@@ -259,7 +262,7 @@ Backlogの **管理者権限** が必要になります。
 * テキスト整形のルール： **markdown**
 
 ### CybozuLive側の制限について
-- 掲示板／ToDoリスト
+- 掲示板/ToDoリスト
   - コメント数：最新から10,000件
 - イベント
   - 日付：現在より1日前から365日後まで
