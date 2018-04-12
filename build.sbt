@@ -3,13 +3,13 @@ name := "backlog-migration-cybozulive"
 
 lazy val commonSettings = Seq(
   version := "0.1.0a3-SNAPSHOT",
-  scalaVersion := "2.12.4",
+  scalaVersion := "2.12.5",
   libraryDependencies ++= Seq(
     "org.fusesource.jansi"  %  "jansi"            % "1.17",
     "com.osinka.i18n"       %% "scala-i18n"       % "1.0.2",
     "ch.qos.logback"        %  "logback-classic"  % "1.2.3",
     "com.typesafe"          %  "config"           % "1.3.3",
-    "org.scalatest"         %% "scalatest"        % "3.0.1"  % Test
+    "org.scalatest"         %% "scalatest"        % "3.0.5"  % Test
   )
 )
 
