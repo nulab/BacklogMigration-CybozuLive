@@ -180,7 +180,7 @@ object BacklogExport extends Logger {
                          index: Long,
                          total: Long): AppProgram[Unit] =
     for {
-      optTodo <- AppDSL.fromStore(StoreDSL.getTodo(todoId))
+      optTodo <- AppDSL.fromStore(StoreDSL.getTodo(Id.todoId(todoId)))
       _ <- optTodo.map(todo =>
         issueConverter.from(todo, issueType) match {
           case Right(backlogIssue) =>

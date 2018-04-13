@@ -17,7 +17,7 @@ case object CreateDatabase extends StoreADT[Unit]
 
 case object GetTodos extends StoreADT[Observable[CybozuDBTodo]]
 case object GetTodoCount extends StoreADT[Int]
-case class GetTodo(id: AnyId) extends StoreADT[Option[CybozuTodo]]
+case class GetTodo(id: Id[CybozuTodo]) extends StoreADT[Option[CybozuTodo]]
 case class StoreTodo(todo: CybozuDBTodo, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case class GetComments(todo: CybozuDBTodo) extends StoreADT[Observable[CybozuDBComment]]

@@ -35,10 +35,10 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
       .length
       .result
 
-  def getTodo(id: AnyId): DBIORead[Option[CybozuTodo]] = {
+  def getTodo(id: Id[CybozuTodo]): DBIORead[Option[CybozuTodo]] = {
     for {
       optTodo <- tableQuery
-        .filter(_.id === id)
+        .filter(_.id === id.value)
         .join(cybozuUserTableQuery)
         .on(_.creator === _.id)
         .join(cybozuUserTableQuery)
@@ -47,14 +47,14 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
         .headOption
       // SELECT * from cybozu_comments JOIN cybozu_users ON cybozu_users.id = cybozu_comments.creator_id where parent_id = {id};
       comments <- commentTableQuery
-        .filter(_.parentId === id)
+        .filter(_.parentId === id.value)
         .join(cybozuUserTableQuery)
         .on(_.creator === _.id)
         .sortBy(_._1.id.desc)
         .result
       // SELECT userfields... FROM issue_user JOIN cybozu_user ON cybozu_user.userId = id WHERE issueId = ?
       assignees <- issueUserTableQuery
-          .filter(_.issueId === id)
+          .filter(_.issueId === id.value)
           .join(cybozuUserTableQuery)
           .on(_.userId === _.id)
           .map(_._2)
