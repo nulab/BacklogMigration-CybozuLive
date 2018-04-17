@@ -59,6 +59,7 @@ export.comment=コメントをエクスポートしました。
 
 # Convert
 convert.other_assignees=その他の担当者
+convert.due_date=期日
 
 #
 # From importer
