@@ -77,19 +77,19 @@ class AppSpec extends FlatSpec with Matchers {
   class TestStoreInterpreter extends StoreInterpreter[Task] {
     override def run[A](prg: StoreProgram[A]): Task[A] = ???
     override def apply[A](fa: StoreADT[A]): Task[A] = ???
-    override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = ???
     override def getEvent(id: AnyId): Task[Option[CybozuEvent]] = ???
     override def getForum(id: AnyId): Task[Option[CybozuForum]] = ???
     override def getTodoCount: Task[AnyId] = ???
     override def getEventCount: Task[AnyId] = ???
     override def getForumCount: Task[AnyId] = ???
     override def createDatabase: Task[Unit] = ???
-    override def getTodos(): Task[Observable[CybozuDBTodo]] = ???
+    override def getTodos: Task[Observable[CybozuDBTodo]] = ???
     override def storeTodo(issue: CybozuDBTodo, writeType: WriteType): Task[AnyId] = ???
     override def getEvents: Task[Observable[CybozuDBEvent]] = ???
     override def storeEvent(event: CybozuDBEvent, writeType: WriteType): Task[AnyId] = ???
     override def getForums: Task[Observable[CybozuDBForum]] = ???
     override def storeForum(forum: CybozuDBForum, writeType: WriteType): Task[AnyId] = ???
+    override def getTodo(id: Id[CybozuTodo]): Task[Option[CybozuTodo]] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {

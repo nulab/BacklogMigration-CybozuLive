@@ -15,7 +15,7 @@ trait StoreInterpreter[F[_]] extends (StoreADT ~> F) {
 
   def getTodos: F[Observable[CybozuDBTodo]]
 
-  def getTodo(id: AnyId): F[Option[CybozuTodo]]
+  def getTodo(id: Id[CybozuTodo]): F[Option[CybozuTodo]]
 
   def storeTodo(issue: CybozuDBTodo, writeType: WriteType): F[AnyId]
 

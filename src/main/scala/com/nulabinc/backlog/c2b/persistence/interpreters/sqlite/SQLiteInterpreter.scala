@@ -34,7 +34,7 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     )
   }
 
-  override def getTodo(id: AnyId): Task[Option[CybozuTodo]] = Task.deferFuture {
+  override def getTodo(id: Id[CybozuTodo]): Task[Option[CybozuTodo]] = Task.deferFuture {
     db.run(todoTableOps.getTodo(id))
   }
 

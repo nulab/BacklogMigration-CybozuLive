@@ -59,6 +59,7 @@ export.comment=Comment is exported.
 
 # Convert
 convert.other_assignees=Other assignees
+convert.due_date=Due date
 
 #
 # From importer

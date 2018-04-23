@@ -15,9 +15,9 @@ object CommentParser {
     comments
       .split(separator)
       .filterNot(_.isEmpty)
-      .filterNot(_ == "\n")
+      .filterNot(_ == "\r\n")
       .map { comment =>
-          val parsedLines = comment.split("\n").toIndexedSeq
+          val parsedLines = comment.split("\r\n").toIndexedSeq
           if (parsedLines.length < MINIMUM_NUMBER_OF_ROWS) {
             Left(CannotParseComment("Invalid line numbers.", parsedLines.mkString("\n")))
           } else {

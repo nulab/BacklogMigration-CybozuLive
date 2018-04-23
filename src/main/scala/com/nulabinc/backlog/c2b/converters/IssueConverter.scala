@@ -27,7 +27,7 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
           from.content + s"\n\n${Messages("convert.other_assignees")}: " + otherAssignees.map(_.optUserId.getOrElse("")).mkString(",")
         } else {
           from.content
-        }
+        } + from.dueDate.map(formatter.format).map(str => s"\n\n${Messages("convert.due_date")}: $str").getOrElse("")
         defaultBacklogIssue.copy(
           id                = from.id,
           summary           = createBacklogIssueSummary(from.title),

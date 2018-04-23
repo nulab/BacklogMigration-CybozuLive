@@ -39,7 +39,7 @@ object StoreDSL {
   lazy val getTodoCount: StoreProgram[Int] =
     Free.liftF(GetTodoCount)
 
-  def getTodo(id: AnyId): StoreProgram[Option[CybozuTodo]] =
+  def getTodo(id: Id[CybozuTodo]): StoreProgram[Option[CybozuTodo]] =
     Free.liftF(GetTodo(id))
 
   def storeTodo(todo: CybozuDBTodo): StoreProgram[AnyId] =
