@@ -24,7 +24,7 @@ object CybozuStore extends Logger {
       csvFiles.filter(_.getName.contains("live_Events_"))
     }
     val forumFiles = {
-      csvFiles.filter(_.getName.contains("live_掲示板_"))
+      csvFiles.filter(_.getName.contains("live_掲示板_")) ++
       csvFiles.filter(_.getName.contains("live_Forum_"))
     }
 
