@@ -2,7 +2,7 @@
 name := "backlog-migration-cybozulive"
 
 lazy val commonSettings = Seq(
-  version := "0.1.0a4-SNAPSHOT",
+  version := "0.1.0a4",
   scalaVersion := "2.12.5",
   libraryDependencies ++= Seq(
     "org.fusesource.jansi"  %  "jansi"            % "1.17",
