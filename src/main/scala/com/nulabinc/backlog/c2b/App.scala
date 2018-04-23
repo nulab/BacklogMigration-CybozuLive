@@ -21,7 +21,7 @@ import com.typesafe.config.ConfigFactory
 import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 object App extends Logger {
 
@@ -85,7 +85,11 @@ object App extends Logger {
       .flatMap(_ => interpreter.terminate())
       .runAsync
       .flatMap(_ => system.terminate())
-      .onComplete(_ => exit(0))
+      .onComplete {
+        case Success(_) => exit(0)
+        case Failure(error) => exit(1, error)
+      }
+
   }
 
   def init(config: Config, language: String): AppProgram[Unit] = {
