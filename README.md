@@ -110,7 +110,6 @@ Backlogの **管理者権限** が必要になります。
 - 掲示板/ToDoリスト
   - コメント数：最新から10,000件
 - イベント
-  - 日付：現在より1日前から365日後まで
   - コメント数：最新から10,000件
 - 掲示板やイベントの添付ファイルは移行できません
 - ToDoのカテゴリは移行できません。
@@ -278,7 +277,6 @@ This program is for the users with the Space's **administrator** roles.
 - Forum/ToDo-list
   - Comments：10,000 from the latest
 - Event
-  - Date：From today before 365 days after present
   - Comments：10,000 from the latest
 - Can not migrate bulletin forum and event attachments
 - The ToDo category can not be migrated.
