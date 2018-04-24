@@ -37,8 +37,7 @@ object MappingFiles {
         .map(record => (record.get(0), record.get(1)))
     )
 
-  def createMappingContext(config: Config): AppProgram[MappingContext] = {
-
+  def createMappingContext(config: Config): AppProgram[MappingContext] =
     for {
       userMappingStream <- read(config.USERS_PATH)
       users <- AppDSL.streamAsSeq(userMappingStream).orFail
@@ -56,15 +55,6 @@ object MappingFiles {
         statusMappings = statusMappings
       )
     }
-  }
-
-  implicit class TryProgramOps[A](result: Try[AppProgram[A]]) {
-    def sequence: AppProgram[Try[A]] =
-      result match {
-        case Success(data) => data.map(Success(_))
-        case Failure(error) => AppDSL.pure(Failure(error))
-      }
-  }
 
   private def readCSVFile(is: InputStream): HashMap[String, String] = {
     val parser = CSVParser.parse(is, Config.charset, Config.csvFormat)
@@ -74,7 +64,7 @@ object MappingFiles {
     }
   }
 
-  private def getOldRecords(path: Path): AppProgram[Try[HashMap[String, String]]] = Try {
+  private def getOldRecords(path: Path): AppProgram[HashMap[String, String]] =
     for {
       oldExists <- mappingFileExists(path)
       oldRecords <- if (oldExists) {
@@ -85,7 +75,6 @@ object MappingFiles {
         AppDSL.pure(HashMap.empty[String, String])
       }
     } yield oldRecords
-  }.sequence
 
   private def writeUserMapping(config: Config): AppProgram[Unit] = {
     for {
@@ -98,31 +87,24 @@ object MappingFiles {
         case (acc, cybozuUser) =>
           acc + (cybozuUser.userId -> "")
       }
-      oldCybozuUserMapResult <- getOldRecords(config.USERS_TEMP_PATH)
-      _ <- oldCybozuUserMapResult match {
-        case Success(data) =>
-          val mergedCybozuUserMap = DiffPatch.applyChanges(data, newCybozuUsersMap)
-          for {
-            _ <- AppDSL.fromStorage(
-              StorageDSL.writeAppendFile(
-                config.USERS_PATH,
-                Observable(CSVRecordSerializer.header) ++
-                Observable.fromIterator(
-                  CSVRecordSerializer.serializeMap(mergedCybozuUserMap).iterator
-                )
-              )
-            )
-            backlogUserStream <- AppDSL.fromStore(StoreDSL.getBacklogUsers)
-            _ <- AppDSL.fromStorage(
-              StorageDSL.writeNewFile(config.BACKLOG_USER_PATH,
-                Observable(CSVRecordSerializer.backlogHeader("User")) ++
-                  backlogUserStream.map(user => CSVRecordSerializer.serialize(user))
-              )
-            )
-          } yield ()
-        case Failure(_) =>
-          AppDSL.exit("Invalid CSV", 1)
-      }
+      oldCybozuUserMap <- getOldRecords(config.USERS_TEMP_PATH)
+      mergedCybozuUserMap = DiffPatch.applyChanges(oldCybozuUserMap, newCybozuUsersMap)
+      _ <- AppDSL.fromStorage(
+        StorageDSL.writeAppendFile(
+          config.USERS_PATH,
+          Observable(CSVRecordSerializer.header) ++
+          Observable.fromIterator(
+            CSVRecordSerializer.serializeMap(mergedCybozuUserMap).iterator
+          )
+        )
+      )
+      backlogUserStream <- AppDSL.fromStore(StoreDSL.getBacklogUsers)
+      _ <- AppDSL.fromStorage(
+        StorageDSL.writeNewFile(config.BACKLOG_USER_PATH,
+          Observable(CSVRecordSerializer.backlogHeader("User")) ++
+            backlogUserStream.map(user => CSVRecordSerializer.serialize(user))
+        )
+      )
     } yield ()
   }
 
@@ -137,31 +119,24 @@ object MappingFiles {
         case (acc, cybozuPriority) =>
           acc + (cybozuPriority.value -> "")
       }
-      oldCybozuPriorityMapResult <- getOldRecords(config.PRIORITIES_TEMP_PATH)
-      _ <- oldCybozuPriorityMapResult match {
-        case Success(data) =>
-          val mergedCybozuPriorityMap = DiffPatch.applyChanges(data, newCybozuPrioritiesMap)
-          for {
-            _ <- AppDSL.fromStorage(
-              StorageDSL.writeAppendFile(
-                config.PRIORITIES_PATH,
-                Observable(CSVRecordSerializer.header) ++
-                  Observable.fromIterator(
-                    CSVRecordSerializer.serializeMap(mergedCybozuPriorityMap).iterator
-                  )
-              )
+      oldCybozuPriorityMap <- getOldRecords(config.PRIORITIES_TEMP_PATH)
+      mergedCybozuPriorityMap = DiffPatch.applyChanges(oldCybozuPriorityMap, newCybozuPrioritiesMap)
+      _ <- AppDSL.fromStorage(
+        StorageDSL.writeAppendFile(
+          config.PRIORITIES_PATH,
+          Observable(CSVRecordSerializer.header) ++
+            Observable.fromIterator(
+              CSVRecordSerializer.serializeMap(mergedCybozuPriorityMap).iterator
             )
-            backlogPriorityStream <- AppDSL.fromStore(StoreDSL.getBacklogPriorities)
-            _ <- AppDSL.fromStorage(
-              StorageDSL.writeNewFile(config.BACKLOG_PRIORITY_PATH,
-                Observable(CSVRecordSerializer.backlogHeader("Priority")) ++
-                  backlogPriorityStream.map(priority => CSVRecordSerializer.serialize(priority))
-              )
-            )
-          } yield ()
-        case Failure(_) =>
-          AppDSL.exit("Invalid CSV", 1)
-      }
+        )
+      )
+      backlogPriorityStream <- AppDSL.fromStore(StoreDSL.getBacklogPriorities)
+      _ <- AppDSL.fromStorage(
+        StorageDSL.writeNewFile(config.BACKLOG_PRIORITY_PATH,
+          Observable(CSVRecordSerializer.backlogHeader("Priority")) ++
+            backlogPriorityStream.map(priority => CSVRecordSerializer.serialize(priority))
+        )
+      )
     } yield ()
 
   private def writeStatusMapping(config: Config): AppProgram[Unit] =
@@ -175,31 +150,24 @@ object MappingFiles {
         case (acc, cybozuStatus) =>
           acc + (cybozuStatus.value -> "")
       }
-      oldCybozuStatusesMapResult <- getOldRecords(config.STATUSES_TEMP_PATH)
-      _ <- oldCybozuStatusesMapResult match {
-        case Success(data) =>
-          val mergedCybozuStatusMap = DiffPatch.applyChanges(data, newCybozuStatusesMap)
-          for {
-            _ <- AppDSL.fromStorage(
-              StorageDSL.writeAppendFile(
-                config.STATUSES_PATH,
-                Observable(CSVRecordSerializer.header) ++
-                Observable.fromIterator(
-                  CSVRecordSerializer.serializeMap(mergedCybozuStatusMap).iterator
-                )
-              )
-            )
-            backlogStatusStream <- AppDSL.fromStore(StoreDSL.getBacklogStatuses)
-            _ <- AppDSL.fromStorage(
-              StorageDSL.writeNewFile(config.BACKLOG_STATUS_PATH,
-                Observable(CSVRecordSerializer.backlogHeader("Status")) ++
-                  backlogStatusStream.map(status => CSVRecordSerializer.serialize(status))
-              )
-            )
-          } yield ()
-        case Failure(_) =>
-          AppDSL.exit("Invalid CSV", 1)
-      }
+      oldCybozuStatusesMap <- getOldRecords(config.STATUSES_TEMP_PATH)
+      mergedCybozuStatusMap = DiffPatch.applyChanges(oldCybozuStatusesMap, newCybozuStatusesMap)
+      _ <- AppDSL.fromStorage(
+        StorageDSL.writeAppendFile(
+          config.STATUSES_PATH,
+          Observable(CSVRecordSerializer.header) ++
+          Observable.fromIterator(
+            CSVRecordSerializer.serializeMap(mergedCybozuStatusMap).iterator
+          )
+        )
+      )
+      backlogStatusStream <- AppDSL.fromStore(StoreDSL.getBacklogStatuses)
+      _ <- AppDSL.fromStorage(
+        StorageDSL.writeNewFile(config.BACKLOG_STATUS_PATH,
+          Observable(CSVRecordSerializer.backlogHeader("Status")) ++
+            backlogStatusStream.map(status => CSVRecordSerializer.serialize(status))
+        )
+      )
     } yield ()
 
   private def indexSeqToHashMap(seq: IndexedSeq[(String, String)]): HashMap[String, String] =

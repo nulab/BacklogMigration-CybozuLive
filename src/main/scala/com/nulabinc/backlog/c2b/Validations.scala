@@ -82,9 +82,17 @@ object Validations extends Logger {
       _ <- checkStatusMappingFileExists(config.STATUSES_PATH)
     } yield ()
 
-  def checkMappingFilesCSVFormat(config: Config): AppProgram[Unit] = ???
+  def checkMappingFilesCSVFormatIfExist(config: Config): AppProgram[Unit] =
+    for {
+      userExists <- mappingFileExists(config.USERS_PATH)
+      _ <- if (userExists) checkMappingFileCSVFormat(config.USERS_PATH, userMappingName) else AppDSL.empty
+      priorityExists <- mappingFileExists(config.PRIORITIES_PATH)
+      _ <- if (priorityExists) checkMappingFileCSVFormat(config.PRIORITIES_PATH, priorityMappingName) else AppDSL.empty
+      statusExists <- mappingFileExists(config.STATUSES_PATH)
+      _ <- if (statusExists) checkMappingFileCSVFormat(config.STATUSES_PATH, statusMappingName) else AppDSL.empty
+    } yield ()
 
-  def checkMappingFileCSVFormat(path: Path): AppProgram[Unit] = {
+  private def checkMappingFileCSVFormat(path: Path, mappingFileKind: String): AppProgram[Unit] = {
     for {
       stream <- MappingFiles.read(path)
       result <- AppDSL.streamAsSeq(stream)
@@ -92,8 +100,12 @@ object Validations extends Logger {
         case Success(_) =>
           AppDSL.empty
         case Failure(ex) =>
-          ex.printStackTrace()
-          AppDSL.exit("cannot parse", 1)
+          val r = """.*?\(startline (\d+?)\) EOF reached before encapsulated token finished""".r
+          val message = ex.getMessage match {
+            case r(line) => s"Cannot parse $mappingFileKind mapping file. Line: $line. Path: ${path.toFile.getAbsolutePath}"
+            case _ => ex.getMessage
+          }
+          AppDSL.exit(message, 1)
       }
     } yield ()
   }

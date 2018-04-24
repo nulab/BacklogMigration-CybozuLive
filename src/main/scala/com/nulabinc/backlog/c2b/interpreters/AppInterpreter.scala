@@ -153,9 +153,14 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
 
   override def apply[A](fa: AppADT[A]): Task[A] = fa match {
     case Pure(a) => Task(a)
-    case FromTask(task) => task
-      .onErrorHandle(ex => Failure(ex))
-      .map(value => Success(value))
+    case FromTask(task) =>
+      task
+      .onErrorHandle(ex =>Failure(ex))
+      .map {
+        case Success(data) => Success(data)
+        case Failure(error) => Failure(error)
+        case data => Success(data)
+      }
     case FromStorage(storePrg) =>
       storageInterpreter.run(storePrg)
     case FromDB(dbPrg) =>

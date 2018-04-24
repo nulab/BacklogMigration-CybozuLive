@@ -22,7 +22,7 @@ import monix.eval.Task
 import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 object App extends Logger {
 
@@ -81,9 +81,11 @@ object App extends Logger {
       }
     } yield ()
 
-    val cleanup = interpreter.terminate().flatMap(_ => Task.fromFuture {
-      system.terminate()
-    })
+    val cleanup = interpreter.terminate().flatMap(_ =>
+      Task.fromFuture {
+        system.terminate()
+      }
+    )
 
     interpreter
       .run(program)
@@ -106,7 +108,7 @@ object App extends Logger {
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
       // Validation
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
-      _ <- Validations.checkMappingFileCSVFormat(config.USERS_TEMP_PATH) // TODO:
+      _ <- Validations.checkMappingFilesCSVFormatIfExist(config)
       // Delete operations
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       _ <- AppDSL.fromStore(StoreDSL.createDatabase)
