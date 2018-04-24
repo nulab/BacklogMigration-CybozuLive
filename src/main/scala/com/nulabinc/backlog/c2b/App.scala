@@ -18,6 +18,7 @@ import com.nulabinc.backlog.c2b.services._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
 import com.osinka.i18n.Messages
 import com.typesafe.config.ConfigFactory
+import monix.eval.Task
 import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
@@ -80,16 +81,17 @@ object App extends Logger {
       }
     } yield ()
 
+    val cleanup = interpreter.terminate().flatMap(_ => Task.fromFuture {
+      system.terminate()
+    })
+
     interpreter
       .run(program)
-      .flatMap(_ => interpreter.terminate())
-      .runAsync
-      .flatMap(_ => system.terminate())
-      .onComplete {
-        case Success(_) => exit(0)
-        case Failure(error) => exit(1, error)
+      .flatMap(_ => cleanup)
+      .onErrorHandleWith { ex =>
+        cleanup.map(_ => exit(1, ex))
       }
-
+      .runAsync
   }
 
   def init(config: Config, language: String): AppProgram[Unit] = {
@@ -104,6 +106,7 @@ object App extends Logger {
       _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
       // Validation
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
+      _ <- Validations.checkMappingFileCSVFormat(config.USERS_TEMP_PATH) // TODO:
       // Delete operations
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
       _ <- AppDSL.fromStore(StoreDSL.createDatabase)

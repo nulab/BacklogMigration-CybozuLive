@@ -19,6 +19,7 @@ import scala.collection.immutable.HashMap
 import scala.util.{Try, Success, Failure}
 
 object MappingFiles {
+  import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
 
   import CSVRecordSerializer._
 
@@ -37,15 +38,16 @@ object MappingFiles {
     )
 
   def createMappingContext(config: Config): AppProgram[MappingContext] = {
+
     for {
       userMappingStream <- read(config.USERS_PATH)
-      users <- AppDSL.streamAsSeq(userMappingStream)
+      users <- AppDSL.streamAsSeq(userMappingStream).orFail
       userMappings = indexSeqToHashMap(users)
       priorityMappingStream <- read(config.PRIORITIES_PATH)
-      priorities <- AppDSL.streamAsSeq(priorityMappingStream)
+      priorities <- AppDSL.streamAsSeq(priorityMappingStream).orFail
       priorityMappings = indexSeqToHashMap(priorities)
       statusMappingStream <- read(config.STATUSES_PATH)
-      statuses <- AppDSL.streamAsSeq(statusMappingStream)
+      statuses <- AppDSL.streamAsSeq(statusMappingStream).orFail
       statusMappings = indexSeqToHashMap(statuses)
     } yield {
       MappingContext(
@@ -91,7 +93,7 @@ object MappingFiles {
         StorageDSL.copy(config.USERS_PATH, config.USERS_TEMP_PATH)
       )
       cybozuUsersStream <- AppDSL.fromStore(StoreDSL.getCybozuUsers)
-      cybozuUsers <- AppDSL.streamAsSeq(cybozuUsersStream)
+      cybozuUsers <- AppDSL.streamAsSeq(cybozuUsersStream).orFail
       newCybozuUsersMap = cybozuUsers.foldLeft(HashMap.empty[String, String]) {
         case (acc, cybozuUser) =>
           acc + (cybozuUser.userId -> "")
@@ -130,7 +132,7 @@ object MappingFiles {
         StorageDSL.copy(config.PRIORITIES_PATH, config.PRIORITIES_TEMP_PATH)
       )
       cybozuPrioritiesStream <- AppDSL.fromStore(StoreDSL.getCybozuPriorities)
-      cybozuPriorities <- AppDSL.streamAsSeq(cybozuPrioritiesStream)
+      cybozuPriorities <- AppDSL.streamAsSeq(cybozuPrioritiesStream).orFail
       newCybozuPrioritiesMap = cybozuPriorities.foldLeft(HashMap.empty[String, String]) {
         case (acc, cybozuPriority) =>
           acc + (cybozuPriority.value -> "")
@@ -168,7 +170,7 @@ object MappingFiles {
         StorageDSL.copy(config.STATUSES_PATH, config.STATUSES_TEMP_PATH)
       )
       cybozuStatusesStream <- AppDSL.fromStore(StoreDSL.getCybozuStatuses)
-      cybozuStatuses <- AppDSL.streamAsSeq(cybozuStatusesStream)
+      cybozuStatuses <- AppDSL.streamAsSeq(cybozuStatusesStream).orFail
       newCybozuStatusesMap = cybozuStatuses.foldLeft(HashMap.empty[String, String]) {
         case (acc, cybozuStatus) =>
           acc + (cybozuStatus.value -> "")

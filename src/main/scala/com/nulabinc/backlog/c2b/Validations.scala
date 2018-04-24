@@ -2,14 +2,18 @@ package com.nulabinc.backlog.c2b
 
 import java.nio.file.Path
 
+import cats.free.Free
 import com.github.chaabaj.backlog4s.apis._
 import com.github.chaabaj.backlog4s.datas._
+import com.github.chaabaj.backlog4s.dsl.HttpADT.Response
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
+import com.nulabinc.backlog.c2b.interpreters.{AppADT, AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL
 import com.nulabinc.backlog.c2b.services.MappingFiles
 import com.osinka.i18n.Messages
+
+import scala.util.{Failure, Success, Try}
 
 object Validations extends Logger {
 
@@ -43,13 +47,7 @@ object Validations extends Logger {
 
   def projectExists(config: Config, projectApi: ProjectApi): AppProgram[Unit] = {
     for {
-      exists <- AppDSL.fromBacklog(
-        projectApi.byIdOrKey(
-          KeyParam[Project](
-            Key[Project](config.projectKey)
-          )
-        )
-      )
+      exists <- backlogProjectExists(projectApi, config.projectKey)
       _ <- exists match {
         case Right(_) =>
           for {
@@ -59,10 +57,10 @@ object Validations extends Logger {
             else
               AppDSL.exit(Messages("message.import.cancel"), 0)
           } yield ()
-        case Left(_) => AppDSL.pure(())
+        case Left(_) =>
+          AppDSL.pure(())
       }
     } yield ()
-
   }
 
   def checkDBExists(dbPath: Path): AppProgram[Unit] = {
@@ -77,13 +75,35 @@ object Validations extends Logger {
     } yield ()
   }
 
-  def checkMappingFilesExist(config: Config): AppProgram[Unit] = {
+  def checkMappingFilesExist(config: Config): AppProgram[Unit] =
     for {
       _ <- checkUserMappingFileExists(config.USERS_PATH)
       _ <- checkPriorityMappingFileExists(config.PRIORITIES_PATH)
       _ <- checkStatusMappingFileExists(config.STATUSES_PATH)
     } yield ()
+
+  def checkMappingFilesCSVFormat(config: Config): AppProgram[Unit] = ???
+
+  def checkMappingFileCSVFormat(path: Path): AppProgram[Unit] = {
+    for {
+      stream <- MappingFiles.read(path)
+      result <- AppDSL.streamAsSeq(stream)
+      _ <- result match {
+        case Success(_) =>
+          AppDSL.empty
+        case Failure(ex) =>
+          ex.printStackTrace()
+          AppDSL.exit("cannot parse", 1)
+      }
+    } yield ()
   }
+
+  def checkMappingFileItems(config: Config, api: AllApi): AppProgram[Unit] =
+    for {
+      _ <- userMappingFileItems(api.userApi, config)
+      _ <- priorityMappingFileItems(api.priorityApi, config)
+      _ <- statusMappingFileItems(api.statusApi, config)
+    } yield ()
 
   private def checkUserMappingFileExists(path: Path): AppProgram[Unit] =
     for {
@@ -111,13 +131,6 @@ object Validations extends Logger {
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", statusMappingName)))
       else
         AppDSL.exit(Messages("validation.mapping.file.exists.error", statusMappingName), 1)
-    } yield ()
-
-  def checkMappingFileItems(config: Config, api: AllApi): AppProgram[Unit] =
-    for {
-      _ <- userMappingFileItems(api.userApi, config)
-      _ <- priorityMappingFileItems(api.priorityApi, config)
-      _ <- statusMappingFileItems(api.statusApi, config)
     } yield ()
 
   private def userMappingFileItems(api: UserApi, config: Config): AppProgram[Unit] =
@@ -198,6 +211,15 @@ object Validations extends Logger {
           AppDSL.exit("Get backlog statuses fail. " + error.toString, 1)
       }
     } yield ()
+
+  private def backlogProjectExists(projectApi: ProjectApi, projectKey: String): AppProgram[Response[Project]] =
+    AppDSL.fromBacklog(
+      projectApi.byIdOrKey(
+        KeyParam[Project](
+          Key[Project](projectKey)
+        )
+      )
+    )
 
   private def mappingFileExists(path: Path): AppProgram[Boolean] =
     AppDSL.fromStorage(StorageDSL.exists(path))
