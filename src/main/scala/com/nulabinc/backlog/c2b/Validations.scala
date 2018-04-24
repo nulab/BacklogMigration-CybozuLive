@@ -79,24 +79,39 @@ object Validations extends Logger {
 
   def checkMappingFilesExist(config: Config): AppProgram[Unit] = {
     for {
+      _ <- checkUserMappingFileExists(config.USERS_PATH)
+      _ <- checkPriorityMappingFileExists(config.PRIORITIES_PATH)
+      _ <- checkStatusMappingFileExists(config.STATUSES_PATH)
+    } yield ()
+  }
+
+  private def checkUserMappingFileExists(path: Path): AppProgram[Unit] =
+    for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists")))
-      user <- AppDSL.fromStorage(StorageDSL.exists(config.USERS_PATH))
-      _ <- if (user)
+      userExists <- mappingFileExists(path)
+      _ <- if (userExists)
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", userMappingName)))
       else
         AppDSL.exit(Messages("validation.mapping.file.exists.error", userMappingName), 1)
-      priority <- AppDSL.fromStorage(StorageDSL.exists(config.PRIORITIES_PATH))
+    } yield ()
+
+  private def checkPriorityMappingFileExists(path: Path): AppProgram[Unit] =
+    for {
+      priority <- AppDSL.fromStorage(StorageDSL.exists(path))
       _ <- if (priority)
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", priorityMappingName)))
       else
         AppDSL.exit(Messages("validation.mapping.file.exists.error", priorityMappingName), 1)
-      status <- AppDSL.fromStorage(StorageDSL.exists(config.STATUSES_PATH))
+    } yield ()
+
+  private def checkStatusMappingFileExists(path: Path): AppProgram[Unit] =
+    for {
+      status <- AppDSL.fromStorage(StorageDSL.exists(path))
       _ <- if (status)
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", statusMappingName)))
       else
         AppDSL.exit(Messages("validation.mapping.file.exists.error", statusMappingName), 1)
     } yield ()
-  }
 
   def checkMappingFileItems(config: Config, api: AllApi): AppProgram[Unit] =
     for {
@@ -184,5 +199,7 @@ object Validations extends Logger {
       }
     } yield ()
 
+  private def mappingFileExists(path: Path): AppProgram[Boolean] =
+    AppDSL.fromStorage(StorageDSL.exists(path))
 
 }

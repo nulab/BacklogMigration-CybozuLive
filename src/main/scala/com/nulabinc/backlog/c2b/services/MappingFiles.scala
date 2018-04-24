@@ -74,9 +74,7 @@ object MappingFiles {
 
   private def getOldRecords(path: Path): AppProgram[Try[HashMap[String, String]]] = Try {
     for {
-      oldExists <- AppDSL.fromStorage(
-        StorageDSL.exists(path)
-      )
+      oldExists <- mappingFileExists(path)
       oldRecords <- if (oldExists) {
         AppDSL.fromStorage(
           StorageDSL.readFile(path, readCSVFile)
@@ -204,6 +202,9 @@ object MappingFiles {
 
   private def indexSeqToHashMap(seq: IndexedSeq[(String, String)]): HashMap[String, String] =
     HashMap(seq map { a => a._1 -> a._2 }: _*)
+
+  private def mappingFileExists(path: Path): AppProgram[Boolean] =
+    AppDSL.fromStorage(StorageDSL.exists(path))
 }
 
 object MappingFileConsole extends Logger {
@@ -243,5 +244,4 @@ object MappingFileConsole extends Logger {
     AppDSL.fromConsole(
       ConsoleDSL.print(s"${row._1} => ${row._2}")
     )
-
 }
