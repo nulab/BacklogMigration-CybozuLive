@@ -2,18 +2,18 @@ package com.nulabinc.backlog.c2b
 
 import java.nio.file.Path
 
-import cats.free.Free
 import com.github.chaabaj.backlog4s.apis._
 import com.github.chaabaj.backlog4s.datas._
 import com.github.chaabaj.backlog4s.dsl.HttpADT.Response
 import com.nulabinc.backlog.c2b.core.Logger
+import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.{AppADT, AppDSL, ConsoleDSL}
+import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL
 import com.nulabinc.backlog.c2b.services.MappingFiles
 import com.osinka.i18n.Messages
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 object Validations extends Logger {
 
@@ -22,6 +22,16 @@ object Validations extends Logger {
   private val userMappingName = Messages("name.mapping.user")
   private val priorityMappingName = Messages("name.mapping.priority")
   private val statusMappingName = Messages("name.mapping.status")
+
+  implicit class ValidationOps(program: AppProgram[Boolean]) {
+    def validate(success: String, failure: String): AppProgram[Unit] =
+      program.map { result =>
+        if (result)
+          AppDSL.fromConsole(ConsoleDSL.print(success))
+        else
+          throw CybozuLiveImporterException(failure)
+      }
+  }
 
   def checkBacklog(config: Config, spaceApi: SpaceApi): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.interpreters.AppDSL._
@@ -55,7 +65,7 @@ object Validations extends Logger {
             _ <- if(input == "y" || input == "Y")
               AppDSL.pure(())
             else
-              AppDSL.exit(Messages("message.import.cancel"), 0)
+              throw CybozuLiveImporterException(Messages("message.import.cancel"))
           } yield ()
         case Left(_) =>
           AppDSL.pure(())
@@ -70,7 +80,7 @@ object Validations extends Logger {
       _ <- if (exists) {
         AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.db.exists.ok")))
       } else {
-        AppDSL.exit(Messages("validation.db.exists.error"), 1)
+        throw CybozuLiveImporterException(Messages("validation.db.exists.error"))
       }
     } yield ()
   }
@@ -84,11 +94,11 @@ object Validations extends Logger {
 
   def checkMappingFilesCSVFormatIfExist(config: Config): AppProgram[Unit] =
     for {
-      userExists <- mappingFileExists(config.USERS_PATH)
+      userExists <- fileExists(config.USERS_PATH)
       _ <- if (userExists) checkMappingFileCSVFormat(config.USERS_PATH, userMappingName) else AppDSL.empty
-      priorityExists <- mappingFileExists(config.PRIORITIES_PATH)
+      priorityExists <- fileExists(config.PRIORITIES_PATH)
       _ <- if (priorityExists) checkMappingFileCSVFormat(config.PRIORITIES_PATH, priorityMappingName) else AppDSL.empty
-      statusExists <- mappingFileExists(config.STATUSES_PATH)
+      statusExists <- fileExists(config.STATUSES_PATH)
       _ <- if (statusExists) checkMappingFileCSVFormat(config.STATUSES_PATH, statusMappingName) else AppDSL.empty
     } yield ()
 
@@ -101,11 +111,12 @@ object Validations extends Logger {
           AppDSL.empty
         case Failure(ex) =>
           val r = """.*?\(startline (\d+?)\) EOF reached.*""".r
-          val message = ex.getMessage match {
-            case r(line) => s"Cannot parse $mappingFileKind mapping file. Line: $line. Path: ${path.toFile.getAbsolutePath}"
-            case _ => ex.getMessage
+          ex.getMessage match {
+            case r(line) =>
+              throw CybozuLiveImporterException(s"Cannot parse $mappingFileKind mapping file. Line: $line. Path: ${path.toFile.getAbsolutePath}")
+            case _ =>
+              throw ex
           }
-          AppDSL.exit(message, 1)
       }
     } yield ()
   }
@@ -120,29 +131,29 @@ object Validations extends Logger {
   private def checkUserMappingFileExists(path: Path): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists")))
-      userExists <- mappingFileExists(path)
-      _ <- if (userExists)
-        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", userMappingName)))
-      else
-        AppDSL.exit(Messages("validation.mapping.file.exists.error", userMappingName), 1)
+      _ <- fileExists(path).validate(
+        success = Messages("validation.mapping.file.exists.ok", userMappingName),
+        failure = Messages("validation.mapping.file.exists.error", userMappingName)
+      )
     } yield ()
 
   private def checkPriorityMappingFileExists(path: Path): AppProgram[Unit] =
     for {
-      priority <- AppDSL.fromStorage(StorageDSL.exists(path))
-      _ <- if (priority)
-        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", priorityMappingName)))
-      else
-        AppDSL.exit(Messages("validation.mapping.file.exists.error", priorityMappingName), 1)
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists")))
+      _ <- fileExists(path).validate(
+        success = Messages("validation.mapping.file.exists.ok", priorityMappingName),
+        failure = Messages("validation.mapping.file.exists.error", priorityMappingName)
+      )
     } yield ()
+
 
   private def checkStatusMappingFileExists(path: Path): AppProgram[Unit] =
     for {
-      status <- AppDSL.fromStorage(StorageDSL.exists(path))
-      _ <- if (status)
-        AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists.ok", statusMappingName)))
-      else
-        AppDSL.exit(Messages("validation.mapping.file.exists.error", statusMappingName), 1)
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("validation.mapping.file.exists")))
+      _ <- fileExists(path).validate(
+        success = Messages("validation.mapping.file.exists.ok", statusMappingName),
+        failure = Messages("validation.mapping.file.exists.error", statusMappingName)
+      )
     } yield ()
 
   private def userMappingFileItems(api: UserApi, config: Config): AppProgram[Unit] =
@@ -156,19 +167,19 @@ object Validations extends Logger {
             _ <- AppDSL.consumeStream(
               userMappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
-                  AppDSL.exit(Messages("validation.mapping.item.empty", backlogName, userMappingName, cybozuName, cybozu), 1)
+                  throw CybozuLiveImporterException(Messages("validation.mapping.item.empty", backlogName, userMappingName, cybozuName, cybozu))
                 case (cybozu, backlog) =>
                   val userExists = users.exists(_.userId.contains(backlog))
                   if (userExists) {
                     AppDSL.pure(())
                   } else {
-                    AppDSL.exit(Messages("validation.mapping.item.error", backlogName, userMappingName, cybozuName, cybozu, backlog), 1)
+                    throw CybozuLiveImporterException(Messages("validation.mapping.item.error", backlogName, userMappingName, cybozuName, cybozu, backlog))
                   }
               }
             )
           } yield ()
         case Left(error) =>
-          AppDSL.exit("Get backlog users fail. " + error.toString, 1)
+          throw CybozuLiveImporterException("Get backlog users fail. " + error.toString)
       }
     } yield ()
 
@@ -182,19 +193,19 @@ object Validations extends Logger {
             _ <- AppDSL.consumeStream(
               mappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
-                  AppDSL.exit(Messages("validation.mapping.item.empty", backlogName, priorityMappingName, cybozuName, cybozu), 1)
+                  throw CybozuLiveImporterException(Messages("validation.mapping.item.empty", backlogName, priorityMappingName, cybozuName, cybozu))
                 case (cybozu, backlog) =>
                   val exists = priorities.exists(_.name == backlog)
                   if (exists) {
                     AppDSL.pure(())
                   } else {
-                    AppDSL.exit(Messages("validation.mapping.item.error", backlogName, priorityMappingName, cybozuName, cybozu, backlog), 1)
+                    throw CybozuLiveImporterException(Messages("validation.mapping.item.error", backlogName, priorityMappingName, cybozuName, cybozu, backlog))
                   }
               }
             )
           } yield ()
         case Left(error) =>
-          AppDSL.exit("Get backlog priorities fail. " + error.toString, 1)
+          throw CybozuLiveImporterException("Get backlog priorities fail. " + error.toString)
       }
     } yield ()
 
@@ -208,19 +219,19 @@ object Validations extends Logger {
             _ <- AppDSL.consumeStream(
               mappings.map {
                 case (cybozu, backlog) if backlog.isEmpty =>
-                  AppDSL.exit(Messages("validation.mapping.item.empty", backlogName, statusMappingName, cybozuName, cybozu), 1)
+                  throw CybozuLiveImporterException(Messages("validation.mapping.item.empty", backlogName, statusMappingName, cybozuName, cybozu))
                 case (cybozu, backlog) =>
                   val exists = statuses.exists(_.name == backlog)
                   if (exists) {
                     AppDSL.pure(())
                   } else {
-                    AppDSL.exit(Messages("validation.mapping.item.error", backlogName, statusMappingName, cybozuName, cybozu, backlog), 1)
+                    throw CybozuLiveImporterException(Messages("validation.mapping.item.error", backlogName, statusMappingName, cybozuName, cybozu, backlog))
                   }
               }
             )
           } yield ()
         case Left(error) =>
-          AppDSL.exit("Get backlog statuses fail. " + error.toString, 1)
+          throw CybozuLiveImporterException("Get backlog statuses fail. " + error.toString)
       }
     } yield ()
 
@@ -233,7 +244,7 @@ object Validations extends Logger {
       )
     )
 
-  private def mappingFileExists(path: Path): AppProgram[Boolean] =
+  private def fileExists(path: Path): AppProgram[Boolean] =
     AppDSL.fromStorage(StorageDSL.exists(path))
 
 }

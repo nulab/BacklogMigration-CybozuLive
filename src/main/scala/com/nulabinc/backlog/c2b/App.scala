@@ -22,7 +22,7 @@ import monix.eval.Task
 import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 object App extends Logger {
 
@@ -77,7 +77,7 @@ object App extends Logger {
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, language)
         case Some(ImportCommand) => `import`(config, language)
-        case None => AppDSL.exit("Invalid command type", 1)
+        case None => throw new RuntimeException("Invalid command type")
       }
     } yield ()
 
@@ -167,7 +167,7 @@ object App extends Logger {
   }
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
-    Console.printError(error)
+    Console.printError("ERROR: " + error.getMessage)
     exit(exitCode)
   }
 

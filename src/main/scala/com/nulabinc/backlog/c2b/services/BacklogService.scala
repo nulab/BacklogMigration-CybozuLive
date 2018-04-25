@@ -2,6 +2,7 @@ package com.nulabinc.backlog.c2b.services
 
 import com.github.chaabaj.backlog4s.apis.{PriorityApi, StatusApi, UserApi}
 import com.nulabinc.backlog.c2b.datas.{BacklogPriority, BacklogStatus, BacklogUser}
+import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
 import com.nulabinc.backlog.c2b.interpreters.AppDSL
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
@@ -29,7 +30,7 @@ object BacklogService {
           val items = data.map(p => BacklogPriority(0, p.name))
           AppDSL.fromStore(StoreDSL.storeBacklogPriorities(items))
         case Left(error) =>
-          AppDSL.exit(error.toString, 1)
+          throw CybozuLiveImporterException(error.toString)
       }
     } yield ()
 
@@ -41,7 +42,7 @@ object BacklogService {
           val items = data.map(p => BacklogStatus(0, p.name))
           AppDSL.fromStore(StoreDSL.storeBacklogStatuses(items))
         case Left(error) =>
-          AppDSL.exit(error.toString, 1)
+          throw CybozuLiveImporterException(error.toString)
       }
     } yield ()
 
