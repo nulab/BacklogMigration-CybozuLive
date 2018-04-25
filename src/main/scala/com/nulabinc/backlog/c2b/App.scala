@@ -17,11 +17,10 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterp
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.services._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
-import com.nulabinc.backlog.migration.common.utils.{DateUtil, TrackingData}
+import com.nulabinc.backlog.migration.common.utils.{ConsoleOut, DateUtil, TrackingData}
 import com.osinka.i18n.Messages
 import monix.eval.Task
 import monix.execution.Scheduler
-import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
 
@@ -42,16 +41,15 @@ object App extends Logger {
     // check release version
 
     // Initialize
-    AnsiConsole.systemInstall()
     setLanguage(Config.App.language)
 
-    val config = ConfigParser(Config.App.name, Config.App.version).parse(args, Config.App.dataDirectory) match {
+    val config = ConfigParser.parse(args) match {
       case Some(c) => c.commandType match {
         case Some(InitCommand) => c
         case Some(ImportCommand) => c
         case None => throw new RuntimeException("No command found")
       }
-      case None => throw new RuntimeException("Invalid configuration")
+      case None => sys.exit(1)
     }
 
     implicit val system: ActorSystem = ActorSystem("main")
@@ -61,12 +59,12 @@ object App extends Logger {
     val interpreter = new AppInterpreter(
       backlogInterpreter = new AkkaHttpInterpret(ProxyConfig.create),
       storageInterpreter = new LocalStorageInterpreter,
-      storeInterpreter = new SQLiteInterpreter(config.DB_PATH),
+      storeInterpreter = new SQLiteInterpreter(Config.DB_PATH),
       consoleInterpreter = new ConsoleInterpreter
     )
 
     val program = for {
-      _ <- printBanner(Config.App.name, Config.App.version)
+      _ <- printBanner()
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, Config.App.language)
         case Some(ImportCommand) => `import`(config, Config.App.language)
@@ -93,17 +91,17 @@ object App extends Logger {
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
-    val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
+    val csvFiles = Config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
 
     for {
       // Initialize
-      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
-      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.MAPPING_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.TEMP_PATHS))
       // Validation
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
-      _ <- Validations.checkMappingFilesCSVFormatIfExist(config)
+      _ <- Validations.checkMappingFilesCSVFormatIfExist()
       // Delete operations
-      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(Config.DB_PATH))
       _ <- AppDSL.fromStore(StoreDSL.createDatabase)
       // Read CSV and to store
       _ <- CybozuStore.copyToStore(csvFiles)
@@ -114,7 +112,7 @@ object App extends Logger {
       // Write mapping files
       _ <- MappingFiles.write(config)
       // Finalize
-      _ <- MappingFileConsole.show(config)
+      _ <- MappingFileConsole.show()
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.finish")))
     } yield ()
   }
@@ -127,21 +125,21 @@ object App extends Logger {
       url = config.backlogUrl,
       key = config.backlogKey,
       projectKey = config.projectKey,
-      backlogOutputPath = config.BACKLOG_PATHS
+      backlogOutputPath = Config.BACKLOG_PATHS
     )
 
     for {
       // Initialize
-      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(config.BACKLOG_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(Config.BACKLOG_PATHS))
       // Validation
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
-      _ <- Validations.checkDBExists(config.DB_PATH)
-      _ <- Validations.checkMappingFilesExist(config)
-      _ <- Validations.checkMappingFilesCSVFormatIfExist(config)
-      _ <- Validations.checkMappingFileItems(config, backlogApi)
+      _ <- Validations.checkDBExists(Config.DB_PATH)
+      _ <- Validations.checkMappingFilesExist()
+      _ <- Validations.checkMappingFilesCSVFormatIfExist()
+      _ <- Validations.checkMappingFileItems(backlogApi)
       _ <- Validations.projectExists(config, backlogApi.projectApi)
       // Read mapping files
-      mappingContext <- MappingFiles.createMappingContext(config)
+      mappingContext <- MappingFiles.createMappingContext()
       _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
       // MixPanel
@@ -168,22 +166,21 @@ object App extends Logger {
     } yield ()
   }
 
-  private def printBanner(applicationName: String, applicationVersion: String): AppProgram[Unit] =
+  private def printBanner(): AppProgram[Unit] =
     AppDSL.fromConsole(
       ConsoleDSL.print(
         s"""
-           |$applicationName $applicationVersion
+           |${Config.App.title}
            |--------------------------------------------------""".stripMargin
       )
     )
 
   private def exit(exitCode: Int): Unit = {
-    AnsiConsole.systemUninstall()
     sys.exit(exitCode)
   }
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
-    Console.printError("ERROR: " + error.getMessage)
+    ConsoleOut.error("ERROR: " + error.getMessage)
     exit(exitCode)
   }
 
