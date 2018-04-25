@@ -64,7 +64,7 @@ private[c2b] object Console extends Logger {
     }
   }
 
-  def printError(ex: Throwable): Unit =
-    error(ex.getMessage)
+  def printError(message: String): Unit =
+    error(message)
 
 }
