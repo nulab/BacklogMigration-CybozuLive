@@ -17,6 +17,8 @@ import com.nulabinc.backlog.c2b.persistence.interpreters._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
 import com.nulabinc.backlog.migration.common.utils.{IOUtil, MixpanelUtil, TrackingData}
 import com.nulabinc.backlog.migration.importer.core.Boot
+import com.nulabinc.backlog4j.BacklogClientFactory
+import com.nulabinc.backlog4j.conf.BacklogPackageConfigure
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.{Consumer, Observable}
@@ -38,6 +40,7 @@ private case class FromTask[A](task: Task[A]) extends AppADT[Try[A]]
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
 case class SendTrackingData(token: String, data: TrackingData) extends AppADT[Unit]
+case class GetBacklogEnvironment(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[(Long, String)]
 
 object AppDSL {
 
@@ -91,6 +94,9 @@ object AppDSL {
 
   def sendTrackingData(token: String, trackingData: TrackingData): AppProgram[Unit] =
     Free.liftF(SendTrackingData(token, trackingData))
+
+  def getBacklogEnvironment(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[(Long, String)] =
+    Free.liftF(GetBacklogEnvironment(backlogApiConfiguration))
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -144,6 +150,14 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     MixpanelUtil.track(token = token, data = trackingData)
   }
 
+  def getBacklogEnvironment(backlogApiConfiguration: BacklogApiConfiguration): Task[(Long, String)] = Task {
+    val backlogPackageConfigure = new BacklogPackageConfigure(backlogApiConfiguration.url)
+    val configure = backlogPackageConfigure.apiKey(backlogApiConfiguration.key)
+    val backlogClient = new BacklogClientFactory(configure).newClient()
+    val environment = backlogClient.getEnvironment
+    (environment.getSpaceId, environment.getName)
+  }
+
   def terminate(): Task[Unit] = Task.deferFuture {
     backlogInterpreter match {
       case akkaInterpreter: AkkaHttpInterpret =>
@@ -177,5 +191,6 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case Export(file, content) => export(file, content)
     case Import(config) => `import`(config)
     case SendTrackingData(token, trackingData) => sendTrackingData(token, trackingData)
+    case GetBacklogEnvironment(config) => getBacklogEnvironment(config)
   }
 }
