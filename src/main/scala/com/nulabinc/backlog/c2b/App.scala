@@ -137,6 +137,7 @@ object App extends Logger {
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
       _ <- Validations.checkDBExists(config.DB_PATH)
       _ <- Validations.checkMappingFilesExist(config)
+      _ <- Validations.checkMappingFilesCSVFormatIfExist(config)
       _ <- Validations.checkMappingFileItems(config, backlogApi)
       _ <- Validations.projectExists(config, backlogApi.projectApi)
       // Read mapping files
