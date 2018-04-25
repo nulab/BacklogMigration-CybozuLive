@@ -64,11 +64,12 @@ object BacklogExport extends Logger {
 
   def users(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.syntax.EitherOps._
+    import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
 
     val userConverter = new UserConverter()
     for {
       userStream <- AppDSL.fromStore(StoreDSL.getCybozuUsers)
-      cybozuUsers <- AppDSL.streamAsSeq(userStream)
+      cybozuUsers <- AppDSL.streamAsSeq(userStream).orFail
       result = cybozuUsers.map(userConverter.to).sequence
       _ <- result match {
         case Right(backlogUsers) =>

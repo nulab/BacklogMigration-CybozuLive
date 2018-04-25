@@ -33,5 +33,4 @@ object StorageDSL {
 
   def deleteDirectory(path: Path): StorageProgram[Unit] =
     Free.liftF(DeleteDirectory(path))
-
 }

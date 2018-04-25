@@ -24,7 +24,7 @@ import org.fusesource.jansi.AnsiConsole
 import org.reactivestreams.Subscriber
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 sealed trait AppADT[+A]
 case class Pure[A](a: A) extends AppADT[A]
@@ -35,7 +35,7 @@ case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq[A]]]
 case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
-private case class FromTask[A](task: Task[A]) extends AppADT[A]
+private case class FromTask[A](task: Task[A]) extends AppADT[Try[A]]
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
 
@@ -46,16 +46,19 @@ object AppDSL {
   def pure[A](a: A): AppProgram[A] =
     Free.liftF(Pure(a))
 
+  val empty: AppProgram[Unit] =
+    pure(())
+
   def consumeStream[A](prgs: Observable[AppProgram[Unit]]): AppProgram[Unit] =
     Free.liftF[AppADT, Unit](ConsumeStream(prgs))
 
-  private def fromTask[A](task: Task[A]): AppProgram[A] =
-    Free.liftF(FromTask(task))
+  private def fromTask[A](task: Task[A]): AppProgram[Try[A]] =
+    Free.liftF[AppADT, Try[A]](FromTask(task))
 
-  def foldLeftStream[A, B](stream: Observable[A], zero: B)(f: (B, A) => B): AppProgram[B] =
+  def foldLeftStream[A, B](stream: Observable[A], zero: B)(f: (B, A) => B): AppProgram[Try[B]] =
     fromTask(stream.foldLeftL(zero)(f))
 
-  def streamAsSeq[A](stream: Observable[A]): AppProgram[IndexedSeq[A]] = {
+  def streamAsSeq[A](stream: Observable[A]): AppProgram[Try[IndexedSeq[A]]] = {
     foldLeftStream(stream, IndexedSeq.empty[A]) {
       case (acc, item) =>
         acc :+ item
@@ -110,10 +113,11 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     Boot.execute(config, false)
   }
 
-  def exit(exitCode: Int): Task[Unit] = Task {
-    AnsiConsole.systemUninstall()
-    sys.exit(exitCode)
-  }
+  def exit(exitCode: Int): Task[Unit] =
+    terminate().map { _ =>
+      AnsiConsole.systemUninstall()
+      sys.exit(exitCode)
+    }
 
   def fromBacklogStream[A](stream: ApiStream[A]): Task[Observable[Seq[A]]] = Task.eval {
     Observable.fromReactivePublisher[Seq[A]](
@@ -150,7 +154,14 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
 
   override def apply[A](fa: AppADT[A]): Task[A] = fa match {
     case Pure(a) => Task(a)
-    case FromTask(task) => task
+    case FromTask(task) =>
+      task
+      .onErrorHandle(ex =>Failure(ex))
+      .map {
+        case Success(data) => Success(data)
+        case Failure(error) => Failure(error)
+        case data => Success(data)
+      }
     case FromStorage(storePrg) =>
       storageInterpreter.run(storePrg)
     case FromDB(dbPrg) =>
