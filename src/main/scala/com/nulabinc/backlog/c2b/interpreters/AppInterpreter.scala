@@ -113,10 +113,11 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     Boot.execute(config, false)
   }
 
-  def exit(exitCode: Int): Task[Unit] = Task {
-    AnsiConsole.systemUninstall()
-    sys.exit(exitCode)
-  }
+  def exit(exitCode: Int): Task[Unit] =
+    terminate().map { _ =>
+      AnsiConsole.systemUninstall()
+      sys.exit(exitCode)
+    }
 
   def fromBacklogStream[A](stream: ApiStream[A]): Task[Observable[Seq[A]]] = Task.eval {
     Observable.fromReactivePublisher[Seq[A]](

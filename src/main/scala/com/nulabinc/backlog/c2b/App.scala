@@ -22,7 +22,7 @@ import monix.eval.Task
 import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
 
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 object App extends Logger {
 
