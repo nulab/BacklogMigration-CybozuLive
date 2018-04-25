@@ -77,7 +77,7 @@ object App extends Logger {
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, language)
         case Some(ImportCommand) => `import`(config, language)
-        case None => AppDSL.exit("Invalid command type", 1)
+        case None => throw new RuntimeException("Invalid command type")
       }
     } yield ()
 

@@ -33,7 +33,6 @@ case class FromDB[A](prg: StoreProgram[A]) extends AppADT[A]
 case class FromConsole[A](prg: ConsoleProgram[A]) extends AppADT[A]
 case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq[A]]]
-case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
 private case class FromTask[A](task: Task[A]) extends AppADT[Try[A]]
 case class Export(file: File, content: String) extends AppADT[File]
@@ -79,12 +78,6 @@ object AppDSL {
 
   def fromBacklogStream[A](prg: ApiStream[A]): AppProgram[Observable[Seq[A]]] =
     Free.liftF[AppADT, Observable[Seq[A]]](FromBacklogStream(prg))
-
-  def exit(reason: String, exitCode: Int): AppProgram[Unit] =
-    for {
-      _ <- fromConsole(ConsoleDSL.print(reason))
-      _ <- Free.liftF(Exit(exitCode))
-    } yield ()
 
   def export(message: String, file: File, content: String): AppProgram[File] =
     for {
@@ -175,6 +168,5 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case ConsumeStream(prgs) => consumeStream(prgs)
     case Export(file, content) => export(file, content)
     case Import(config) => `import`(config)
-    case Exit(statusCode) => exit(statusCode)
   }
 }
