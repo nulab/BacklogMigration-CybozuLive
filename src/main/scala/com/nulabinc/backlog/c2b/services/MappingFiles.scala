@@ -10,17 +10,16 @@ import com.nulabinc.backlog.c2b.datas.MappingContext
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
-import com.nulabinc.backlog.c2b.serializers.CSVRecordSerializer
+import com.nulabinc.backlog.c2b.serializers.{CSVRecordSerializer, Serializer}
+import com.nulabinc.backlog.c2b.services.DiffPatch.DiffMap
 import com.osinka.i18n.Messages
 import monix.reactive.Observable
 import org.apache.commons.csv.CSVParser
 
 import scala.collection.immutable.HashMap
-import scala.util.{Try, Success, Failure}
 
 object MappingFiles {
   import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
-
   import CSVRecordSerializer._
 
   def write(config: Config): AppProgram[Unit] =
@@ -89,22 +88,9 @@ object MappingFiles {
       }
       oldCybozuUserMap <- getOldRecords(config.USERS_TEMP_PATH)
       mergedCybozuUserMap = DiffPatch.applyChanges(oldCybozuUserMap, newCybozuUsersMap)
-      _ <- AppDSL.fromStorage(
-        StorageDSL.writeAppendFile(
-          config.USERS_PATH,
-          Observable(CSVRecordSerializer.header) ++
-          Observable.fromIterator(
-            CSVRecordSerializer.serializeMap(mergedCybozuUserMap).iterator
-          )
-        )
-      )
+      _ <- writeDiffMap(config.USERS_PATH, mergedCybozuUserMap)
       backlogUserStream <- AppDSL.fromStore(StoreDSL.getBacklogUsers)
-      _ <- AppDSL.fromStorage(
-        StorageDSL.writeNewFile(config.BACKLOG_USER_PATH,
-          Observable(CSVRecordSerializer.backlogHeader("User")) ++
-            backlogUserStream.map(user => CSVRecordSerializer.serialize(user))
-        )
-      )
+      _ <- writeMappingFile(config.BACKLOG_USER_PATH, "User", backlogUserStream)
     } yield ()
   }
 
@@ -121,22 +107,9 @@ object MappingFiles {
       }
       oldCybozuPriorityMap <- getOldRecords(config.PRIORITIES_TEMP_PATH)
       mergedCybozuPriorityMap = DiffPatch.applyChanges(oldCybozuPriorityMap, newCybozuPrioritiesMap)
-      _ <- AppDSL.fromStorage(
-        StorageDSL.writeAppendFile(
-          config.PRIORITIES_PATH,
-          Observable(CSVRecordSerializer.header) ++
-            Observable.fromIterator(
-              CSVRecordSerializer.serializeMap(mergedCybozuPriorityMap).iterator
-            )
-        )
-      )
+      _ <- writeDiffMap(config.PRIORITIES_PATH, mergedCybozuPriorityMap)
       backlogPriorityStream <- AppDSL.fromStore(StoreDSL.getBacklogPriorities)
-      _ <- AppDSL.fromStorage(
-        StorageDSL.writeNewFile(config.BACKLOG_PRIORITY_PATH,
-          Observable(CSVRecordSerializer.backlogHeader("Priority")) ++
-            backlogPriorityStream.map(priority => CSVRecordSerializer.serialize(priority))
-        )
-      )
+      _ <- writeMappingFile(config.BACKLOG_PRIORITY_PATH, "Priority", backlogPriorityStream)
     } yield ()
 
   private def writeStatusMapping(config: Config): AppProgram[Unit] =
@@ -152,22 +125,9 @@ object MappingFiles {
       }
       oldCybozuStatusesMap <- getOldRecords(config.STATUSES_TEMP_PATH)
       mergedCybozuStatusMap = DiffPatch.applyChanges(oldCybozuStatusesMap, newCybozuStatusesMap)
-      _ <- AppDSL.fromStorage(
-        StorageDSL.writeAppendFile(
-          config.STATUSES_PATH,
-          Observable(CSVRecordSerializer.header) ++
-          Observable.fromIterator(
-            CSVRecordSerializer.serializeMap(mergedCybozuStatusMap).iterator
-          )
-        )
-      )
+      _ <- writeDiffMap(config.STATUSES_PATH, mergedCybozuStatusMap)
       backlogStatusStream <- AppDSL.fromStore(StoreDSL.getBacklogStatuses)
-      _ <- AppDSL.fromStorage(
-        StorageDSL.writeNewFile(config.BACKLOG_STATUS_PATH,
-          Observable(CSVRecordSerializer.backlogHeader("Status")) ++
-            backlogStatusStream.map(status => CSVRecordSerializer.serialize(status))
-        )
-      )
+      _ <- writeMappingFile(config.BACKLOG_STATUS_PATH, "Status", backlogStatusStream)
     } yield ()
 
   private def indexSeqToHashMap(seq: IndexedSeq[(String, String)]): HashMap[String, String] =
@@ -175,6 +135,31 @@ object MappingFiles {
 
   private def mappingFileExists(path: Path): AppProgram[Boolean] =
     AppDSL.fromStorage(StorageDSL.exists(path))
+
+  private def writeDiffMap(path: Path, diffMap: DiffMap): AppProgram[Unit] =
+    AppDSL.fromStorage(
+      StorageDSL.writeAppendFile(
+        path = path,
+        writeStream =
+          Observable(CSVRecordSerializer.header) ++
+          Observable.fromIterator(
+            CSVRecordSerializer.serializeMap(diffMap).iterator
+          )
+      )
+    )
+
+  private def writeMappingFile[A](path: Path,
+                                  mappingFileKind: String,
+                                  stream: Observable[A])
+                                 (implicit serializer: Serializer[A, Array[Byte]]): AppProgram[Unit] =
+    AppDSL.fromStorage(
+      StorageDSL.writeNewFile(
+        path = path,
+        writeStream =
+          Observable(CSVRecordSerializer.backlogHeader(mappingFileKind)) ++
+          stream.map(value => CSVRecordSerializer.serialize(value))
+      )
+    )
 }
 
 object MappingFileConsole extends Logger {

@@ -100,7 +100,7 @@ object Validations extends Logger {
         case Success(_) =>
           AppDSL.empty
         case Failure(ex) =>
-          val r = """.*?\(startline (\d+?)\) EOF reached before encapsulated token finished""".r
+          val r = """.*?\(startline (\d+?)\) EOF reached.*""".r
           val message = ex.getMessage match {
             case r(line) => s"Cannot parse $mappingFileKind mapping file. Line: $line. Path: ${path.toFile.getAbsolutePath}"
             case _ => ex.getMessage
