@@ -32,7 +32,7 @@ class ConsoleInterpreter extends (ConsoleADT ~> Task) {
     program.foldMap(this)
 
   def print(string: String): Task[Unit] = Task {
-    Console.println(string)
+    ConsoleOut.println(string)
     ()
   }
 

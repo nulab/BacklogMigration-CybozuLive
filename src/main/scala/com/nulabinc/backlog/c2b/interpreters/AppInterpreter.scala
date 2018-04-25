@@ -15,8 +15,10 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
-import com.nulabinc.backlog.migration.common.utils.IOUtil
+import com.nulabinc.backlog.migration.common.utils.{IOUtil, MixpanelUtil, TrackingData}
 import com.nulabinc.backlog.migration.importer.core.Boot
+import com.nulabinc.backlog4j.BacklogClientFactory
+import com.nulabinc.backlog4j.conf.BacklogPackageConfigure
 import monix.eval.Task
 import monix.execution.Scheduler
 import monix.reactive.{Consumer, Observable}
@@ -24,7 +26,7 @@ import org.fusesource.jansi.AnsiConsole
 import org.reactivestreams.Subscriber
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 sealed trait AppADT[+A]
 case class Pure[A](a: A) extends AppADT[A]
@@ -33,11 +35,12 @@ case class FromDB[A](prg: StoreProgram[A]) extends AppADT[A]
 case class FromConsole[A](prg: ConsoleProgram[A]) extends AppADT[A]
 case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq[A]]]
-case class Exit(exitCode: Int) extends AppADT[Unit]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
-private case class FromTask[A](task: Task[A]) extends AppADT[A]
+private case class FromTask[A](task: Task[A]) extends AppADT[Try[A]]
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
+case class SendTrackingData(token: String, data: TrackingData) extends AppADT[Unit]
+case class GetBacklogEnvironment(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[(Long, String)]
 
 object AppDSL {
 
@@ -46,16 +49,19 @@ object AppDSL {
   def pure[A](a: A): AppProgram[A] =
     Free.liftF(Pure(a))
 
+  val empty: AppProgram[Unit] =
+    pure(())
+
   def consumeStream[A](prgs: Observable[AppProgram[Unit]]): AppProgram[Unit] =
     Free.liftF[AppADT, Unit](ConsumeStream(prgs))
 
-  private def fromTask[A](task: Task[A]): AppProgram[A] =
-    Free.liftF(FromTask(task))
+  private def fromTask[A](task: Task[A]): AppProgram[Try[A]] =
+    Free.liftF[AppADT, Try[A]](FromTask(task))
 
-  def foldLeftStream[A, B](stream: Observable[A], zero: B)(f: (B, A) => B): AppProgram[B] =
+  def foldLeftStream[A, B](stream: Observable[A], zero: B)(f: (B, A) => B): AppProgram[Try[B]] =
     fromTask(stream.foldLeftL(zero)(f))
 
-  def streamAsSeq[A](stream: Observable[A]): AppProgram[IndexedSeq[A]] = {
+  def streamAsSeq[A](stream: Observable[A]): AppProgram[Try[IndexedSeq[A]]] = {
     foldLeftStream(stream, IndexedSeq.empty[A]) {
       case (acc, item) =>
         acc :+ item
@@ -77,12 +83,6 @@ object AppDSL {
   def fromBacklogStream[A](prg: ApiStream[A]): AppProgram[Observable[Seq[A]]] =
     Free.liftF[AppADT, Observable[Seq[A]]](FromBacklogStream(prg))
 
-  def exit(reason: String, exitCode: Int): AppProgram[Unit] =
-    for {
-      _ <- fromConsole(ConsoleDSL.print(reason))
-      _ <- Free.liftF(Exit(exitCode))
-    } yield ()
-
   def export(message: String, file: File, content: String): AppProgram[File] =
     for {
       _ <- fromConsole(ConsoleDSL.print(message))
@@ -91,6 +91,12 @@ object AppDSL {
 
   def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
     Free.liftF(Import(backlogApiConfiguration))
+
+  def sendTrackingData(token: String, trackingData: TrackingData): AppProgram[Unit] =
+    Free.liftF(SendTrackingData(token, trackingData))
+
+  def getBacklogEnvironment(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[(Long, String)] =
+    Free.liftF(GetBacklogEnvironment(backlogApiConfiguration))
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -110,10 +116,11 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     Boot.execute(config, false)
   }
 
-  def exit(exitCode: Int): Task[Unit] = Task {
-    AnsiConsole.systemUninstall()
-    sys.exit(exitCode)
-  }
+  def exit(exitCode: Int): Task[Unit] =
+    terminate().map { _ =>
+      AnsiConsole.systemUninstall()
+      sys.exit(exitCode)
+    }
 
   def fromBacklogStream[A](stream: ApiStream[A]): Task[Observable[Seq[A]]] = Task.eval {
     Observable.fromReactivePublisher[Seq[A]](
@@ -139,6 +146,18 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       }
     )
 
+  def sendTrackingData(token: String, trackingData: TrackingData): Task[Unit] = Task {
+    MixpanelUtil.track(token = token, data = trackingData)
+  }
+
+  def getBacklogEnvironment(backlogApiConfiguration: BacklogApiConfiguration): Task[(Long, String)] = Task {
+    val backlogPackageConfigure = new BacklogPackageConfigure(backlogApiConfiguration.url)
+    val configure = backlogPackageConfigure.apiKey(backlogApiConfiguration.key)
+    val backlogClient = new BacklogClientFactory(configure).newClient()
+    val environment = backlogClient.getEnvironment
+    (environment.getSpaceId, environment.getName)
+  }
+
   def terminate(): Task[Unit] = Task.deferFuture {
     backlogInterpreter match {
       case akkaInterpreter: AkkaHttpInterpret =>
@@ -150,7 +169,14 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
 
   override def apply[A](fa: AppADT[A]): Task[A] = fa match {
     case Pure(a) => Task(a)
-    case FromTask(task) => task
+    case FromTask(task) =>
+      task
+      .onErrorHandle(ex =>Failure(ex))
+      .map {
+        case Success(data) => Success(data)
+        case Failure(error) => Failure(error)
+        case data => Success(data)
+      }
     case FromStorage(storePrg) =>
       storageInterpreter.run(storePrg)
     case FromDB(dbPrg) =>
@@ -164,6 +190,7 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case ConsumeStream(prgs) => consumeStream(prgs)
     case Export(file, content) => export(file, content)
     case Import(config) => `import`(config)
-    case Exit(statusCode) => exit(statusCode)
+    case SendTrackingData(token, trackingData) => sendTrackingData(token, trackingData)
+    case GetBacklogEnvironment(config) => getBacklogEnvironment(config)
   }
 }

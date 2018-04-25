@@ -6,21 +6,53 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.migration.common.conf.BacklogPaths
+import com.typesafe.config.ConfigFactory
 import org.apache.commons.csv.CSVFormat
 
 case class Config(
   backlogUrl: String = "",
   backlogKey: String = "",
   projectKey: String = "",
-  commandType: Option[CommandType] = None,
-  dataDirectory: String = ""
+  commandType: Option[CommandType] = None
 ) {
-  val DATA_PATHS: Path = Paths.get(dataDirectory)
-  val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
-  val TEMP_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/temp")
-  val BACKLOG_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/backlog")
+  lazy val backlogPaths = new BacklogPaths(projectKey, BACKLOG_PATHS)
+}
 
-  val DB_PATH: Path = Paths.get(DATA_PATHS.toRealPath() + "/data.db")
+object Config {
+
+  val charset: Charset = Charset.forName("UTF-8")
+
+  val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
+
+  val issueTypes = Seq("ToDo", "Event", "Forum")
+
+  private val config = ConfigFactory.load()
+
+  object App {
+    private val appConfig = config.getConfig("app")
+
+    val name: String = appConfig.getString("name")
+    val version: String = appConfig.getString("version")
+    val title: String = appConfig.getString("title")
+    val fileName: String = appConfig.getString("fileName")
+    val language: String = appConfig.getString("language")
+    val dataDirectory: String = appConfig.getString("dataDirectory")
+
+    object Mixpanel {
+      private val mixpanelConfig = appConfig.getConfig("mixpanel")
+
+      val token: String = mixpanelConfig.getString("token")
+      val backlogtoolToken: String = mixpanelConfig.getString("backlogtoolToken")
+      val product: String = mixpanelConfig.getString("product")
+    }
+  }
+
+  lazy val DATA_PATHS: Path = Paths.get(App.dataDirectory)
+  lazy val MAPPING_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/mappings")
+  lazy val TEMP_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/temp")
+  lazy val BACKLOG_PATHS: Path = Paths.get(DATA_PATHS.toRealPath() + "/backlog")
+
+  lazy val DB_PATH: Path = Paths.get(DATA_PATHS.toRealPath() + "/data.db")
 
   lazy val USERS_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/users.csv").path
   lazy val BACKLOG_USER_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/user_list.csv").path
@@ -33,17 +65,6 @@ case class Config(
   lazy val STATUSES_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/statuses.csv").path
   lazy val BACKLOG_STATUS_PATH: Path = File(MAPPING_PATHS.toRealPath() + "/status_list.csv").path
   lazy val STATUSES_TEMP_PATH: Path = File(TEMP_PATHS.toRealPath() + "/statuses.temp.csv").path
-
-  lazy val backlogPaths = new BacklogPaths(projectKey, BACKLOG_PATHS)
-}
-
-object Config {
-
-  val charset: Charset = Charset.forName("UTF-8")
-
-  val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
-
-  val issueTypes = Seq("ToDo", "Event", "Forum")
 
   sealed trait CommandType
 

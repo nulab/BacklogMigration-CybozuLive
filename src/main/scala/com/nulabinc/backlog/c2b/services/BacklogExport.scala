@@ -8,6 +8,7 @@ import com.nulabinc.backlog.c2b.converters._
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
+import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
@@ -57,18 +58,19 @@ object BacklogExport extends Logger {
             BacklogProjectWrapper(project).toJson.prettyPrint
           )
         case Left(error) =>
-          AppDSL.exit(error.toString, 1)
+          throw CybozuLiveImporterException(error.toString)
       }
     } yield ()
   }
 
   def users(config: Config)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
     import com.nulabinc.backlog.c2b.syntax.EitherOps._
+    import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
 
     val userConverter = new UserConverter()
     for {
       userStream <- AppDSL.fromStore(StoreDSL.getCybozuUsers)
-      cybozuUsers <- AppDSL.streamAsSeq(userStream)
+      cybozuUsers <- AppDSL.streamAsSeq(userStream).orFail
       result = cybozuUsers.map(userConverter.to).sequence
       _ <- result match {
         case Right(backlogUsers) =>
@@ -78,7 +80,7 @@ object BacklogExport extends Logger {
             BacklogProjectUsersWrapper(backlogUsers).toJson.prettyPrint
           )
         case Left(error) =>
-          AppDSL.exit("User convert error. " + error.toString, 1)
+          throw CybozuLiveImporterException("User convert error. " + error.toString)
       }
     } yield ()
   }
@@ -110,7 +112,7 @@ object BacklogExport extends Logger {
           )
         } yield ()
       case Left(error) =>
-        AppDSL.exit(error.toString, 1)
+        throw CybozuLiveImporterException(error.toString)
     }
   }
 
@@ -202,9 +204,9 @@ object BacklogExport extends Logger {
               }
             } yield ()
           case Left(error) =>
-            AppDSL.exit("ToDo convert error. " + error.toString, 1)
+            throw CybozuLiveImporterException("ToDo convert error. " + error.toString)
         }
-      ).getOrElse(AppDSL.exit("ToDo not found", 1))
+      ).getOrElse(throw CybozuLiveImporterException("ToDo not found"))
     } yield ()
 
   private def exportEvent(paths: BacklogPaths,
@@ -224,9 +226,9 @@ object BacklogExport extends Logger {
               _ <- exportComments(paths, event.comments, commentConverter)
             } yield ()
           case Left(error) =>
-            AppDSL.exit("Event convert error. " + error.toString, 1)
+            throw CybozuLiveImporterException("Event convert error. " + error.toString)
         }
-      ).getOrElse(AppDSL.exit("Event not found", 1))
+      ).getOrElse(throw CybozuLiveImporterException("Event not found"))
     } yield ()
 
   private def exportForum(paths: BacklogPaths,
@@ -246,9 +248,9 @@ object BacklogExport extends Logger {
               _ <- exportComments(paths, forum.comments, commentConverter)
             } yield ()
           case Left(error) =>
-            AppDSL.exit("Forum convert error. " + error.toString, 1)
+            throw CybozuLiveImporterException("Forum convert error. " + error.toString)
         }
-      ).getOrElse(AppDSL.exit("Forum not found", 1))
+      ).getOrElse(throw CybozuLiveImporterException("Forum not found"))
     } yield ()
 
 
@@ -287,7 +289,7 @@ object BacklogExport extends Logger {
       case Right(backlogComment) =>
         exportComment(paths, cybozuComment.parentId, backlogComment, cybozuComment.createdAt, index)
       case Left(error) =>
-        AppDSL.exit("Comment convert error. " + error.toString, 1)
+        throw CybozuLiveImporterException("Comment convert error. " + error.toString)
     }
   }
 

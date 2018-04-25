@@ -130,6 +130,12 @@ Backlog側に同一プロジェクトキーがある場合は、以下の仕様�
 |プロジェクト|同じプロジェクトキーのプロジェクトがある場合、プロジェクトを作成せず対象のプロジェクトに課題やWikiを登録します。|
 |課題|件名、作成者、作成日が一致する課題は登録されません。|
 
+## 注意事項
+
+### マッピングファイルの編集
+MacOSにおいて、`テキストエディット`アプリでマッピングファイルを編集するとダブルクオーテーションが変換されてしまいます。
+「環境設定」→「スマート引用符」のチェックを外してください。
+
 ## 第三者のトラッキングシステム
 
 当アプリケーションでは、利用状況把握のために、サードパーティのサービス(Mixpanel)によって、移行先のURL、移行先のプロジェクトキーなどの情報を収集します。
@@ -297,6 +303,12 @@ Importing to this project failed.  You are not a member of this project. Join th
 |:-----------|------------|
 | Project | The project will not be added when there is a project with same project key.  The issues and wikis will be added to the existing project. |
 | Issues | Issues with matching subject, creator, creation date are not registered. |
+
+## Important points
+
+### Edit mapping file
+In MacOS, when you edit the mapping file with `TextEdit` application, double quotes will be converted.
+Please uncheck "Preferences" → "Smart quotes".
 
 ## Third party tracking system
 
