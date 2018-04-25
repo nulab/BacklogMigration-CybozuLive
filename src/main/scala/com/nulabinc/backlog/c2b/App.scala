@@ -51,7 +51,7 @@ object App extends Logger {
         case Some(ImportCommand) => c
         case None => throw new RuntimeException("No command found")
       }
-      case None => throw new RuntimeException("Invalid configuration")
+      case None => sys.exit(1)
     }
 
     implicit val system: ActorSystem = ActorSystem("main")
