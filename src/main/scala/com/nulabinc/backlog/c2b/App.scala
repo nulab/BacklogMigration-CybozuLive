@@ -45,7 +45,7 @@ object App extends Logger {
     AnsiConsole.systemInstall()
     setLanguage(Config.App.language)
 
-    val config = ConfigParser(Config.App.name, Config.App.version).parse(args, Config.App.dataDirectory) match {
+    val config = ConfigParser.parse(args, Config.App.dataDirectory) match {
       case Some(c) => c.commandType match {
         case Some(InitCommand) => c
         case Some(ImportCommand) => c
@@ -66,7 +66,7 @@ object App extends Logger {
     )
 
     val program = for {
-      _ <- printBanner(Config.App.name, Config.App.version)
+      _ <- printBanner()
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, Config.App.language)
         case Some(ImportCommand) => `import`(config, Config.App.language)
@@ -168,11 +168,11 @@ object App extends Logger {
     } yield ()
   }
 
-  private def printBanner(applicationName: String, applicationVersion: String): AppProgram[Unit] =
+  private def printBanner(): AppProgram[Unit] =
     AppDSL.fromConsole(
       ConsoleDSL.print(
         s"""
-           |$applicationName $applicationVersion
+           |${Config.App.title}
            |--------------------------------------------------""".stripMargin
       )
     )

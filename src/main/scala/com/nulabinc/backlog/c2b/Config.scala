@@ -53,6 +53,8 @@ object Config {
 
     val name: String = appConfig.getString("name")
     val version: String = appConfig.getString("version")
+    val title: String = appConfig.getString("title")
+    val fileName: String = appConfig.getString("fileName")
     val language: String = appConfig.getString("language")
     val dataDirectory: String = appConfig.getString("dataDirectory")
 

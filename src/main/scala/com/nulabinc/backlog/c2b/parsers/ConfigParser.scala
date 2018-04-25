@@ -3,24 +3,21 @@ package com.nulabinc.backlog.c2b.parsers
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.Config._
 
-case class ConfigParser(applicationName: String, applicationVersion: String) {
+object ConfigParser {
+
   def parse(args: Array[String], dataDirectory: String): Option[Config] =
-    ConfigParser
-      .parser(applicationName, applicationVersion)
+    parser
       .parse(args, Config())
       .map(_.copy(dataDirectory = dataDirectory))
 
   def help(): Unit = {
-    ConfigParser.parser(applicationName, applicationVersion).parse(Seq("--help"), Config()).getOrElse("")
+    parser.parse(Seq("--help"), Config()).getOrElse("")
   }
-}
 
-object ConfigParser {
+  private def parser =
+    new scopt.OptionParser[Config](Config.App.fileName) {
 
-  private def parser(applicationName: String, applicationVersion: String) =
-    new scopt.OptionParser[Config](s"$applicationName-$applicationVersion.jar") {
-
-      head(applicationName, applicationVersion)
+      head(Config.App.name, Config.App.version)
 
       opt[String]("backlog.url").required().action( (x, c) =>
         c.copy(backlogUrl = x) ).text("Backlog URL")
