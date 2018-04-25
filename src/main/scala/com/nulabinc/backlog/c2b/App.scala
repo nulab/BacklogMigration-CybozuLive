@@ -17,11 +17,10 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterp
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.services._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
-import com.nulabinc.backlog.migration.common.utils.{DateUtil, TrackingData}
+import com.nulabinc.backlog.migration.common.utils.{ConsoleOut, DateUtil, TrackingData}
 import com.osinka.i18n.Messages
 import monix.eval.Task
 import monix.execution.Scheduler
-import org.fusesource.jansi.AnsiConsole
 
 import scala.util.Failure
 
@@ -42,7 +41,6 @@ object App extends Logger {
     // check release version
 
     // Initialize
-    AnsiConsole.systemInstall()
     setLanguage(Config.App.language)
 
     val config = ConfigParser.parse(args) match {
@@ -178,12 +176,11 @@ object App extends Logger {
     )
 
   private def exit(exitCode: Int): Unit = {
-    AnsiConsole.systemUninstall()
     sys.exit(exitCode)
   }
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
-    Console.printError("ERROR: " + error.getMessage)
+    ConsoleOut.error("ERROR: " + error.getMessage)
     exit(exitCode)
   }
 
