@@ -24,9 +24,9 @@ object MappingFiles {
 
   def write(config: Config): AppProgram[Unit] =
     for {
-      _ <- writeUserMapping(config)
-      _ <- writePriorityMapping(config)
-      _ <- writeStatusMapping(config)
+      _ <- writeUserMapping()
+      _ <- writePriorityMapping()
+      _ <- writeStatusMapping()
     } yield ()
 
   def read(path: Path): AppProgram[Observable[(String, String)]] =
@@ -36,15 +36,15 @@ object MappingFiles {
         .map(record => (record.get(0), record.get(1)))
     )
 
-  def createMappingContext(config: Config): AppProgram[MappingContext] =
+  def createMappingContext(): AppProgram[MappingContext] =
     for {
-      userMappingStream <- read(config.USERS_PATH)
+      userMappingStream <- read(Config.USERS_PATH)
       users <- AppDSL.streamAsSeq(userMappingStream).orFail
       userMappings = indexSeqToHashMap(users)
-      priorityMappingStream <- read(config.PRIORITIES_PATH)
+      priorityMappingStream <- read(Config.PRIORITIES_PATH)
       priorities <- AppDSL.streamAsSeq(priorityMappingStream).orFail
       priorityMappings = indexSeqToHashMap(priorities)
-      statusMappingStream <- read(config.STATUSES_PATH)
+      statusMappingStream <- read(Config.STATUSES_PATH)
       statuses <- AppDSL.streamAsSeq(statusMappingStream).orFail
       statusMappings = indexSeqToHashMap(statuses)
     } yield {
@@ -75,10 +75,10 @@ object MappingFiles {
       }
     } yield oldRecords
 
-  private def writeUserMapping(config: Config): AppProgram[Unit] = {
+  private def writeUserMapping(): AppProgram[Unit] = {
     for {
       _ <- AppDSL.fromStorage(
-        StorageDSL.copy(config.USERS_PATH, config.USERS_TEMP_PATH)
+        StorageDSL.copy(Config.USERS_PATH, Config.USERS_TEMP_PATH)
       )
       cybozuUsersStream <- AppDSL.fromStore(StoreDSL.getCybozuUsers)
       cybozuUsers <- AppDSL.streamAsSeq(cybozuUsersStream).orFail
@@ -86,18 +86,18 @@ object MappingFiles {
         case (acc, cybozuUser) =>
           acc + (cybozuUser.userId -> "")
       }
-      oldCybozuUserMap <- getOldRecords(config.USERS_TEMP_PATH)
+      oldCybozuUserMap <- getOldRecords(Config.USERS_TEMP_PATH)
       mergedCybozuUserMap = DiffPatch.applyChanges(oldCybozuUserMap, newCybozuUsersMap)
-      _ <- writeDiffMap(config.USERS_PATH, mergedCybozuUserMap)
+      _ <- writeDiffMap(Config.USERS_PATH, mergedCybozuUserMap)
       backlogUserStream <- AppDSL.fromStore(StoreDSL.getBacklogUsers)
-      _ <- writeMappingFile(config.BACKLOG_USER_PATH, "User", backlogUserStream)
+      _ <- writeMappingFile(Config.BACKLOG_USER_PATH, "User", backlogUserStream)
     } yield ()
   }
 
-  private def writePriorityMapping(config: Config): AppProgram[Unit] =
+  private def writePriorityMapping(): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromStorage(
-        StorageDSL.copy(config.PRIORITIES_PATH, config.PRIORITIES_TEMP_PATH)
+        StorageDSL.copy(Config.PRIORITIES_PATH, Config.PRIORITIES_TEMP_PATH)
       )
       cybozuPrioritiesStream <- AppDSL.fromStore(StoreDSL.getCybozuPriorities)
       cybozuPriorities <- AppDSL.streamAsSeq(cybozuPrioritiesStream).orFail
@@ -105,17 +105,17 @@ object MappingFiles {
         case (acc, cybozuPriority) =>
           acc + (cybozuPriority.value -> "")
       }
-      oldCybozuPriorityMap <- getOldRecords(config.PRIORITIES_TEMP_PATH)
+      oldCybozuPriorityMap <- getOldRecords(Config.PRIORITIES_TEMP_PATH)
       mergedCybozuPriorityMap = DiffPatch.applyChanges(oldCybozuPriorityMap, newCybozuPrioritiesMap)
-      _ <- writeDiffMap(config.PRIORITIES_PATH, mergedCybozuPriorityMap)
+      _ <- writeDiffMap(Config.PRIORITIES_PATH, mergedCybozuPriorityMap)
       backlogPriorityStream <- AppDSL.fromStore(StoreDSL.getBacklogPriorities)
-      _ <- writeMappingFile(config.BACKLOG_PRIORITY_PATH, "Priority", backlogPriorityStream)
+      _ <- writeMappingFile(Config.BACKLOG_PRIORITY_PATH, "Priority", backlogPriorityStream)
     } yield ()
 
-  private def writeStatusMapping(config: Config): AppProgram[Unit] =
+  private def writeStatusMapping(): AppProgram[Unit] =
     for {
       _ <- AppDSL.fromStorage(
-        StorageDSL.copy(config.STATUSES_PATH, config.STATUSES_TEMP_PATH)
+        StorageDSL.copy(Config.STATUSES_PATH, Config.STATUSES_TEMP_PATH)
       )
       cybozuStatusesStream <- AppDSL.fromStore(StoreDSL.getCybozuStatuses)
       cybozuStatuses <- AppDSL.streamAsSeq(cybozuStatusesStream).orFail
@@ -123,11 +123,11 @@ object MappingFiles {
         case (acc, cybozuStatus) =>
           acc + (cybozuStatus.value -> "")
       }
-      oldCybozuStatusesMap <- getOldRecords(config.STATUSES_TEMP_PATH)
+      oldCybozuStatusesMap <- getOldRecords(Config.STATUSES_TEMP_PATH)
       mergedCybozuStatusMap = DiffPatch.applyChanges(oldCybozuStatusesMap, newCybozuStatusesMap)
-      _ <- writeDiffMap(config.STATUSES_PATH, mergedCybozuStatusMap)
+      _ <- writeDiffMap(Config.STATUSES_PATH, mergedCybozuStatusMap)
       backlogStatusStream <- AppDSL.fromStore(StoreDSL.getBacklogStatuses)
-      _ <- writeMappingFile(config.BACKLOG_STATUS_PATH, "Status", backlogStatusStream)
+      _ <- writeMappingFile(Config.BACKLOG_STATUS_PATH, "Status", backlogStatusStream)
     } yield ()
 
   private def indexSeqToHashMap(seq: IndexedSeq[(String, String)]): HashMap[String, String] =
@@ -169,25 +169,25 @@ object MappingFileConsole extends Logger {
       ConsoleDSL.print("\n--------------------------------------------------")
     )
 
-  def show(config: Config): AppProgram[Unit] = {
+  def show(): AppProgram[Unit] = {
     import MappingFiles._
 
     for {
       _ <- mappingResultBorder
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("mapping.output_file", Messages("name.mapping.user")) + "\n"))
-      userStream <- read(config.USERS_PATH)
+      userStream <- read(Config.USERS_PATH)
       _ <- AppDSL.consumeStream(
         userStream.map(mappingResult)
       )
       _ <- mappingResultBorder
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("mapping.output_file", Messages("name.mapping.priority")) + "\n"))
-      priorityStream <- read(config.PRIORITIES_PATH)
+      priorityStream <- read(Config.PRIORITIES_PATH)
       _ <- AppDSL.consumeStream(
         priorityStream.map(mappingResult)
       )
       _ <- mappingResultBorder
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("mapping.output_file", Messages("name.mapping.status")) + "\n"))
-      statusStream <- read(config.STATUSES_PATH)
+      statusStream <- read(Config.STATUSES_PATH)
       _ <- AppDSL.consumeStream(
         statusStream.map(mappingResult)
       )

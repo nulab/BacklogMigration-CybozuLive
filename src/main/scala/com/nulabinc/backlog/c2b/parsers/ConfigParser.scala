@@ -5,10 +5,8 @@ import com.nulabinc.backlog.c2b.Config._
 
 object ConfigParser {
 
-  def parse(args: Array[String], dataDirectory: String): Option[Config] =
-    parser
-      .parse(args, Config())
-      .map(_.copy(dataDirectory = dataDirectory))
+  def parse(args: Array[String]): Option[Config] =
+    parser.parse(args, Config())
 
   def help(): Unit = {
     parser.parse(Seq("--help"), Config()).getOrElse("")

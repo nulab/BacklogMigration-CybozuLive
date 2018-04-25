@@ -45,7 +45,7 @@ object App extends Logger {
     AnsiConsole.systemInstall()
     setLanguage(Config.App.language)
 
-    val config = ConfigParser.parse(args, Config.App.dataDirectory) match {
+    val config = ConfigParser.parse(args) match {
       case Some(c) => c.commandType match {
         case Some(InitCommand) => c
         case Some(ImportCommand) => c
@@ -61,7 +61,7 @@ object App extends Logger {
     val interpreter = new AppInterpreter(
       backlogInterpreter = new AkkaHttpInterpret(ProxyConfig.create),
       storageInterpreter = new LocalStorageInterpreter,
-      storeInterpreter = new SQLiteInterpreter(config.DB_PATH),
+      storeInterpreter = new SQLiteInterpreter(Config.DB_PATH),
       consoleInterpreter = new ConsoleInterpreter
     )
 
@@ -93,17 +93,17 @@ object App extends Logger {
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
-    val csvFiles = config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
+    val csvFiles = Config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
 
     for {
       // Initialize
-      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.MAPPING_PATHS))
-      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(config.TEMP_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.MAPPING_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.createDirectory(Config.TEMP_PATHS))
       // Validation
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
-      _ <- Validations.checkMappingFilesCSVFormatIfExist(config)
+      _ <- Validations.checkMappingFilesCSVFormatIfExist()
       // Delete operations
-      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(config.DB_PATH))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteFile(Config.DB_PATH))
       _ <- AppDSL.fromStore(StoreDSL.createDatabase)
       // Read CSV and to store
       _ <- CybozuStore.copyToStore(csvFiles)
@@ -114,7 +114,7 @@ object App extends Logger {
       // Write mapping files
       _ <- MappingFiles.write(config)
       // Finalize
-      _ <- MappingFileConsole.show(config)
+      _ <- MappingFileConsole.show()
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.finish")))
     } yield ()
   }
@@ -127,21 +127,21 @@ object App extends Logger {
       url = config.backlogUrl,
       key = config.backlogKey,
       projectKey = config.projectKey,
-      backlogOutputPath = config.BACKLOG_PATHS
+      backlogOutputPath = Config.BACKLOG_PATHS
     )
 
     for {
       // Initialize
-      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(config.BACKLOG_PATHS))
+      _ <- AppDSL.fromStorage(StorageDSL.deleteDirectory(Config.BACKLOG_PATHS))
       // Validation
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
-      _ <- Validations.checkDBExists(config.DB_PATH)
-      _ <- Validations.checkMappingFilesExist(config)
-      _ <- Validations.checkMappingFilesCSVFormatIfExist(config)
-      _ <- Validations.checkMappingFileItems(config, backlogApi)
+      _ <- Validations.checkDBExists(Config.DB_PATH)
+      _ <- Validations.checkMappingFilesExist()
+      _ <- Validations.checkMappingFilesCSVFormatIfExist()
+      _ <- Validations.checkMappingFileItems(backlogApi)
       _ <- Validations.projectExists(config, backlogApi.projectApi)
       // Read mapping files
-      mappingContext <- MappingFiles.createMappingContext(config)
+      mappingContext <- MappingFiles.createMappingContext()
       _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
       // MixPanel
