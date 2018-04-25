@@ -15,7 +15,7 @@ import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
-import com.nulabinc.backlog.migration.common.utils.IOUtil
+import com.nulabinc.backlog.migration.common.utils.{IOUtil, MixpanelUtil, TrackingData}
 import com.nulabinc.backlog.migration.importer.core.Boot
 import monix.eval.Task
 import monix.execution.Scheduler
@@ -37,6 +37,7 @@ case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit
 private case class FromTask[A](task: Task[A]) extends AppADT[Try[A]]
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
+case class SendTrackingData(token: String, data: TrackingData) extends AppADT[Unit]
 
 object AppDSL {
 
@@ -87,6 +88,9 @@ object AppDSL {
 
   def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
     Free.liftF(Import(backlogApiConfiguration))
+
+  def sendTrackingData(token: String, trackingData: TrackingData): AppProgram[Unit] =
+    Free.liftF(SendTrackingData(token, trackingData))
 }
 
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
@@ -136,6 +140,10 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       }
     )
 
+  def sendTrackingData(token: String, trackingData: TrackingData): Task[Unit] = Task {
+    MixpanelUtil.track(token = token, data = trackingData)
+  }
+
   def terminate(): Task[Unit] = Task.deferFuture {
     backlogInterpreter match {
       case akkaInterpreter: AkkaHttpInterpret =>
@@ -168,5 +176,6 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     case ConsumeStream(prgs) => consumeStream(prgs)
     case Export(file, content) => export(file, content)
     case Import(config) => `import`(config)
+    case SendTrackingData(token, trackingData) => sendTrackingData(token, trackingData)
   }
 }
