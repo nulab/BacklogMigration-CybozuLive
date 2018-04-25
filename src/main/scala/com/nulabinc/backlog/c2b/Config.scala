@@ -6,6 +6,7 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.migration.common.conf.BacklogPaths
+import com.typesafe.config.ConfigFactory
 import org.apache.commons.csv.CSVFormat
 
 case class Config(
@@ -44,6 +45,27 @@ object Config {
   val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
 
   val issueTypes = Seq("ToDo", "Event", "Forum")
+
+  private val config = ConfigFactory.load()
+
+  object App {
+    private val appConfig = config.getConfig("app")
+
+    val name: String = appConfig.getString("name")
+    val version: String = appConfig.getString("version")
+    val language: String = appConfig.getString("language")
+    val dataDirectory: String = appConfig.getString("dataDirectory")
+
+    object Mixpanel {
+      private val mixpanelConfig = appConfig.getConfig("mixpanel")
+
+      val token: String = mixpanelConfig.getString("token")
+      val backlogtoolToken: String = mixpanelConfig.getString("backlogtoolToken")
+      val product: String = mixpanelConfig.getString("product")
+    }
+  }
+
+
 
   sealed trait CommandType
 

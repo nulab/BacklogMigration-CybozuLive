@@ -1,7 +1,5 @@
 package com.nulabinc.backlog.c2b.parsers
 
-import java.nio.file.Path
-
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.Config._
 

@@ -5,6 +5,7 @@ import java.util.Locale
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
+import com.github.chaabaj.backlog4s.datas.UserT
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core._
@@ -16,8 +17,8 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterp
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.services._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
+import com.nulabinc.backlog.migration.common.utils.{DateUtil, TrackingData}
 import com.osinka.i18n.Messages
-import com.typesafe.config.ConfigFactory
 import monix.eval.Task
 import monix.execution.Scheduler
 import org.fusesource.jansi.AnsiConsole
@@ -28,17 +29,9 @@ object App extends Logger {
 
   def main(args: Array[String]): Unit = {
 
-    // Config
-    val configFactory = ConfigFactory.load()
-    val appConfig = configFactory.getConfig("app")
-    val appName = appConfig.getString("name")
-    val appVersion = appConfig.getString("version")
-    val language = appConfig.getString("language")
-    val dataDirectory = appConfig.getString("dataDirectory")
-
     // Check
     (for {
-      _ <- DataDirectoryChecker.check(dataDirectory)
+      _ <- DataDirectoryChecker.check(Config.App.dataDirectory)
       _ <- ClassVersionChecker.check()
       _ <- DisableSSLCertificateChecker.check()
     } yield ()) match {
@@ -50,9 +43,9 @@ object App extends Logger {
 
     // Initialize
     AnsiConsole.systemInstall()
-    setLanguage(language)
+    setLanguage(Config.App.language)
 
-    val config = ConfigParser(appName, appVersion).parse(args, dataDirectory) match {
+    val config = ConfigParser(Config.App.name, Config.App.version).parse(args, Config.App.dataDirectory) match {
       case Some(c) => c.commandType match {
         case Some(InitCommand) => c
         case Some(ImportCommand) => c
@@ -73,10 +66,10 @@ object App extends Logger {
     )
 
     val program = for {
-      _ <- printBanner(appName, appVersion)
+      _ <- printBanner(Config.App.name, Config.App.version)
       _ <- config.commandType match {
-        case Some(InitCommand) => init(config, language)
-        case Some(ImportCommand) => `import`(config, language)
+        case Some(InitCommand) => init(config, Config.App.language)
+        case Some(ImportCommand) => `import`(config, Config.App.language)
         case None => throw new RuntimeException("Invalid command type")
       }
     } yield ()
@@ -127,6 +120,7 @@ object App extends Logger {
   }
 
   def `import`(config: Config, language: String): AppProgram[Unit] = {
+    import com.github.chaabaj.backlog4s.dsl.syntax._
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
     val backlogApiConfiguration = BacklogApiConfiguration(
@@ -143,12 +137,34 @@ object App extends Logger {
       _ <- Validations.checkBacklog(config, backlogApi.spaceApi)
       _ <- Validations.checkDBExists(config.DB_PATH)
       _ <- Validations.checkMappingFilesExist(config)
+      _ <- Validations.checkMappingFilesCSVFormatIfExist(config)
       _ <- Validations.checkMappingFileItems(config, backlogApi)
       _ <- Validations.projectExists(config, backlogApi.projectApi)
       // Read mapping files
       mappingContext <- MappingFiles.createMappingContext(config)
       _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
+      // MixPanel
+      environment <- AppDSL.getBacklogEnvironment(backlogApiConfiguration)
+      backlogToolEnvNames = Seq("backlogtool", "us-6")
+      token = if (backlogToolEnvNames.contains(environment._2))
+        Config.App.Mixpanel.backlogtoolToken
+      else
+        Config.App.Mixpanel.token
+      user <- AppDSL.fromBacklog(backlogApi.userApi.byId(UserT.myself).orFail)
+      space <- AppDSL.fromBacklog(backlogApi.spaceApi.current.orFail)
+      data = TrackingData(
+        product = Config.App.Mixpanel.product,
+        spaceId = environment._1,
+        envname = environment._2,
+        userId = user.id.value,
+        srcUrl = "",
+        dstUrl = config.backlogUrl,
+        srcProjectKey = "",
+        dstProjectKey = config.projectKey,
+        srcSpaceCreated = "",
+        dstSpaceCreated = DateUtil.isoFormat(space.created.toDate))
+      _ <- AppDSL.sendTrackingData(token, data)
     } yield ()
   }
 
