@@ -9,18 +9,14 @@ import akka.http.scaladsl.model.headers.{BasicHttpCredentials, HttpCredentials}
 object ProxyConfig {
 
   def create: Option[ClientTransport] = {
-    val proxyUser = System.getProperty("http.proxyUser")
-    val proxyPassword = System.getProperty("http.proxyPassword")
+    val proxyUser = System.getProperty("https.proxyUser")
+    val proxyPassword = System.getProperty("https.proxyPassword")
     val httpsProxyHost = System.getProperty("https.proxyHost")
     val httpsProxyPort = System.getProperty("https.proxyPort")
-    val httpProxyHost = System.getProperty("http.proxyHost")
-    val httpProxyPort = System.getProperty("http.proxyPort")
 
     val optAuth = createAuth(proxyUser, proxyPassword)
-    val httpsProxyTransport = createProxyTransport(httpsProxyHost, httpsProxyPort, optAuth)
-    val httpProxyTransport = createProxyTransport(httpProxyHost, httpProxyPort, optAuth)
 
-    prioritizedDecision(httpsProxyTransport, httpProxyTransport)
+    createProxyTransport(httpsProxyHost, httpsProxyPort, optAuth)
   }
 
   private[core] def createAuth(proxyUser: String, proxyPassword: String): Option[BasicHttpCredentials] =
@@ -49,12 +45,5 @@ object ProxyConfig {
       }
     } else {
       None
-    }
-
-  private[core] def prioritizedDecision[A](high: Option[A], low: Option[A]): Option[A] =
-    (high, low) match {
-      case (Some(aa), _) => Some(aa)
-      case (None, Some(bb)) => Some(bb)
-      case _ => None
     }
 }
