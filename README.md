@@ -22,10 +22,7 @@ CybozuLiveのグループを[Backlog]に移行するためのツールです。
 
 プロキシ経由で使用する場合は、以下のように実行します。
 
-    java -Dhttp.proxyHost=[プロキシサーバのホスト名] -Dhttp.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
-または
-
-    java -Dhttps.proxyHost=[プロキシサーバのホスト名] -Dhttps.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
+    java -Djdk.http.auth.tunneling.disabledSchemes= -Dhttps.proxyHost=[プロキシサーバのホスト名] -Dhttps.proxyPort=[プロキシサーバのポート番号] -Dhttps.proxyUser=[プロキシユーザー名] -Dhttps.proxyPassword=[プロキシパスワード] -jar backlog-migration-cybozulive-[最新バージョン].jar
     
 ## 使い方
 ### 前準備
@@ -194,10 +191,7 @@ Please download the jar file from this link, and run from the command line as fo
 
 To use via proxy server, run from the command line as follows.
 
-    java -Dhttp.proxyHost=[proxy host name] -Dhttp.proxyPort=[proxy port] -jar backlog-migration-cybozulive-[latest version].jar
-Or
-
-    java -Dhttps.proxyHost=[proxy host name] -Dhttps.proxyPort=[proxy port] -jar backlog-migration-cybozulive-[latest version].jar
+    java -Djdk.http.auth.tunneling.disabledSchemes= -Dhttps.proxyHost=[proxy host name] -Dhttps.proxyPort=[proxy port] -Dhttps.proxyUser=[proxy user] -Dhttps.proxyPassword=[proxy password] -jar backlog-migration-cybozulive-[latest version].jar
             
 ## How to use
 ### Preparation
