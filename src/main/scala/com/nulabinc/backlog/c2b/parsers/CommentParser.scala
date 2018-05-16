@@ -6,44 +6,42 @@ object CommentParser {
 
   val separator: String = "^--------------------------------------------------$"
 
-  def parse(comments: String): Seq[Either[ParseError[CybozuCSVComment] , CybozuCSVComment]] = {
+  private val MINIMUM_NUMBER_OF_ROWS = 4
+  private val HEADER_INDEX = 1
+  private val COMMENT_START_INDEX = 3
 
-    val MINIMUM_NUMBER_OF_ROWS = 4
-    val HEADER_INDEX = 1
-    val COMMENT_START_INDEX = 3
-    
+  def parse(comments: String): Seq[Either[ParseError[CybozuCSVComment] , CybozuCSVComment]] = {
     comments
       .split(separator)
       .filterNot(_.isEmpty)
       .filterNot(_ == "\r\n")
       .map { comment =>
           val parsedLines = comment.split("\r\n").toIndexedSeq
-          if (parsedLines.length < MINIMUM_NUMBER_OF_ROWS) {
-            Left(CannotParseComment("Invalid line numbers.", parsedLines.mkString("\n")))
-          } else {
-            val header = parsedLines(HEADER_INDEX)
-            val body = parsedLines.view(COMMENT_START_INDEX, parsedLines.length)
-            val pattern = """(\d+)?: (.+? .+?) (.+)""".r
+          val header = parsedLines(HEADER_INDEX)
+          val pattern = """(\d+)?: (.+? .+?) (.+)""".r
 
-            header match {
-              case pattern(id, userString, createdAtString) =>
-                (for {
-                  createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
-                } yield {
-                  CybozuCSVComment(
-                    id = id.toLong,
-                    creator = CybozuCSVUser(userString),
-                    createdAt = createdAt,
-                    content = body.mkString("\n")
-                  )
-
-                }) match {
-                  case Right(a) => Right(a)
-                  case Left(error) =>
-                    Left(CannotParseComment("Header parsing error.", error.toString))
+          header match {
+            case pattern(id, userString, createdAtString) =>
+              (for {
+                createdAt <- ZonedDateTimeParser.toZonedDateTime(createdAtString)
+              } yield {
+                val body = if (parsedLines.length < MINIMUM_NUMBER_OF_ROWS) {
+                  Seq("")
+                } else {
+                  parsedLines.view(COMMENT_START_INDEX, parsedLines.length)
                 }
-              case _ => Left(CannotParseComment("Invalid header", comment))
-            }
+                CybozuCSVComment(
+                  id = id.toLong,
+                  creator = CybozuCSVUser(userString),
+                  createdAt = createdAt,
+                  content = body.mkString("\n")
+                )
+              }) match {
+                case Right(a) => Right(a)
+                case Left(error) =>
+                  Left(CannotParseComment("Header parsing error.", error.toString))
+              }
+            case _ => Left(CannotParseComment("Invalid header", comment))
           }
       }
   }
@@ -52,4 +50,5 @@ object CommentParser {
     comments.foldRight(Right(Nil): Either[ParseError[CybozuCSVComment], Seq[CybozuCSVComment]]) { (elem, acc) =>
       acc.right.flatMap(list => elem.right.map(a => a +: list))
     }
+
 }
