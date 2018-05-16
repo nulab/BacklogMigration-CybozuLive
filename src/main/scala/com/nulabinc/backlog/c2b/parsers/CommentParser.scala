@@ -4,7 +4,7 @@ import com.nulabinc.backlog.c2b.datas.{CybozuCSVComment, CybozuCSVUser}
 
 object CommentParser {
 
-  val separator: String = "--------------------------------------------------"
+  val separator: String = "^--------------------------------------------------$"
 
   def parse(comments: String): Seq[Either[ParseError[CybozuCSVComment] , CybozuCSVComment]] = {
 
