@@ -5,7 +5,7 @@ import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 import slick.lifted.{ProvenShape, Tag}
 import slick.jdbc.SQLiteProfile.api._
 
-private[sqlite] class CommentTable(tag: Tag) extends BaseTable[CybozuDBComment](tag, "cybozu_comments") {
+private[sqlite] abstract class CommentTable(tag: Tag, name: String) extends BaseTable[CybozuDBComment](tag, name) {
 
   import JdbcMapper._
 
@@ -17,3 +17,7 @@ private[sqlite] class CommentTable(tag: Tag) extends BaseTable[CybozuDBComment](
   override def * : ProvenShape[CybozuDBComment] =
     (id, parentId, creator, createdAt, content) <> (CybozuDBComment.tupled, CybozuDBComment.unapply)
 }
+
+private[sqlite] class ToDoCommentTable(tag: Tag) extends CommentTable(tag, "cybozu_todo_comments")
+private[sqlite] class EventCommentTable(tag: Tag) extends CommentTable(tag, "cybozu_event_comments")
+private[sqlite] class ForumCommentTable(tag: Tag) extends CommentTable(tag, "cybozu_forum_comments")

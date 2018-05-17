@@ -86,7 +86,21 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     db.run(cybozuUserTableOps.select(Id[CybozuUser](id)))
   }
 
+  def storeComment(comment: CybozuDBComment, commentType: CommentType, writeType: WriteType): Task[AnyId] = Task.deferFuture {
+    commentType match {
+      case TodoComment => db.run(todoCommentTableOps.write(comment, writeType))
+      case EventComment => db.run(eventCommentTableOps.write(comment, writeType))
+      case ForumComment => db.run(forumCommentTableOps.write(comment, writeType))
+    }
+  }
 
+  def storeComments(comments: Seq[CybozuDBComment], commentType: CommentType, writeType: WriteType): Task[Seq[AnyId]] = Task.deferFuture {
+    commentType match {
+      case TodoComment => db.run(todoCommentTableOps.write(comments, writeType))
+      case EventComment => db.run(eventCommentTableOps.write(comments, writeType))
+      case ForumComment => db.run(forumCommentTableOps.write(comments, writeType))
+    }
+  }
 
   override def apply[A](fa: StoreADT[A]): Task[A] = {
 
@@ -107,17 +121,8 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
       case GetEventCount => getEventCount
       case GetEvents => getEvents
       case StoreEvent(event, writeType) => storeEvent(event, writeType)
-      case GetComments(issue) => Task.eval {
-        Observable.fromReactivePublisher(
-          db.stream(commentTableOps.streamByParentId(issue.id))
-        )
-      }
-      case StoreComment(comment, writeType) => Task.deferFuture {
-        db.run(commentTableOps.write(comment, writeType))
-      }
-      case StoreComments(comments, writeType) => Task.deferFuture {
-        db.run(commentTableOps.write(comments, writeType))
-      }
+      case StoreComment(comment, commentType, writeType) => storeComment(comment, commentType, writeType)
+      case StoreComments(comments, commentType, writeType) => storeComments(comments, commentType, writeType)
       case StoreTodoAssignees(issueId, assigneeIds) => Task.deferFuture {
         db.run(cybozuIssueUserTableOps.write(issueId, assigneeIds))
       }

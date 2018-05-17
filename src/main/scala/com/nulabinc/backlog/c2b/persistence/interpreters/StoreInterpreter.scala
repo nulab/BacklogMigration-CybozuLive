@@ -3,7 +3,7 @@ package com.nulabinc.backlog.c2b.persistence.interpreters
 import cats.~>
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
-import com.nulabinc.backlog.c2b.persistence.dsl.{StoreADT, WriteType}
+import com.nulabinc.backlog.c2b.persistence.dsl.{CommentType, StoreADT, WriteType}
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import monix.reactive.Observable
 
@@ -36,4 +36,8 @@ trait StoreInterpreter[F[_]] extends (StoreADT ~> F) {
   def storeForum(forum: CybozuDBForum, writeType: WriteType): F[AnyId]
 
   def getForumCount: F[Int]
+
+  def storeComment(comment: CybozuDBComment, commentType: CommentType, writeType: WriteType): F[AnyId]
+
+  def storeComments(comments: Seq[CybozuDBComment], commentType: CommentType, writeType: WriteType): F[Seq[AnyId]]
 }
