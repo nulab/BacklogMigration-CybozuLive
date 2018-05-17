@@ -11,7 +11,7 @@ import cats.Monad
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter}
-import com.nulabinc.backlog.c2b.persistence.dsl.{StorageADT, StoreADT, WriteType}
+import com.nulabinc.backlog.c2b.persistence.dsl.{CommentType, StorageADT, StoreADT, WriteType}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.persistence.interpreters.{StorageInterpreter, StoreInterpreter}
@@ -90,6 +90,40 @@ class AppSpec extends FlatSpec with Matchers {
     override def getForums: Task[Observable[CybozuDBForum]] = ???
     override def storeForum(forum: CybozuDBForum, writeType: WriteType): Task[AnyId] = ???
     override def getTodo(id: Id[CybozuTodo]): Task[Option[CybozuTodo]] = ???
+
+    override def pure[A](a: A): Task[A] = ???
+
+    override def storeTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]): Task[AnyId] = ???
+
+    override def storeComment(comment: CybozuDBComment, commentType: CommentType, writeType: WriteType): Task[AnyId] = ???
+
+    override def storeComments(comments: Seq[CybozuDBComment], commentType: CommentType, writeType: WriteType): Task[Seq[AnyId]] = ???
+
+    override def getCybozuUserById(id: AnyId): Task[Option[CybozuUser]] = ???
+
+    override def getCybozuUsers(): Task[Observable[CybozuUser]] = ???
+
+    override def getCybozuUserBykey(key: String): Task[Option[CybozuUser]] = ???
+
+    override def storeCybozuUser(user: CybozuUser, writeType: WriteType): Task[AnyId] = ???
+
+    override def getBacklogUsers(): Task[Observable[BacklogUser]] = ???
+
+    override def storeBacklogUser(user: BacklogUser, writeType: WriteType): Task[AnyId] = ???
+
+    override def getBacklogPriorities(): Task[Observable[BacklogPriority]] = ???
+
+    override def storeBacklogPriorities(priorities: Seq[BacklogPriority], writeType: WriteType): Task[Seq[AnyId]] = ???
+
+    override def getBacklogStatuses(): Task[Observable[BacklogStatus]] = ???
+
+    override def storeBacklogStatuses(statuses: Seq[BacklogStatus], writeType: WriteType): Task[Seq[AnyId]] = ???
+
+    override def getCybozuPriorities(): Task[Observable[CybozuPriority]] = ???
+
+    override def getCybozuStatuses(): Task[Observable[CybozuStatus]] = ???
+
+    override def writeDBStream[A](stream: Observable[StoreProgram[A]]): Task[Unit] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {
