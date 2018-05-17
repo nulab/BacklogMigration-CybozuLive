@@ -7,7 +7,7 @@ import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.persistence.dsl.{Insert, StoreDSL}
+import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
 import com.osinka.i18n.Messages
@@ -61,7 +61,7 @@ object CybozuStore extends Logger {
               assigneeIds <- sequential(assigneeIdsProgram)
               _ <- StoreDSL.storeTodoAssignees(issueId, assigneeIds)
               // Save comments
-              _ <- comments(issueId, result.comments)
+              _ <- comments(issueId, result.comments, TodoComment)
             } yield ()
           }
         )
@@ -86,7 +86,7 @@ object CybozuStore extends Logger {
                 StoreDSL.storeEvent(issue)
               }
               // Save comments
-              _ <- comments(eventId, result.comments)
+              _ <- comments(eventId, result.comments, EventComment)
             } yield ()
           }
         )
@@ -114,7 +114,7 @@ object CybozuStore extends Logger {
                 StoreDSL.storeForum(forum)
               }
               // Save comments
-              _ <- comments(forumId, result.comments)
+              _ <- comments(forumId, result.comments, ForumComment)
             } yield ()
           }
         )
@@ -140,7 +140,7 @@ object CybozuStore extends Logger {
       }
     } yield id
 
-  private def comments(issueId: AnyId, csvComments: Seq[CybozuCSVComment]): StoreProgram[Unit] = {
+  private def comments(issueId: AnyId, csvComments: Seq[CybozuCSVComment], commentType: CommentType): StoreProgram[Unit] = {
     val commentsPrograms = csvComments.map { comment =>
       val commentCreator = CybozuUser.from(comment.creator)
       for {
@@ -149,7 +149,7 @@ object CybozuStore extends Logger {
     }
     for {
       comments <- sequential(commentsPrograms)
-      _ <- StoreDSL.storeTodoComments(comments)
+      _ <- StoreDSL.storeComments(comments, commentType)
     } yield ()
   }
 }

@@ -1,6 +1,5 @@
 package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 
-import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.{DBIORead, DBIOStream}
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables._
@@ -14,7 +13,7 @@ private[sqlite] case class TodoTableOps()(implicit exc: ExecutionContext) extend
   import JdbcMapper._
 
   protected val tableQuery = TableQuery[TodoTable]
-  private val commentTableQuery = TableQuery[CommentTable]
+  private val commentTableQuery = TableQuery[ToDoCommentTable]
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
   private val issueUserTableQuery = TableQuery[CybozuIssueUserTable]
 

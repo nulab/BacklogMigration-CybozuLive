@@ -45,17 +45,17 @@ object StoreDSL {
   def storeTodo(todo: CybozuDBTodo): StoreProgram[AnyId] =
     Free.liftF(StoreTodo(todo))
 
-  def getTodoComments(todo: CybozuDBTodo): StoreProgram[Observable[CybozuDBComment]] =
-    Free.liftF(GetComments(todo))
-
-  def storeTodoComment(comment: CybozuDBComment): StoreProgram[AnyId] =
-    Free.liftF(StoreComment(comment))
-
-  def storeTodoComments(comments: Seq[CybozuDBComment]): StoreProgram[Seq[AnyId]] =
-    Free.liftF(StoreComments(comments))
-
   def storeTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]): StoreProgram[Int] =
     Free.liftF(StoreTodoAssignees(todoId, assigneeIds))
+
+  //
+  // Comment
+  //
+  def storeComment(comment: CybozuDBComment, commentType: CommentType): StoreProgram[AnyId] =
+    Free.liftF(StoreComment(comment, commentType))
+
+  def storeComments(comments: Seq[CybozuDBComment], commentType: CommentType): StoreProgram[Seq[AnyId]] =
+    Free.liftF(StoreComments(comments, commentType))
 
   //
   // Cybozu Event

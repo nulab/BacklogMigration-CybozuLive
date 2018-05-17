@@ -3,7 +3,7 @@ package com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.ops
 import com.nulabinc.backlog.c2b.datas.{CybozuDBComment, CybozuDBForum, CybozuForum}
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.core.DBIOTypes.DBIORead
-import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.{CommentTable, CybozuUserTable, ForumTable}
+import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.tables.{CybozuUserTable, ForumCommentTable, ForumTable}
 import slick.lifted.TableQuery
 import slick.jdbc.SQLiteProfile.api._
 
@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 private[sqlite] case class ForumTableOps()(implicit exc: ExecutionContext) extends BaseTableOps[CybozuDBForum, ForumTable] {
 
   protected val tableQuery = TableQuery[ForumTable]
-  private val commentTableQuery = TableQuery[CommentTable]
+  private val commentTableQuery = TableQuery[ForumCommentTable]
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
 
   lazy val count: DBIORead[Int] =
