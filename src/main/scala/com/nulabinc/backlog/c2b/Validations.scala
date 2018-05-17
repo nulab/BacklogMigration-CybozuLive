@@ -169,7 +169,7 @@ object Validations extends Logger {
                 case (cybozu, backlog) if backlog.isEmpty =>
                   throw CybozuLiveImporterException(Messages("validation.mapping.item.empty", backlogName, userMappingName, cybozuName, cybozu))
                 case (cybozu, backlog) =>
-                  val userExists = users.exists(_.userId.contains(backlog))
+                  val userExists = users.exists(_.name.contains(backlog))
                   if (userExists) {
                     AppDSL.pure(())
                   } else {
