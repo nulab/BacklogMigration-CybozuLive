@@ -3,6 +3,9 @@
 error.require_java8=The current version of Java is [{0}]. Java 8 is required for this program.
 error.data_folder_not_found=Directory [{0}] doesn''t exist.
 
+# Warn messages
+warn.not_latest_version=The latest version [{0}] has been released. The current version is [{1}].
+
 # Name
 name.backlog=Backlog
 name.cybozu=CybozuLive

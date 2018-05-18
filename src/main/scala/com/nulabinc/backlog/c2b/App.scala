@@ -22,7 +22,7 @@ import com.osinka.i18n.Messages
 import monix.eval.Task
 import monix.execution.Scheduler
 
-import scala.util.Failure
+import scala.util.{Failure, Success}
 
 object App extends Logger {
 
@@ -38,10 +38,23 @@ object App extends Logger {
       case _ => ()
     }
 
-    // check release version
-
     // Initialize
     setLanguage(Config.App.language)
+
+    // Check release version
+    GithubRelease.getLatestVersion() match {
+      case Success(latestVersion) =>
+        if (latestVersion != Config.App.version) {
+          ConsoleOut.warning(
+            s"""
+               |--------------------------------------------------
+               |${Messages("warn.not_latest_version", latestVersion, Config.App.version)}
+               |--------------------------------------------------
+            """.stripMargin)
+        }
+      case Failure(error) =>
+        log.error(error.getMessage, error)
+    }
 
     val config = ConfigParser.parse(args) match {
       case Some(c) => c.commandType match {

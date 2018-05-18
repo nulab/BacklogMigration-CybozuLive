@@ -36,7 +36,9 @@ case class FromConsole[A](prg: ConsoleProgram[A]) extends AppADT[A]
 case class FromBacklog[A](prg: ApiPrg[A]) extends AppADT[A]
 case class FromBacklogStream[A](prg: ApiStream[A]) extends AppADT[Observable[Seq[A]]]
 case class ConsumeStream(prgs: Observable[AppProgram[Unit]]) extends AppADT[Unit]
+
 private case class FromTask[A](task: Task[A]) extends AppADT[Try[A]]
+
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
 case class SendTrackingData(token: String, data: TrackingData) extends AppADT[Unit]
