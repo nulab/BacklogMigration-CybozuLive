@@ -3,6 +3,9 @@
 error.require_java8=現在のJavaのバージョンは[{0}]です。Java8以上が必須になります。
 error.data_folder_not_found=[{0}]ディレクトリが存在しません。
 
+# Warn messages
+warn.not_latest_version=最新バージョン[{0}]がリリースされています。現在のバージョンは[{1}]です。
+
 # Name
 name.backlog=Backlog
 name.cybozu=サイボウズLive

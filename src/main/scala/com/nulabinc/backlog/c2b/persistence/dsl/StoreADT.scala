@@ -11,6 +11,11 @@ sealed trait WriteType
 case object Insert extends WriteType
 case object Update extends WriteType
 
+sealed trait CommentType
+case object TodoComment extends CommentType
+case object EventComment extends CommentType
+case object ForumComment extends CommentType
+
 case class Pure[A](a: A) extends StoreADT[A]
 
 case object CreateDatabase extends StoreADT[Unit]
@@ -20,9 +25,8 @@ case object GetTodoCount extends StoreADT[Int]
 case class GetTodo(id: Id[CybozuTodo]) extends StoreADT[Option[CybozuTodo]]
 case class StoreTodo(todo: CybozuDBTodo, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
-case class GetComments(todo: CybozuDBTodo) extends StoreADT[Observable[CybozuDBComment]]
-case class StoreComment(comment: CybozuDBComment, writeType: WriteType = Insert) extends StoreADT[AnyId]
-case class StoreComments(comments: Seq[CybozuDBComment], writeType: WriteType = Insert) extends StoreADT[Seq[AnyId]]
+case class StoreComment(comment: CybozuDBComment, commentType: CommentType, writeType: WriteType = Insert) extends StoreADT[AnyId]
+case class StoreComments(comments: Seq[CybozuDBComment], commentType: CommentType, writeType: WriteType = Insert) extends StoreADT[Seq[AnyId]]
 
 case class StoreTodoAssignees(todoId: AnyId, assigneeIds: Seq[AnyId]) extends StoreADT[Int]
 

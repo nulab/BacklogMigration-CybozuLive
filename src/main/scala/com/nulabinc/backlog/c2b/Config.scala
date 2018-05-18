@@ -20,7 +20,8 @@ case class Config(
 
 object Config {
 
-  val charset: Charset = Charset.forName("UTF-8")
+  val exportedCsvCharset: Charset = Charset.forName("UTF-8")
+  val mappingFileCharset: Charset = Charset.defaultCharset() // Mapping files are read by different OSs
 
   val csvFormat: CSVFormat = CSVFormat.DEFAULT.withIgnoreEmptyLines().withSkipHeaderRecord()
 

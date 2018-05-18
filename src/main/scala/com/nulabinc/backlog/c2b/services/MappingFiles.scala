@@ -22,6 +22,8 @@ object MappingFiles {
   import com.nulabinc.backlog.c2b.syntax.AppProgramOps._
   import CSVRecordSerializer._
 
+  private val charset = Config.mappingFileCharset
+
   def write(config: Config): AppProgram[Unit] =
     for {
       _ <- writeUserMapping()
@@ -31,7 +33,7 @@ object MappingFiles {
 
   def read(path: Path): AppProgram[Observable[(String, String)]] =
     AppDSL.pure(
-      Observable.fromIterator(CSVParser.parse(path.toFile, Config.charset, Config.csvFormat).iterator().asScala)
+      Observable.fromIterator(CSVParser.parse(path.toFile, charset, Config.csvFormat).iterator().asScala)
         .drop(1)
         .map(record => (record.get(0), record.get(1)))
     )
@@ -56,7 +58,7 @@ object MappingFiles {
     }
 
   private def readCSVFile(is: InputStream): HashMap[String, String] = {
-    val parser = CSVParser.parse(is, Config.charset, Config.csvFormat)
+    val parser = CSVParser.parse(is, charset, Config.csvFormat)
     parser.getRecords.asScala.foldLeft(HashMap.empty[String, String]) {
       case (acc, record) =>
         acc + (record.get(0) -> record.get(1))

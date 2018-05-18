@@ -1,7 +1,6 @@
 package com.nulabinc.backlog.c2b.readers
 
 import java.io.File
-import java.nio.charset.Charset
 
 import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.datas._
@@ -15,7 +14,7 @@ case class ReadResult[A](issue: A, comments: Seq[CybozuCSVComment])
 
 object CybozuCSVReader {
 
-  private val charset = Charset.forName("Shift_JIS")
+  private val charset = Config.exportedCsvCharset
   private val csvFormat = Config.csvFormat
 
   def toCybozuTodo(files: Array[File]): Observable[ReadResult[CybozuCSVTodo]] =

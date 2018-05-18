@@ -42,7 +42,7 @@ object CSVRecordParser {
           priority  = CybozuCSVPriority(record.get(PRIORITY_FIELD_INDEX)),
           assignees  = assignee.split(",").filter(_.nonEmpty).map(u => CybozuCSVUser(u)),
           dueDate   = dueDate,
-          comments  = comments
+          comments  = filterEmptyComment(comments)
         )
       }) match {
         case Right(issue) => Right(issue)
@@ -84,7 +84,7 @@ object CSVRecordParser {
           title = record.get(TITLE_FIELD_INDEX),
           memo = record.get(MEMO_FIELD_INDEX),
           creator = CybozuCSVUser(record.get(CREATOR_FIELD_INDEX)),
-          comments = comments
+          comments = filterEmptyComment(comments)
         )
       }) match {
         case Right(event) => Right(event)
@@ -121,7 +121,7 @@ object CSVRecordParser {
           createdAt = createdAt,
           updater = CybozuCSVUser(record.get(UPDATER_FIELD_INDEX)),
           updatedAt = updatedAt,
-          comments = comments
+          comments = filterEmptyComment(comments)
         )
       }) match {
         case Right(forum) => Right(forum)
@@ -131,5 +131,8 @@ object CSVRecordParser {
       Left(CannotParseCSV(classOf[CybozuCSVForum], "Invalid record size: " + record.size(), record))
     }
   }
+
+  private def filterEmptyComment(comments: Seq[CybozuCSVComment]): Seq[CybozuCSVComment] =
+    comments.filter(_.content.nonEmpty)
 
 }

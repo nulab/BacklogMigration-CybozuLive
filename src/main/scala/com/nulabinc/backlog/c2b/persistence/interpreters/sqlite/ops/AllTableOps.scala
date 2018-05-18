@@ -4,7 +4,9 @@ import monix.execution.Scheduler
 import slick.jdbc.SQLiteProfile.api._
 
 private[sqlite] case class AllTableOps()(implicit exc: Scheduler) {
-  val commentTableOps = CommentTableOps()
+  val todoCommentTableOps = ToDoCommentTableOps()
+  val eventCommentTableOps = EventCommentTableOps()
+  val forumCommentTableOps = ForumCommentTableOps()
   val eventTableOps = EventTableOps()
   val forumTableOps = ForumTableOps()
   val todoTableOps = TodoTableOps()
@@ -17,9 +19,11 @@ private[sqlite] case class AllTableOps()(implicit exc: Scheduler) {
   val createDatabaseOps =
     DBIO.seq(
       todoTableOps.createTable,
-      commentTableOps.createTable,
+      todoCommentTableOps.createTable,
       eventTableOps.createTable,
+      eventCommentTableOps.createTable,
       forumTableOps.createTable,
+      forumCommentTableOps.createTable,
       backlogUserTableOps.createTable,
       backlogPriorityTableOps.createTable,
       backlogStatusTableOps.createTable,

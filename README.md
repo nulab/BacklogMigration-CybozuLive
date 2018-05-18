@@ -16,16 +16,13 @@ CybozuLiveのグループを[Backlog]に移行するためのツールです。
 
 こちらのリンクからjarファイルをダウンロードし、以下のようにコマンドラインから実行します。
 
-[URL]
+https://github.com/nulab/BacklogMigration-CybozuLive/releases
 
     java -jar backlog-migration-cybozulive-[最新バージョン].jar
 
 プロキシ経由で使用する場合は、以下のように実行します。
 
-    java -Dhttp.proxyHost=[プロキシサーバのホスト名] -Dhttp.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
-または
-
-    java -Dhttps.proxyHost=[プロキシサーバのホスト名] -Dhttps.proxyPort=[プロキシサーバのポート番号] -jar backlog-migration-cybozulive-[最新バージョン].jar
+    java -Djdk.http.auth.tunneling.disabledSchemes= -Dhttps.proxyHost=[プロキシサーバのホスト名] -Dhttps.proxyPort=[プロキシサーバのポート番号] -Dhttps.proxyUser=[プロキシユーザー名] -Dhttps.proxyPassword=[プロキシパスワード] -jar backlog-migration-cybozulive-[最新バージョン].jar
     
 ## 使い方
 ### 前準備
@@ -43,7 +40,7 @@ jarファイルをダウンロードします。
 
 ### CybozuLiveからCSVファイルのエクスポート
 1. 該当のグループを開き、[設定] > [エクスポート]をクリックする
-2. 形式を`標準`、文字コードが`Shift_JIS`であることを確認し、[ダウンロード]をクリックする
+2. 形式を`標準`、文字コードが`UTF-8`であることを確認し、[ダウンロード]をクリックする
     
 CybozuLiveからエクスポートしたCSVファイルを、作成した`backlog-migration`ディレクトリ内に配置します。
 
@@ -116,6 +113,7 @@ Backlogの **管理者権限** が必要になります。
 
 ### Backlog側の制限について
 * Backlogで登録可能なユーザー数を超えた場合、インポートは中断されます。
+* 空のコメントは登録されません。
 
 ## 再インポートの仕様
 
@@ -188,16 +186,13 @@ Download
 
 Please download the jar file from this link, and run from the command line as follows.
 
-[Latest jar URL]
+https://github.com/nulab/BacklogMigration-CybozuLive/releases
 
     java -jar backlog-migration-cybozulive-[latest version].jar
 
 To use via proxy server, run from the command line as follows.
 
-    java -Dhttp.proxyHost=[proxy host name] -Dhttp.proxyPort=[proxy port] -jar backlog-migration-cybozulive-[latest version].jar
-Or
-
-    java -Dhttps.proxyHost=[proxy host name] -Dhttps.proxyPort=[proxy port] -jar backlog-migration-cybozulive-[latest version].jar
+    java -Djdk.http.auth.tunneling.disabledSchemes= -Dhttps.proxyHost=[proxy host name] -Dhttps.proxyPort=[proxy port] -Dhttps.proxyUser=[proxy user] -Dhttps.proxyPassword=[proxy password] -jar backlog-migration-cybozulive-[latest version].jar
             
 ## How to use
 ### Preparation
@@ -217,7 +212,7 @@ Create a data directory.
    
 ### Export CSV file from CybozuLive
 1. Open the appropriate group and click [Settings] > [Export]
-2. Confirm that the 形式 is `標準` and the 文字コード is `Shift_JIS` and click [Download]
+2. Confirm that the 形式 is `標準` and the 文字コード is `UTF-8` and click [Download]
  
 Put exported files into `backlog-migration` directory.
     
@@ -289,6 +284,7 @@ This program is for the users with the Space's **administrator** roles.
 
 ### About limitations in Backlog
 - Importing users will be terminated if the number of users will exceed the limit in Backlog.
+- Empty comments are not registered.
 
 ## Re-importing
 
