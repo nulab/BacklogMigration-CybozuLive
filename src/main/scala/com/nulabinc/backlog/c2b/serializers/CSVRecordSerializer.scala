@@ -13,7 +13,7 @@ trait ToTuple[A, B, C, D] {
 
 object CSVRecordSerializer {
 
-  private val charset = Config.charset
+  private val charset = Config.mappingFileCharset
 
   implicit val backlogUserSerializer: Serializer[BacklogUser, Array[Byte]] =
     (user: BacklogUser) =>
