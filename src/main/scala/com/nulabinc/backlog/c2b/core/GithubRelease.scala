@@ -35,13 +35,25 @@ object GithubRelease {
       val output = readLines(reader)
       reader.close()
 
-      output.parseJson match {
-        case JsArray(releases) if releases.nonEmpty =>
-          releases(0).asJsObject.fields.apply("tag_name").convertTo[String].replace("v", "")
-        case _ => ""
-      }
+      parseToJsonArray(output)
+        .flatMap { releases =>
+          releases
+            .map(jsValue => extractTagName(jsValue.asJsObject))
+            .map(_.replace("v", ""))
+            .headOption
+        }
+        .getOrElse("")
     }
   }
+
+  private[core] def parseToJsonArray(str: String): Option[Vector[JsValue]] =
+    str.parseJson match {
+      case JsArray(values) => Some(values)
+      case _ => None
+    }
+
+  private[core] def extractTagName(jsObject: JsObject): String =
+    jsObject.fields.apply("tag_name").convertTo[String]
 
   private def readLines(reader: BufferedReader): String = {
     val output = new StringBuilder()
@@ -54,4 +66,5 @@ object GithubRelease {
     }
     output.toString()
   }
+
 }
