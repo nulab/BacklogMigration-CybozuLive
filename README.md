@@ -16,7 +16,7 @@ CybozuLiveのグループを[Backlog]に移行するためのツールです。
 
 こちらのリンクからjarファイルをダウンロードし、以下のようにコマンドラインから実行します。
 
-[URL]
+https://github.com/nulab/BacklogMigration-CybozuLive/releases
 
     java -jar backlog-migration-cybozulive-[最新バージョン].jar
 
@@ -186,7 +186,7 @@ Download
 
 Please download the jar file from this link, and run from the command line as follows.
 
-[Latest jar URL]
+https://github.com/nulab/BacklogMigration-CybozuLive/releases
 
     java -jar backlog-migration-cybozulive-[latest version].jar
 
