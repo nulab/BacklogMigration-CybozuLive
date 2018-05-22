@@ -46,7 +46,12 @@ object MappingFiles {
       backlogUsers <- AppDSL.streamAsSeq(backlogUserStream).orFail
       userHashMap = userNames.map {
         case (cybozu, backlog) =>
-          (cybozu, backlogUsers.find(_.name == backlog).get.userId.getOrElse(throw new RuntimeException("It never happened. Admin user can get userId."))) // TODO:
+          val backlogUserId = backlogUsers
+            .find(_.name == backlog)
+            .getOrElse(throw new RuntimeException("It never happen. It has already validated."))
+            .userId
+            .getOrElse(throw new RuntimeException("It never happen. Admin user can get userId."))
+          (cybozu, backlogUserId)
       }
       userMappings = indexSeqToHashMap(userHashMap)
       priorityMappingStream <- read(Config.PRIORITIES_PATH)
