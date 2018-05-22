@@ -41,8 +41,14 @@ object MappingFiles {
   def createMappingContext(): AppProgram[MappingContext] =
     for {
       userMappingStream <- read(Config.USERS_PATH)
-      users <- AppDSL.streamAsSeq(userMappingStream).orFail
-      userMappings = indexSeqToHashMap(users)
+      userNames <- AppDSL.streamAsSeq(userMappingStream).orFail
+      backlogUserStream <- AppDSL.fromStore(StoreDSL.getBacklogUsers)
+      backlogUsers <- AppDSL.streamAsSeq(backlogUserStream).orFail
+      userHashMap = userNames.map {
+        case (cybozu, backlog) =>
+          (cybozu, backlogUsers.find(_.name == backlog).get.userId.getOrElse(throw new RuntimeException("It never happened. Admin user can get userId."))) // TODO:
+      }
+      userMappings = indexSeqToHashMap(userHashMap)
       priorityMappingStream <- read(Config.PRIORITIES_PATH)
       priorities <- AppDSL.streamAsSeq(priorityMappingStream).orFail
       priorityMappings = indexSeqToHashMap(priorities)
