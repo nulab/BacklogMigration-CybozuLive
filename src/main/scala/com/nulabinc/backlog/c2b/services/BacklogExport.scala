@@ -41,9 +41,9 @@ object BacklogExport extends Logger {
       _ <- versions(config)
       _ <- exportIssueTypes(config, issueTypes)
       _ <- customFields(config)
-      _ <- todos(config, issueTypes(IssueType.ToDo), openStatusName)
-      _ <- events(config, issueTypes(IssueType.Event))
-      _ <- forums(config, issueTypes(IssueType.Forum))
+      todoCount <- todos(config, issueTypes(IssueType.ToDo), openStatusName, 0)
+      eventCount <- events(config, issueTypes(IssueType.Event), todoCount)
+      _ <- forums(config, issueTypes(IssueType.Forum), eventCount)
       _ <- finish
     } yield ()
 
@@ -125,7 +125,8 @@ object BacklogExport extends Logger {
 
   def todos(config: Config,
             issueType: CybozuIssueType,
-            openStatusName: String)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+            openStatusName: String,
+            startIndex: Int)(implicit mappingContext: MappingContext): AppProgram[Int] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new CommentConverter()
 
@@ -135,13 +136,13 @@ object BacklogExport extends Logger {
       _ <- AppDSL.consumeStream {
         todos.zipWithIndex.map {
           case (todo, index) =>
-            exportTodo(config.backlogPaths, todo.id, issueType, issueConverter, commentConverter, openStatusName, index, count)
+            exportTodo(config.backlogPaths, todo.id, issueType, issueConverter, commentConverter, openStatusName, startIndex + index, startIndex + count)
         }
       }
-    } yield ()
+    } yield startIndex + count
   }
 
-  def events(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+  def events(config: Config, issueType: CybozuIssueType, startIndex: Int)(implicit mappingContext: MappingContext): AppProgram[Int] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new CommentConverter()
 
@@ -151,13 +152,13 @@ object BacklogExport extends Logger {
       _ <- AppDSL.consumeStream {
         events.zipWithIndex.map {
           case (event, index) =>
-            exportEvent(config.backlogPaths, event.id, issueType, issueConverter, commentConverter, index, total)
+            exportEvent(config.backlogPaths, event.id, issueType, issueConverter, commentConverter, startIndex + index, startIndex + total)
         }
       }
-    } yield ()
+    } yield startIndex + total
   }
 
-  def forums(config: Config, issueType: CybozuIssueType)(implicit mappingContext: MappingContext): AppProgram[Unit] = {
+  def forums(config: Config, issueType: CybozuIssueType, startIndex: Int)(implicit mappingContext: MappingContext): AppProgram[Int] = {
     val issueConverter = new IssueConverter()
     val commentConverter = new CommentConverter()
 
@@ -167,10 +168,10 @@ object BacklogExport extends Logger {
       _ <- AppDSL.consumeStream {
         forums.zipWithIndex.map {
           case (forum, index) =>
-            exportForum(config.backlogPaths, forum.id, issueType, issueConverter, commentConverter, index, total)
+            exportForum(config.backlogPaths, forum.id, issueType, issueConverter, commentConverter, startIndex + index, startIndex + total)
         }
       }
-    } yield ()
+    } yield total
   }
 
   private def exportTodo(paths: BacklogPaths,
@@ -183,7 +184,11 @@ object BacklogExport extends Logger {
                          total: Long): AppProgram[Unit] =
     for {
       optTodo <- AppDSL.fromStore(StoreDSL.getTodo(Id.todoId(todoId)))
-      _ <- optTodo.map(todo =>
+      _ <- optTodo.map { todo =>
+        val newId = index.toInt + 1
+        val comments = todo.comments.map(c => c.copy(parentId = newId))
+        todo.copy(id = newId, comments = comments)
+      }.map { todo =>
         issueConverter.from(todo, issueType) match {
           case Right(backlogIssue) =>
             for {
@@ -206,7 +211,7 @@ object BacklogExport extends Logger {
           case Left(error) =>
             throw CybozuLiveImporterException("ToDo convert error. " + error.toString)
         }
-      ).getOrElse(throw CybozuLiveImporterException("ToDo not found"))
+      }.getOrElse(throw CybozuLiveImporterException("ToDo not found"))
     } yield ()
 
   private def exportEvent(paths: BacklogPaths,
@@ -218,7 +223,11 @@ object BacklogExport extends Logger {
                           total: Long): AppProgram[Unit] =
     for {
       optEvent <- AppDSL.fromStore(StoreDSL.getEvent(eventId))
-      _ <- optEvent.map(event =>
+      _ <- optEvent.map { event =>
+        val newId = index.toInt + 1
+        val comments = event.comments.map(c => c.copy(parentId = newId))
+        event.copy(id = newId, comments = comments)
+      }.map { event =>
         issueConverter.from(event, issueType) match {
           case Right(backlogIssue) =>
             for {
@@ -228,7 +237,7 @@ object BacklogExport extends Logger {
           case Left(error) =>
             throw CybozuLiveImporterException("Event convert error. " + error.toString)
         }
-      ).getOrElse(throw CybozuLiveImporterException("Event not found"))
+      }.getOrElse(throw CybozuLiveImporterException("Event not found"))
     } yield ()
 
   private def exportForum(paths: BacklogPaths,
@@ -240,17 +249,22 @@ object BacklogExport extends Logger {
                           total: Long): AppProgram[Unit] =
     for {
       optForum <- AppDSL.fromStore(StoreDSL.getForum(forumId))
-      _ <- optForum.map(forum =>
-        issueConverter.from(forum, issueType) match {
-          case Right(backlogIssue) =>
-            for {
-              _ <- exportIssue(paths, backlogIssue, forum.createdAt, index, total)
-              _ <- exportComments(paths, forum.comments, commentConverter)
-            } yield ()
-          case Left(error) =>
-            throw CybozuLiveImporterException("Forum convert error. " + error.toString)
-        }
-      ).getOrElse(throw CybozuLiveImporterException("Forum not found"))
+      _ <- optForum
+        .map { forum =>
+          val newId = index.toInt + 1
+          val comments = forum.comments.map(c => c.copy(parentId = newId))
+          forum.copy(id = newId, comments = comments)
+        }.map { forum =>
+          issueConverter.from(forum.copy(id = index.toInt + 1), issueType) match {
+            case Right(backlogIssue) =>
+              for {
+                _ <- exportIssue(paths, backlogIssue, forum.createdAt, index, total)
+                _ <- exportComments(paths, forum.comments, commentConverter)
+              } yield ()
+            case Left(error) =>
+              throw CybozuLiveImporterException("Forum convert error. " + error.toString)
+          }
+        }.getOrElse(throw CybozuLiveImporterException("Forum not found"))
     } yield ()
 
 
