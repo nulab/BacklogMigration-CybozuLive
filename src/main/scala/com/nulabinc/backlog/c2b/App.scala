@@ -5,7 +5,6 @@ import java.util.Locale
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
-import com.github.chaabaj.backlog4s.datas.UserT
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core._
@@ -17,7 +16,7 @@ import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterp
 import com.nulabinc.backlog.c2b.persistence.interpreters.sqlite.SQLiteInterpreter
 import com.nulabinc.backlog.c2b.services._
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
-import com.nulabinc.backlog.migration.common.utils.{ConsoleOut, DateUtil, TrackingData}
+import com.nulabinc.backlog.migration.common.utils.ConsoleOut
 import com.osinka.i18n.Messages
 import monix.eval.Task
 import monix.execution.Scheduler
@@ -131,7 +130,6 @@ object App extends Logger {
   }
 
   def `import`(config: Config, language: String): AppProgram[Unit] = {
-    import com.github.chaabaj.backlog4s.dsl.syntax._
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
     val backlogApiConfiguration = BacklogApiConfiguration(
@@ -155,27 +153,6 @@ object App extends Logger {
       mappingContext <- MappingFiles.createMappingContext()
       _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
-      // MixPanel
-      environment <- AppDSL.getBacklogEnvironment(backlogApiConfiguration)
-      backlogToolEnvNames = Seq("backlogtool", "us-6")
-      token = if (backlogToolEnvNames.contains(environment._2))
-        Config.App.Mixpanel.backlogtoolToken
-      else
-        Config.App.Mixpanel.token
-      user <- AppDSL.fromBacklog(backlogApi.userApi.byId(UserT.myself).orFail)
-      space <- AppDSL.fromBacklog(backlogApi.spaceApi.current.orFail)
-      data = TrackingData(
-        product = Config.App.Mixpanel.product,
-        spaceId = environment._1,
-        envname = environment._2,
-        userId = user.id.value,
-        srcUrl = "",
-        dstUrl = config.backlogUrl,
-        srcProjectKey = "",
-        dstProjectKey = config.projectKey,
-        srcSpaceCreated = "",
-        dstSpaceCreated = DateUtil.isoFormat(space.created.toDate))
-      _ <- AppDSL.sendTrackingData(token, data)
     } yield ()
   }
 

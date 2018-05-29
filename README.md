@@ -134,25 +134,7 @@ Backlog側に同一プロジェクトキーがある場合は、以下の仕様�
 MacOSにおいて、`テキストエディット`アプリでマッピングファイルを編集するとダブルクオーテーションが変換されてしまいます。
 「環境設定」→「スマート引用符」のチェックを外してください。
 
-## 第三者のトラッキングシステム
-
-当アプリケーションでは、利用状況把握のために、サードパーティのサービス(Mixpanel)によって、移行先のURL、移行先のプロジェクトキーなどの情報を収集します。
-トラッキングするデータについてはMixpanelのプライバシーポリシーを参照してください。また、お客様のデータがMixpanelで使用されることを望まない場合は、以下に掲げる方法で使用停止（オプトアウト）することができます。
-
-次のようにoptOutオプションを使用することで使用停止（オプトアウト）することができます。
-
-    java -jar backlog-migration-cybozulive-[latest version].jar \
-      import \
-      --backlog.key XXXXXXXXXXXXX \
-      --backlog.url https://xxxxxxx.backlog.jp \
-      --projectKey BACKLOG_PROJECT
-      --optOut
-
-### Mixpanel
-
-[Mixpanelのプライバシーポリシー](https://mixpanel.com/privacy/ "Mixpanelのプライバシーポリシー")
-
-## License
+## ライセンス
 
 MIT License
 
@@ -171,7 +153,6 @@ https://backlog.com/ja/contact/
 # Backlog Migration for CybozuLive
 
 Migrate your projects from CybozuLive to [Backlog].
-(英語の下に日本文が記載されています)
 
 * Backlog
     * [https://backlog.com](https://backlog.com/)
@@ -303,24 +284,6 @@ To migrate this project, you have to join. Join the project to add issues.
 ### Edit mapping file
 In MacOS, when you edit the mapping file with `TextEdit` application, double quotes will be converted.
 Please uncheck "Preferences" → "Smart quotes".
-
-## Third party tracking system
-
-In this application, we collect information such as destination URL, migration destination project key, by third party service (Mixpanel) in order to grasp the usage situation.
-Please refer to Mixpanel's privacy policy for what data is tracked. Also, if you do not want your data to be used in Mixpanel, you can suspend (opt out) by the following methods.
-
-If you want to opt out, please use the optOut option.
-
-    java -jar backlog-migration-cybozulive-[latest version].jar \
-      import \
-      --backlog.key XXXXXXXXXXXXX \
-      --backlog.url https://xxxxxxx.backlog.jp \
-      --projectKey BACKLOG_PROJECT
-      --optOut
-
-### Mixpanel
-
-[Mixpanel's Privacy Policy](https://mixpanel.com/privacy/ "Mixpanel's Privacy Policy")
 
 ## License
 
