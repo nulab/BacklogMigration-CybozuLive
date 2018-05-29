@@ -203,8 +203,6 @@ Create a working directory.
     $ cd work
     
 Download jar file.
-
-    [link is here]
     
 Create a data directory.
 
