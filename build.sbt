@@ -2,7 +2,7 @@
 name := "backlog-migration-cybozulive"
 
 lazy val commonSettings = Seq(
-  version := "0.1.0b4-SNAPSHOT",
+  version := "0.2.0b1",
   scalaVersion := "2.12.6"
 )
 
