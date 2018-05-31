@@ -97,6 +97,8 @@ common.filter=フィルター
 common.importOnly=インポートのみ実行
 common.fitIssueKey=課題キーを一致させる
 
+# CLI
+cli.error.unknown=予期しないエラーが発生しました。
 
 # Message
 message.exporting=エクスポートしています...
