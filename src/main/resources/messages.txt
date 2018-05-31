@@ -97,6 +97,9 @@ common.filter=Filter
 common.importOnly=Only Import
 common.fitIssueKey=Fit Issue Key
 
+# CLI
+cli.error.unknown=Unknown error
+
 # Message
 message.exporting=Exporting
 message.exported=Exported

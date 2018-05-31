@@ -30,17 +30,17 @@ object Config {
   private val config = ConfigFactory.load()
 
   object App {
-    private val appConfig = config.getConfig("app")
+    private val applicationConfig = config.getConfig("application")
 
-    val name: String = appConfig.getString("name")
-    val version: String = appConfig.getString("version")
-    val title: String = appConfig.getString("title")
-    val fileName: String = appConfig.getString("fileName")
-    val language: String = appConfig.getString("language")
-    val dataDirectory: String = appConfig.getString("dataDirectory")
+    val name: String = applicationConfig.getString("name")
+    val version: String = applicationConfig.getString("version")
+    val title: String = applicationConfig.getString("title")
+    val fileName: String = applicationConfig.getString("fileName")
+    val language: String = applicationConfig.getString("language")
+    val dataDirectory: String = applicationConfig.getString("dataDirectory")
 
     object Mixpanel {
-      private val mixpanelConfig = appConfig.getConfig("mixpanel")
+      private val mixpanelConfig = applicationConfig.getConfig("mixpanel")
 
       val token: String = mixpanelConfig.getString("token")
       val backlogtoolToken: String = mixpanelConfig.getString("backlogtoolToken")

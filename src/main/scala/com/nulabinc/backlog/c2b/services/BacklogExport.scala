@@ -229,6 +229,9 @@ object BacklogExport extends Logger {
         event.copy(id = newId, comments = comments)
       }.map { event =>
         issueConverter.from(event, issueType) match {
+          case Right(backlogIssue) if backlogIssue.summary.value.isEmpty =>
+            log.warn(s"Event title is empty. Ignored. Id: $eventId Memo: ${event.memo}")
+            AppDSL.pure(())
           case Right(backlogIssue) =>
             for {
               _ <- exportIssue(paths, backlogIssue, event.startDateTime, index, total)

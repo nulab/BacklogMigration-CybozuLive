@@ -134,25 +134,7 @@ Backlog側に同一プロジェクトキーがある場合は、以下の仕様�
 MacOSにおいて、`テキストエディット`アプリでマッピングファイルを編集するとダブルクオーテーションが変換されてしまいます。
 「環境設定」→「スマート引用符」のチェックを外してください。
 
-## 第三者のトラッキングシステム
-
-当アプリケーションでは、利用状況把握のために、サードパーティのサービス(Mixpanel)によって、移行先のURL、移行先のプロジェクトキーなどの情報を収集します。
-トラッキングするデータについてはMixpanelのプライバシーポリシーを参照してください。また、お客様のデータがMixpanelで使用されることを望まない場合は、以下に掲げる方法で使用停止（オプトアウト）することができます。
-
-次のようにoptOutオプションを使用することで使用停止（オプトアウト）することができます。
-
-    java -jar backlog-migration-cybozulive-[latest version].jar \
-      import \
-      --backlog.key XXXXXXXXXXXXX \
-      --backlog.url https://xxxxxxx.backlog.jp \
-      --projectKey BACKLOG_PROJECT
-      --optOut
-
-### Mixpanel
-
-[Mixpanelのプライバシーポリシー](https://mixpanel.com/privacy/ "Mixpanelのプライバシーポリシー")
-
-## License
+## ライセンス
 
 MIT License
 
@@ -171,7 +153,6 @@ https://backlog.com/ja/contact/
 # Backlog Migration for CybozuLive
 
 Migrate your projects from CybozuLive to [Backlog].
-(英語の下に日本文が記載されています)
 
 * Backlog
     * [https://backlog.com](https://backlog.com/)
@@ -203,8 +184,6 @@ Create a working directory.
     $ cd work
     
 Download jar file.
-
-    [link is here]
     
 Create a data directory.
 
@@ -282,22 +261,22 @@ This program is for the users with the Space's **administrator** roles.
 - Can not migrate bulletin forum and event attachments
 - The ToDo category can not be migrated.
 
-### About limitations in Backlog
-- Importing users will be terminated if the number of users will exceed the limit in Backlog.
+### About limitations in the Backlog
+- Importing users will be terminated if the number of users exceeds the limit in the Backlog.
 - Empty comments are not registered.
 
 ## Re-importing
 
-When the project key in Backlog and CybozuLive matches, they will be considered as the same project and data will be imported as follows.
+When the project key in the Backlog and CybozuLive matches, they will be considered as the same project and data will be imported as follows.
 
 **If the person migrating data is not in the project.**
 
 The project will not be imported and the following message will be shown.  Join the project to migrate data.
-Importing to this project failed.  You are not a member of this project. Join the project to add issues.
+To migrate this project, you have to join. Join the project to add issues.
 
 | Item | Specifications |
 |:-----------|------------|
-| Project | The project will not be added when there is a project with same project key.  The issues and wikis will be added to the existing project. |
+| Project | The project will not be added when there is a project with the same project key.  The issues and wikis will be added to the existing project. |
 | Issues | Issues with matching subject, creator, creation date are not registered. |
 
 ## Important points
@@ -305,24 +284,6 @@ Importing to this project failed.  You are not a member of this project. Join th
 ### Edit mapping file
 In MacOS, when you edit the mapping file with `TextEdit` application, double quotes will be converted.
 Please uncheck "Preferences" → "Smart quotes".
-
-## Third party tracking system
-
-In this application, we collect information such as source URL, destination URL, migration source project key, migration destination project key, by third party service (Mixpanel) in order to grasp usage situation.
-Please refer to Mixpanel's privacy policy for data to be tracked. Also, if you do not want your data to be used in Mixpanel, you can suspend (opt out) by the following methods.
-
-If you want to opt out, please use the optOut option.
-
-    java -jar backlog-migration-cybozulive-[latest version].jar \
-      import \
-      --backlog.key XXXXXXXXXXXXX \
-      --backlog.url https://xxxxxxx.backlog.jp \
-      --projectKey BACKLOG_PROJECT
-      --optOut
-
-### Mixpanel
-
-[Mixpanel's Privacy Policy](https://mixpanel.com/privacy/ "Mixpanel's Privacy Policy")
 
 ## License
 
@@ -332,6 +293,6 @@ MIT License
 
 ## Inquiry
 
-Please contact us if you encounter any problems during the CybozuLive to Backlog migration.
+Please contact us if you encounter any problems during the CybozuLive to the Backlog migration.
 
 https://backlog.com/contact/
