@@ -112,7 +112,6 @@ Backlogの **管理者権限** が必要になります。
 - ToDoのカテゴリは移行できません。
 
 ### Backlog側の制限について
-* Backlogで登録可能なユーザー数を超えた場合、インポートは中断されます。
 * 空のコメントは登録されません。
 
 ## 再インポートの仕様
@@ -262,7 +261,6 @@ This program is for the users with the Space's **administrator** roles.
 - The ToDo category can not be migrated.
 
 ### About limitations in the Backlog
-- Importing users will be terminated if the number of users exceeds the limit in the Backlog.
 - Empty comments are not registered.
 
 ## Re-importing
