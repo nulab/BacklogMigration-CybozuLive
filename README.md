@@ -133,6 +133,9 @@ Backlog側に同一プロジェクトキーがある場合は、以下の仕様�
 MacOSにおいて、`テキストエディット`アプリでマッピングファイルを編集するとダブルクオーテーションが変換されてしまいます。
 「環境設定」→「スマート引用符」のチェックを外してください。
 
+### CybozuLiveのユーザー名
+ユーザー名の前後に空白が含まれていると移行できません。
+
 ## ライセンス
 
 MIT License
@@ -282,6 +285,9 @@ To migrate this project, you have to join. Join the project to add issues.
 ### Edit mapping file
 In MacOS, when you edit the mapping file with `TextEdit` application, double quotes will be converted.
 Please uncheck "Preferences" → "Smart quotes".
+
+### CybozuLive user name
+Can not migrate if the user name contains spaces before and after it.
 
 ## License
 
