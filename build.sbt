@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= {
-      val catsVersion = "1.1.0"
+      val catsVersion = "1.2.0"
       val slickVersion = "3.2.3"
       val monixVersion = "3.0.0-RC1"
       Seq(
@@ -33,7 +33,7 @@ lazy val root = (project in file("."))
         "org.typelevel"         %% "cats-free"        % catsVersion,
         "com.typesafe.slick"    %% "slick"            % slickVersion,
         "com.typesafe.slick"    %% "slick-hikaricp"   % slickVersion,
-        "org.xerial"            %  "sqlite-jdbc"      % "3.21.0",
+        "org.xerial"            %  "sqlite-jdbc"      % "3.23.1",
         "io.monix"              %% "monix"            % monixVersion,
         "io.monix"              %% "monix-reactive"   % monixVersion,
         "io.monix"              %% "monix-execution"  % monixVersion,
