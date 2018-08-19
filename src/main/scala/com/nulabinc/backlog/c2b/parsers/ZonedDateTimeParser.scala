@@ -1,10 +1,15 @@
 package com.nulabinc.backlog.c2b.parsers
 
+import java.text.SimpleDateFormat
 import java.time.{ZoneId, ZonedDateTime}
 
 import com.nulabinc.backlog.c2b.datas.Types.DateTime
 
+import scala.util.{Failure, Success, Try}
+
 object ZonedDateTimeParser {
+
+  private val otherDateFormat = new SimpleDateFormat("EEE, MMM dd, yyyy HH:mm")
 
   def toZonedDateTime(value: String): Either[ParseError[DateTime], DateTime] = {
     val pattern1 = """(\d+?)/(\d+?)/(\d+?) .*?(\d+?):(\d+?):(\d+)""".r
@@ -50,7 +55,13 @@ object ZonedDateTimeParser {
             ZoneId.systemDefault()
           )
         )
-      case _ => Left(CannotParseFromString(classOf[DateTime], value))
+      case _ =>
+        Try(otherDateFormat.parse(value)) match {
+          case Success(date) =>
+            Right(ZonedDateTime.ofInstant(date.toInstant, ZoneId.systemDefault()))
+          case Failure(_) =>
+            Left(CannotParseFromString(classOf[DateTime], value))
+        }
     }
   }
 
