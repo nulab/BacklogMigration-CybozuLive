@@ -2,8 +2,6 @@
 CybozuLiveのグループを[Backlog]に移行するためのツールです。
 (English document is described after Japanese)
 
-**Backlog Migration for CybozuLiveはベータバージョンです。Backlog上の既存プロジェクトにインポートする場合は、先に新しく別プロジェクトを作成し、こちらにインポートし内容を確認後、正式なプロジェクトにインポートしてください**
-
 * Backlog
     * [https://backlog.com](https://backlog.com/)
 
