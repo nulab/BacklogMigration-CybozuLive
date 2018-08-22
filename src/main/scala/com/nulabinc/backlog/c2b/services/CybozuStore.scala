@@ -14,24 +14,26 @@ import com.osinka.i18n.Messages
 
 object CybozuStore extends Logger {
 
-  def copyToStore(csvFiles: Array[File]): AppProgram[Unit] = {
+  def copyToStore(exportedFiles: Array[File]): AppProgram[Unit] = {
     val todoFiles = {
-      csvFiles.filter(_.getName.contains("live_ToDoリスト_")) ++
-      csvFiles.filter(_.getName.contains("live_To-Do List_"))
+      exportedFiles.filter(_.getName.contains("live_ToDoリスト_")) ++
+      exportedFiles.filter(_.getName.contains("live_To-Do List_"))
     }
     val eventFiles = {
-      csvFiles.filter(_.getName.contains("live_イベント_")) ++
-      csvFiles.filter(_.getName.contains("live_Events_"))
+      exportedFiles.filter(_.getName.contains("live_イベント_")) ++
+      exportedFiles.filter(_.getName.contains("live_Events_"))
     }
     val forumFiles = {
-      csvFiles.filter(_.getName.contains("live_掲示板_")) ++
-      csvFiles.filter(_.getName.contains("live_Forum_"))
+      exportedFiles.filter(_.getName.contains("live_掲示板_")) ++
+      exportedFiles.filter(_.getName.contains("live_Forum_"))
     }
+    val chatFiles = exportedFiles.filter(_.getName.endsWith(".txt"))
 
     for {
       _ <- todo(todoFiles)
       _ <- event(eventFiles)
       _ <- forum(forumFiles)
+      _ <- chat(chatFiles)
     } yield ()
   }
 
@@ -119,6 +121,11 @@ object CybozuStore extends Logger {
           }
         )
       )
+    } yield ()
+
+  def chat(files: Array[File]): AppProgram[Unit] =
+    for {
+      _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.collect", Messages("name.chat"))))
     } yield ()
 
   private def sequential[A](prgs: Seq[StoreProgram[A]]): StoreProgram[Seq[A]] =

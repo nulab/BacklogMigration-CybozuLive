@@ -13,6 +13,7 @@ name.mapping.user=ユーザー
 name.mapping.priority=優先度
 name.mapping.status=状態
 name.status.open=未完了
+name.chat=チャット
 
 # Validation
 validation.access={0}にアクセス可能かチェックしています...
