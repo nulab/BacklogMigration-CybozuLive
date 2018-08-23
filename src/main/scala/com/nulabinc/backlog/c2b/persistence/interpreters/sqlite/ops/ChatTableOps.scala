@@ -15,6 +15,11 @@ private[sqlite] case class ChatTableOps()(implicit exec: ExecutionContext) exten
   private val commentTableQuery = TableQuery[ChatCommentTable]
   private val cybozuUserTableQuery = TableQuery[CybozuUserTable]
 
+  lazy val count: DBIORead[Int] =
+    tableQuery
+      .length
+      .result
+
   def getChat(id: AnyId): DBIORead[Option[CybozuChat]] =
     for {
       optChat <- tableQuery
