@@ -7,9 +7,11 @@ private[sqlite] case class AllTableOps()(implicit exc: Scheduler) {
   val todoCommentTableOps = ToDoCommentTableOps()
   val eventCommentTableOps = EventCommentTableOps()
   val forumCommentTableOps = ForumCommentTableOps()
+  val chatCommentTableOps = ChatCommentTableOps()
   val eventTableOps = EventTableOps()
   val forumTableOps = ForumTableOps()
   val todoTableOps = TodoTableOps()
+  val chatTableOps = ChatTableOps()
   val backlogUserTableOps = BacklogUserTableOps()
   val backlogPriorityTableOps = BacklogPriorityTableOps()
   val backlogStatusTableOps = BacklogStatusTableOps()
@@ -24,6 +26,8 @@ private[sqlite] case class AllTableOps()(implicit exc: Scheduler) {
       eventCommentTableOps.createTable,
       forumTableOps.createTable,
       forumCommentTableOps.createTable,
+      chatTableOps.createTable,
+      chatCommentTableOps.createTable,
       backlogUserTableOps.createTable,
       backlogPriorityTableOps.createTable,
       backlogStatusTableOps.createTable,
