@@ -124,6 +124,14 @@ class AppSpec extends FlatSpec with Matchers {
     override def getCybozuStatuses(): Task[Observable[CybozuStatus]] = ???
 
     override def writeDBStream[A](stream: Observable[StoreProgram[A]]): Task[Unit] = ???
+
+    override def getChats: Task[Observable[CybozuDBChat]] = ???
+
+    override def getChat(id: AnyId): Task[Option[CybozuChat]] = ???
+
+    override def storeChat(chat: CybozuDBChat, writeType: WriteType): Task[AnyId] = ???
+
+    override def getChatCount: Task[AnyId] = ???
   }
 
   class TestConsoleInterpreter extends ConsoleInterpreter {
