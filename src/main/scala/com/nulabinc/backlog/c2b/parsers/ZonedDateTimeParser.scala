@@ -59,8 +59,8 @@ object ZonedDateTimeParser {
         Try(otherDateFormat.parse(value)) match {
           case Success(date) =>
             Right(ZonedDateTime.ofInstant(date.toInstant, ZoneId.systemDefault()))
-          case Failure(_) =>
-            Left(CannotParseFromString(classOf[DateTime], value))
+          case Failure(error) =>
+            Left(CannotParseFromString(classOf[DateTime], s"Cannot parse zoned date time: ${error.getMessage}", value))
         }
     }
   }
