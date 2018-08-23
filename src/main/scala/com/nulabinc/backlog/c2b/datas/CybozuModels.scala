@@ -50,6 +50,13 @@ case class CybozuForum(
   comments: Seq[CybozuComment]
 )
 
+case class CybozuChat(
+  id: AnyId,
+  title: String,
+  description: String,
+  comments: Seq[CybozuComment]
+)
+
 case class CybozuComment(
   id: AnyId,
   parentId: AnyId,

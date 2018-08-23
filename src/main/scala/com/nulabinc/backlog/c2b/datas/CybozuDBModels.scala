@@ -116,3 +116,21 @@ object CybozuDBForum {
       updatedAt = forum.updatedAt
     )
 }
+
+case class CybozuDBChat(
+  id: AnyId,
+  title: String,
+  description: String
+) extends Entity
+
+object CybozuDBChat {
+
+  val tupled = (this.apply _).tupled
+
+  def from(topic: CybozuTextTopic): CybozuDBChat =
+    CybozuDBChat(
+      id = 0,
+      title = topic.title,
+      description = topic.description
+    )
+}
