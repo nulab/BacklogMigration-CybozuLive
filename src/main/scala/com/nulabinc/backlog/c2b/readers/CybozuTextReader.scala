@@ -33,7 +33,7 @@ object CybozuTopicTextReader {
                 else
                   Last(acc.topicText, acc.comments :+ acc.last, "")
               } else {
-                Last(acc.topicText, acc.comments, acc.last + line)
+                Last(acc.topicText, acc.comments, acc.last + "\n" + line)
               }
           }.map { result =>
             TopicReadResult(result.topicText, result.comments)

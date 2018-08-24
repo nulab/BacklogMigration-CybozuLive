@@ -47,12 +47,21 @@ object CybozuDBComment {
   val tupled = (this.apply _).tupled
 
   def from(parentIssueId: AnyId, comment: CybozuCSVComment, creatorId: AnyId): CybozuDBComment =
-    new CybozuDBComment(
+    CybozuDBComment(
       id = 0,
       parentId = parentIssueId,
       creator = creatorId,
       createdAt = comment.createdAt,
       content = comment.content
+    )
+
+  def from(parentIssueId: AnyId, post: CybozuTextPost, postUserId: AnyId): CybozuDBComment =
+    CybozuDBComment(
+      id = 0,
+      parentId = parentIssueId,
+      creator = postUserId,
+      createdAt = post.postedAt,
+      content = post.content
     )
 
   def to(comment: CybozuDBComment, creator: CybozuUser): CybozuComment =

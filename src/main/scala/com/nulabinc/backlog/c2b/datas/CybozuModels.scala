@@ -10,7 +10,9 @@ case class CybozuUser(
 object CybozuUser {
   val tupled = (this.apply _).tupled
   def from(user: CybozuCSVUser): CybozuUser =
-    new CybozuUser(0, user.value)
+    CybozuUser(0, user.value)
+  def fromCybozuTextUser(user: CybozuTextUser): CybozuUser =
+    CybozuUser(0, user.value)
 }
 
 case class CybozuTodo(
@@ -64,6 +66,17 @@ case class CybozuComment(
   createdAt: DateTime,
   content: String
 )
+
+object CybozuComment {
+  def from(parentId: AnyId, post: CybozuTextPost, postUserId: AnyId): CybozuComment =
+    CybozuComment(
+      id = 0,
+      parentId = parentId,
+      creator = CybozuUser(postUserId, post.postUser.value),
+      createdAt = post.postedAt,
+      content = post.content
+    )
+}
 
 case class CybozuIssueType(value: String) extends AnyVal
 case class CybozuStatus(value: String) extends AnyVal

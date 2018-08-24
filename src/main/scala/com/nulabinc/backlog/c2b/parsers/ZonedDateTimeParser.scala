@@ -14,7 +14,8 @@ object ZonedDateTimeParser {
   def toZonedDateTime(value: String): Either[ParseError[DateTime], DateTime] = {
     val pattern1 = """(\d+?)/(\d+?)/(\d+?) .*?(\d+?):(\d+?):(\d+)""".r
     val pattern2 = """(\d+?)/(\d+?)/(\d+?) .*?(\d+?):(\d+?)""".r
-    val pattern3 = """(\d+?)/(\d+?)/(\d+?)""".r
+    val pattern3 = """(\d+?)/(\d+?)/(\d+?).+?(\d+?):(\d+?)""".r
+    val pattern4 = """(\d+?)/(\d+?)/(\d+?)""".r
     value match {
       case pattern1(year, month, day, hour, minutes, seconds) =>
         Right(
@@ -42,7 +43,20 @@ object ZonedDateTimeParser {
             ZoneId.systemDefault()
           )
         )
-      case pattern3(year, month, day) =>
+      case pattern3(year, month, day, hour, minutes) =>
+        Right(
+          ZonedDateTime.of(
+            year.toInt,
+            month.toInt,
+            day.toInt,
+            hour.toInt,
+            minutes.toInt,
+            0,
+            0,
+            ZoneId.systemDefault()
+          )
+        )
+      case pattern4(year, month, day) =>
         Right(
           ZonedDateTime.of(
             year.toInt,

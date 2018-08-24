@@ -5,12 +5,16 @@ import java.io.File
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
+import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
 import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.parsers.TextFileParser
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
-import com.nulabinc.backlog.c2b.readers.CybozuCSVReader
+import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, CybozuTopicTextReader}
 import com.osinka.i18n.Messages
+import monix.eval.Task
+import monix.reactive.Observable
 
 object CybozuStore extends Logger {
 
@@ -123,10 +127,38 @@ object CybozuStore extends Logger {
       )
     } yield ()
 
-  def chat(files: Array[File]): AppProgram[Unit] =
+  def chat(files: Array[File]): AppProgram[Unit] = {
+    import com.nulabinc.backlog.c2b.syntax.EitherOps._
+
     for {
       _ <- AppDSL.fromConsole(ConsoleDSL.print(Messages("message.init.collect", Messages("name.chat"))))
+      _ <- AppDSL.fromStore(
+        StoreDSL.writeDBStream(
+          CybozuTopicTextReader.read(files).map { result =>
+            val topic = TextFileParser.topic(result.topicText).orExit
+            val postStream = result.comments.map(TextFileParser.post).map {
+              case Right(value) => value
+              case Left(error) => throw CybozuLiveImporterException(error.toString)
+            }
+
+            for {
+              chatId <- StoreDSL.storeChat(CybozuDBChat.from(topic))
+              _ <- StoreDSL.writeDBStream {
+                val stream = postStream.map { post =>
+                  val creator = CybozuUser.fromCybozuTextUser(post.postUser)
+                  for {
+                    postUserId <- insertOrUpdateUser(creator)
+                    _ <- StoreDSL.storeComment(CybozuDBComment.from(chatId, post, postUserId), ChatComment)
+                  } yield ()
+                }
+                Observable.fromIterator(stream.toIterator)
+              }
+            } yield ()
+          }
+        )
+      )
     } yield ()
+  }
 
   private def sequential[A](prgs: Seq[StoreProgram[A]]): StoreProgram[Seq[A]] =
     prgs.foldLeft(StoreDSL.pure(Seq.empty[A])) {
