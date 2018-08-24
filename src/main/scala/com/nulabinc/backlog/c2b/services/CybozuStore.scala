@@ -13,7 +13,6 @@ import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.c2b.readers.{CybozuCSVReader, CybozuTopicTextReader}
 import com.osinka.i18n.Messages
-import monix.eval.Task
 import monix.reactive.Observable
 
 object CybozuStore extends Logger {
