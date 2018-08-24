@@ -37,6 +37,7 @@ validation.backlog_project_already_exist=プロジェクト[{0}]はBacklog内に
 issue.type.todo=ToDo
 issue.type.event=イベント
 issue.type.forum=掲示板
+issue.type.chat=チャット
 
 # Mapping file
 mapping.output_file={0}のマッピングファイルを作成しました。マッピングファイルを確認し、必要に応じて修正してください。
