@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b.datas
 
+import java.time.{ZoneId, ZonedDateTime}
+
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 
 case class CybozuUser(
@@ -56,7 +58,8 @@ case class CybozuChat(
   id: AnyId,
   title: String,
   description: String,
-  comments: Seq[CybozuComment]
+  comments: Seq[CybozuComment],
+  createdAt: DateTime = ZonedDateTime.now(ZoneId.systemDefault)
 )
 
 case class CybozuComment(

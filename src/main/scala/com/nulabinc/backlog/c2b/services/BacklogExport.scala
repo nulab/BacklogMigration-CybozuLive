@@ -27,7 +27,8 @@ object BacklogExport extends Logger {
   val issueTypes: Map[IssueType, CybozuIssueType] = Map(
     IssueType.ToDo -> CybozuIssueType(Messages("issue.type.todo")),
     IssueType.Event -> CybozuIssueType(Messages("issue.type.event")),
-    IssueType.Forum -> CybozuIssueType(Messages("issue.type.forum"))
+    IssueType.Forum -> CybozuIssueType(Messages("issue.type.forum")),
+    IssueType.Chat -> CybozuIssueType(Messages("issue.type.chat"))
   )
 
   val openStatusName: String = Messages("name.status.open")
@@ -43,7 +44,8 @@ object BacklogExport extends Logger {
       _ <- customFields(config)
       todoCount <- todos(config, issueTypes(IssueType.ToDo), openStatusName, 0)
       eventCount <- events(config, issueTypes(IssueType.Event), todoCount)
-      _ <- forums(config, issueTypes(IssueType.Forum), eventCount)
+      forumCount <- forums(config, issueTypes(IssueType.Forum), eventCount)
+      _ <- chats(config, issueTypes(IssueType.Chat), forumCount)
       _ <- finish
     } yield ()
 
@@ -174,6 +176,22 @@ object BacklogExport extends Logger {
     } yield total
   }
 
+  def chats(config: Config, issueType: CybozuIssueType, startIndex: Int)(implicit mappingContext: MappingContext): AppProgram[Int] = {
+    val issueConverter = new IssueConverter()
+    val commentConverter = new CommentConverter()
+
+    for {
+      chats <- AppDSL.fromStore(StoreDSL.getChats)
+      total <- AppDSL.fromStore(StoreDSL.getChatCount)
+      _ <- AppDSL.consumeStream {
+        chats.zipWithIndex.map {
+          case (chat, index) =>
+            exportChat(config.backlogPaths, chat.id, issueType, issueConverter, commentConverter, startIndex + index, startIndex + total)
+        }
+      }
+    } yield total
+  }
+
   private def exportTodo(paths: BacklogPaths,
                          todoId: AnyId,
                          issueType: CybozuIssueType,
@@ -270,6 +288,32 @@ object BacklogExport extends Logger {
         }.getOrElse(throw CybozuLiveImporterException("Forum not found"))
     } yield ()
 
+
+  private def exportChat(paths: BacklogPaths,
+                         chatId: AnyId,
+                         issueType: CybozuIssueType,
+                         issueConverter: IssueConverter,
+                         commentConverter: CommentConverter,
+                         index: Long,
+                         total: Long): AppProgram[Unit] =
+    for {
+      optChat <- AppDSL.fromStore(StoreDSL.getChat(chatId))
+      _ <- optChat.map { chat =>
+        val newId = index.toInt + 1
+        val comments = chat.comments.map(c => c.copy(parentId = newId))
+        chat.copy(id = newId, comments = comments, createdAt = comments.headOption.map(_.createdAt).getOrElse(chat.createdAt))
+      }.map { chat =>
+        issueConverter.from(chat.copy(id = index.toInt + 1), issueType) match {
+          case Right(backlogIssue) =>
+            for {
+              _ <- exportIssue(paths, backlogIssue, chat.createdAt, index, total)
+              _ <- exportComments(paths, chat.comments, commentConverter)
+            } yield ()
+          case Left(error) =>
+            throw CybozuLiveImporterException("Chat convert error. " + error.toString)
+        }
+      }.getOrElse(throw CybozuLiveImporterException("Chat not found"))
+    } yield ()
 
   private def exportIssue(paths: BacklogPaths,
                           backlogIssue: BacklogIssue,
