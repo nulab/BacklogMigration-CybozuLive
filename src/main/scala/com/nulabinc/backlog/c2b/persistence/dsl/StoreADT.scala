@@ -15,6 +15,7 @@ sealed trait CommentType
 case object TodoComment extends CommentType
 case object EventComment extends CommentType
 case object ForumComment extends CommentType
+case object ChatComment extends CommentType
 
 case class Pure[A](a: A) extends StoreADT[A]
 
@@ -39,6 +40,11 @@ case object GetForums extends StoreADT[Observable[CybozuDBForum]]
 case object GetForumCount extends StoreADT[Int]
 case class GetForum(id: AnyId) extends StoreADT[Option[CybozuForum]]
 case class StoreForum(forum: CybozuDBForum, writeType: WriteType = Insert) extends StoreADT[AnyId]
+
+case object GetChats extends StoreADT[Observable[CybozuDBChat]]
+case object GetChatCount extends StoreADT[Int]
+case class GetChat(id: AnyId) extends StoreADT[Option[CybozuChat]]
+case class StoreChat(chat: CybozuDBChat, writeType: WriteType = Insert) extends StoreADT[AnyId]
 
 case object GetCybozuUsers extends StoreADT[Observable[CybozuUser]]
 case class GetCybozuUserById(id: AnyId) extends StoreADT[Option[CybozuUser]]

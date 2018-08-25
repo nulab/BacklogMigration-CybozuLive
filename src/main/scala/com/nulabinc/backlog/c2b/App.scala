@@ -103,7 +103,10 @@ object App extends Logger {
 
     val backlogApi = AllApi.accessKey(s"${config.backlogUrl}/api/v2/", config.backlogKey)
 
-    val csvFiles = Config.DATA_PATHS.toFile.listFiles().filter(_.getName.endsWith(".csv"))
+    val exportFiles = Config.DATA_PATHS
+      .toFile
+      .listFiles()
+      .filter(file => file.getName.endsWith(".csv") || file.getName.endsWith(".txt"))
 
     for {
       // Initialize
@@ -116,7 +119,7 @@ object App extends Logger {
       _ <- AppDSL.fromStorage(StorageDSL.deleteFile(Config.DB_PATH))
       _ <- AppDSL.fromStore(StoreDSL.createDatabase)
       // Read CSV and to store
-      _ <- CybozuStore.copyToStore(csvFiles)
+      _ <- CybozuStore.copyToStore(exportFiles)
       // Collect Backlog data to store
       _ <- BacklogService.storePriorities(backlogApi.priorityApi)
       _ <- BacklogService.storeStatuses(backlogApi.statusApi)

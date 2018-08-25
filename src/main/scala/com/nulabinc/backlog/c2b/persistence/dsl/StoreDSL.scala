@@ -88,6 +88,21 @@ object StoreDSL {
     Free.liftF(StoreForum(forum))
 
   //
+  // Cybozu Chat
+  //
+  lazy val getChats: StoreProgram[Observable[CybozuDBChat]] =
+    Free.liftF(GetChats)
+
+  lazy val getChatCount: StoreProgram[Int] =
+    Free.liftF(GetChatCount)
+
+  def getChat(id: AnyId): StoreProgram[Option[CybozuChat]] =
+    Free.liftF(GetChat(id))
+
+  def storeChat(chat: CybozuDBChat): StoreProgram[AnyId] =
+    Free.liftF(StoreChat(chat))
+
+  //
   // Cybozu user
   //
   lazy val getCybozuUsers: StoreProgram[Observable[CybozuUser]] =

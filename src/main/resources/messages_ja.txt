@@ -13,6 +13,7 @@ name.mapping.user=ユーザー
 name.mapping.priority=優先度
 name.mapping.status=状態
 name.status.open=未完了
+name.chat=チャット
 
 # Validation
 validation.access={0}にアクセス可能かチェックしています...
@@ -36,6 +37,7 @@ validation.backlog_project_already_exist=プロジェクト[{0}]はBacklog内に
 issue.type.todo=ToDo
 issue.type.event=イベント
 issue.type.forum=掲示板
+issue.type.chat=チャット
 
 # Mapping file
 mapping.output_file={0}のマッピングファイルを作成しました。マッピングファイルを確認し、必要に応じて修正してください。

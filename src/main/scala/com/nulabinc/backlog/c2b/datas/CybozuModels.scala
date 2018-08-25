@@ -1,5 +1,7 @@
 package com.nulabinc.backlog.c2b.datas
 
+import java.time.{ZoneId, ZonedDateTime}
+
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
 
 case class CybozuUser(
@@ -10,7 +12,9 @@ case class CybozuUser(
 object CybozuUser {
   val tupled = (this.apply _).tupled
   def from(user: CybozuCSVUser): CybozuUser =
-    new CybozuUser(0, user.value)
+    CybozuUser(0, user.value)
+  def fromCybozuTextUser(user: CybozuTextUser): CybozuUser =
+    CybozuUser(0, user.value)
 }
 
 case class CybozuTodo(
@@ -50,6 +54,14 @@ case class CybozuForum(
   comments: Seq[CybozuComment]
 )
 
+case class CybozuChat(
+  id: AnyId,
+  title: String,
+  description: String,
+  comments: Seq[CybozuComment],
+  createdAt: DateTime = ZonedDateTime.now(ZoneId.systemDefault)
+)
+
 case class CybozuComment(
   id: AnyId,
   parentId: AnyId,
@@ -57,6 +69,17 @@ case class CybozuComment(
   createdAt: DateTime,
   content: String
 )
+
+object CybozuComment {
+  def from(parentId: AnyId, post: CybozuTextPost, postUserId: AnyId): CybozuComment =
+    CybozuComment(
+      id = 0,
+      parentId = parentId,
+      creator = CybozuUser(postUserId, post.postUser.value),
+      createdAt = post.postedAt,
+      content = post.content
+    )
+}
 
 case class CybozuIssueType(value: String) extends AnyVal
 case class CybozuStatus(value: String) extends AnyVal

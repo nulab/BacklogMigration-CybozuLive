@@ -41,6 +41,14 @@ trait StoreInterpreter[F[_]] extends (StoreADT ~> F) {
 
   def getForumCount: F[Int]
 
+  def getChats: F[Observable[CybozuDBChat]]
+
+  def getChat(id: AnyId): F[Option[CybozuChat]]
+
+  def storeChat(chat: CybozuDBChat, writeType: WriteType): F[AnyId]
+
+  def getChatCount: F[Int]
+
   def storeComment(comment: CybozuDBComment, commentType: CommentType, writeType: WriteType): F[AnyId]
 
   def storeComments(comments: Seq[CybozuDBComment], commentType: CommentType, writeType: WriteType): F[Seq[AnyId]]
@@ -86,6 +94,10 @@ trait StoreInterpreter[F[_]] extends (StoreADT ~> F) {
     case GetEventCount => getEventCount
     case GetEvents => getEvents
     case StoreEvent(event, writeType) => storeEvent(event, writeType)
+    case GetChats => getChats
+    case GetChat(id) => getChat(id)
+    case GetChatCount => getChatCount
+    case StoreChat(chat, writeType) => storeChat(chat, writeType)
     case StoreComment(comment, commentType, writeType) => storeComment(comment, commentType, writeType)
     case StoreComments(comments, commentType, writeType) => storeComments(comments, commentType, writeType)
     case StoreTodoAssignees(todoId, assigneeIds) => storeTodoAssignees(todoId, assigneeIds)

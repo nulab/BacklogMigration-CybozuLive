@@ -13,6 +13,7 @@ name.mapping.user=User
 name.mapping.priority=Priority
 name.mapping.status=Status
 name.status.open=Open
+name.chat=Chat
 
 # Validation
 validation.access=Checking whether the {0} is accessible ...
@@ -36,6 +37,7 @@ validation.backlog_project_already_exist=Project "{0}" already exists. Do you wa
 issue.type.todo=To-Do
 issue.type.event=Event
 issue.type.forum=Forum
+issue.type.chat=Chat
 
 # Mapping file
 mapping.output_file=The mapping file about {0} is created. Check the mapping file and fix it if necessary.

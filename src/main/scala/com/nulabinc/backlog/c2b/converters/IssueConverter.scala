@@ -93,6 +93,16 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
     }
   }
 
+  def from(from: CybozuChat, issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] =
+    Right(
+      defaultBacklogIssue.copy(
+        id = from.id,
+        summary = createBacklogIssueSummary(from.title),
+        description = from.description,
+        optIssueTypeName = Some(issueType.value)
+      )
+    )
+
   private def createBacklogIssueSummary(summary: String): BacklogIssueSummary =
     BacklogIssueSummary(value = summary, original = summary)
 

@@ -21,3 +21,4 @@ private[sqlite] abstract class CommentTable(tag: Tag, name: String) extends Base
 private[sqlite] class ToDoCommentTable(tag: Tag) extends CommentTable(tag, "cybozu_todo_comments")
 private[sqlite] class EventCommentTable(tag: Tag) extends CommentTable(tag, "cybozu_event_comments")
 private[sqlite] class ForumCommentTable(tag: Tag) extends CommentTable(tag, "cybozu_forum_comments")
+private[sqlite] class ChatCommentTable(tag: Tag) extends CommentTable(tag, "cybozu_chat_comments")
