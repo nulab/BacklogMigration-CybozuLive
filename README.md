@@ -101,10 +101,15 @@ Backlogの **管理者権限** が必要になります。
 ### プロジェクトについて
 * テキスト整形のルール： **markdown**
 
+### チャットデータの移行について
+* 状態は全て **Open** となります。
+
 ### CybozuLive側の制限について
 - 掲示板/ToDoリスト
   - コメント数：最新から10,000件
 - イベント
+  - コメント数：最新から10,000件
+- チャット
   - コメント数：最新から10,000件
 - 掲示板やイベントの添付ファイルは移行できません
 - ToDoのカテゴリは移行できません。
@@ -253,10 +258,15 @@ Sample commands:
 ### Backlog's user roles
 This program is for the users with the Space's **administrator** roles.
 
+### About migrating chat data
+* All states are **Open**.
+
 ### About limitations in CybozuLive
 - Forum/ToDo-list
   - Comments：10,000 from the latest
 - Event
+  - Comments：10,000 from the latest
+- Chat
   - Comments：10,000 from the latest
 - Can not migrate bulletin forum and event attachments
 - The ToDo category can not be migrated.
