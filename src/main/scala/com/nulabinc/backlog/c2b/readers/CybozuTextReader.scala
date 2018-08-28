@@ -27,7 +27,7 @@ object CybozuTopicTextReader {
           .drop(1)
           .foldLeftF(Last("", Stream.empty[String], "")) {
             case (acc, line) =>
-              if (line.startsWith(topicSeparator) || line.startsWith(commentSeparator)) {
+              if (line == topicSeparator || line == commentSeparator) {
                 if (acc.topicText.isEmpty)
                   Last(acc.last, acc.comments, "")
                 else
