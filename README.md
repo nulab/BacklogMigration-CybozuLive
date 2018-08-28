@@ -103,6 +103,7 @@ Backlogの **管理者権限** が必要になります。
 
 ### チャットデータの移行について
 * チャットとして移行された課題の状態は全て **Open** となります。
+* 課題の作成者と作成日時は、最初にチャットルームで投稿したユーザと投稿日時になります
 
 ### CybozuLive側の制限について
 - 掲示板/ToDoリスト
@@ -260,6 +261,7 @@ This program is for the users with the Space's **administrator** roles.
 
 ### About migrating chat data
 * All issues that are created when migrating chats will have state **Open**.
+* The creator of the issue and the creation date are the user who posted in the chat room and the posting date.
 
 ### About limitations in CybozuLive
 - Forum/ToDo-list
