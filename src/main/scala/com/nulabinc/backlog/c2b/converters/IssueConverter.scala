@@ -99,7 +99,10 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
         id = from.id,
         summary = createBacklogIssueSummary(from.title),
         description = from.description,
-        optIssueTypeName = Some(issueType.value)
+        optIssueTypeName = Some(issueType.value),
+        operation = defaultBacklogIssue.operation.copy(
+          optCreated = Some(DateUtil.toDateTimeString(from.createdAt))
+        )
       )
     )
 
