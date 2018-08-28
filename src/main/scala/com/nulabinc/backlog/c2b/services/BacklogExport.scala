@@ -301,17 +301,20 @@ object BacklogExport extends Logger {
       _ <- optChat.map { chat =>
         val newId = index.toInt + 1
         val comments = chat.comments.map(c => c.copy(parentId = newId))
-        chat.copy(id = newId, comments = comments, createdAt = comments.headOption.map(_.createdAt).getOrElse(chat.createdAt))
-      }.map { chat =>
-        issueConverter.from(chat.copy(id = index.toInt + 1), issueType) match {
-          case Right(backlogIssue) =>
-            for {
-              _ <- exportIssue(paths, backlogIssue, chat.createdAt, index, total)
-              _ <- exportComments(paths, chat.comments, commentConverter)
-            } yield ()
-          case Left(error) =>
-            throw CybozuLiveImporterException("Chat convert error. " + error.toString)
-        }
+        val optCreator = comments.headOption.map(_.creator)
+        val newChat = chat.copy(id = newId, comments = comments, createdAt = comments.headOption.map(_.createdAt).getOrElse(chat.createdAt))
+        (newChat, optCreator)
+      }.map {
+        case (chat, optCreator) =>
+          issueConverter.from(chat.copy(id = index.toInt + 1), optCreator, issueType) match {
+            case Right(backlogIssue) =>
+              for {
+                _ <- exportIssue(paths, backlogIssue, chat.createdAt, index, total)
+                _ <- exportComments(paths, chat.comments, commentConverter)
+              } yield ()
+            case Left(error) =>
+              throw CybozuLiveImporterException("Chat convert error. " + error.toString)
+          }
       }.getOrElse(throw CybozuLiveImporterException("Chat not found"))
     } yield ()
 
