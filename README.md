@@ -208,9 +208,11 @@ Create a data directory.
 Put exported files into `backlog-migration` directory.
     
 ### Export chat data from CybozuLive
-1. Open CybozuLive Home and click [Chat]
-2. Click on the chat you want to export
-3. Click [Show description] > [Output as text]
+1. Open CybozuLive Home and click [Chat].
+2. Click on the chat you wish to export.
+3. Click [Show description] and then [Output as text].
+
+Put the exported files into the `backlog-migration` directory.
 
 Put exported files into `backlog-migration` directory.
 
