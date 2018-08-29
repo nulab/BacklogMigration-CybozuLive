@@ -42,6 +42,12 @@ jarファイルをダウンロードします。
     
 CybozuLiveからエクスポートしたCSVファイルを、作成した`backlog-migration`ディレクトリ内に配置します。
 
+### CybozuLiveからチャットデータのエクスポート
+1. CybozuLiveホームから、[チャット]をクリックする
+2. エクスポートしたいチャットをクリックする
+3. [詳細を見る]から[テキストで出力する]をクリックする
+
+CybozuLiveからエクスポートしたtxtファイルを、作成した`backlog-migration`ディレクトリ内に配置します。
 
 ### Init コマンド
 
@@ -201,7 +207,13 @@ Create a data directory.
  
 Put exported files into `backlog-migration` directory.
     
-    
+### Export chat data from CybozuLive
+1. Open CybozuLive Home and click [Chat]
+2. Click on the chat you want to export
+3. Click [Show description] > [Output as text]
+
+Put exported files into `backlog-migration` directory.
+
 ### Init command
 Execute the [** init **] command to initialize the application and collect CSV data. 
 After that it will create a mapping file.
