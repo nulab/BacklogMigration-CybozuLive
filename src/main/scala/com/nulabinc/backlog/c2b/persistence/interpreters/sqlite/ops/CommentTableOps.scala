@@ -27,3 +27,7 @@ private[sqlite] case class EventCommentTableOps()(implicit exc: Scheduler) exten
 private[sqlite] case class ForumCommentTableOps()(implicit exc: Scheduler) extends BaseTableOps[CybozuDBComment, ForumCommentTable] {
   override val tableQuery = TableQuery[ForumCommentTable]
 }
+
+private[sqlite] case class ChatCommentTableOps()(implicit exc: Scheduler) extends BaseTableOps[CybozuDBComment, ChatCommentTable] {
+  override val tableQuery = TableQuery[ChatCommentTable]
+}

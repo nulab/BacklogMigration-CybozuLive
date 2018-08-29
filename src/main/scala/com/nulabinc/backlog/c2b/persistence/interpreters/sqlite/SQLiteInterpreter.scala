@@ -88,11 +88,30 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
     db.run(forumTableOps.count)
   }
 
+  override def getChats: Task[Observable[CybozuDBChat]] = Task.eval {
+    Observable.fromReactivePublisher(
+      db.stream(chatTableOps.stream)
+    )
+  }
+
+  override def getChat(id: AnyId): Task[Option[CybozuChat]] = Task.deferFuture {
+    db.run(chatTableOps.getChat(id))
+  }
+
+  override def storeChat(chat: CybozuDBChat, writeType: WriteType): Task[AnyId] = Task.deferFuture {
+    db.run(chatTableOps.write(chat, writeType))
+  }
+
+  override def getChatCount: Task[AnyId] = Task.deferFuture {
+    db.run(chatTableOps.count)
+  }
+
   override def storeComment(comment: CybozuDBComment, commentType: CommentType, writeType: WriteType): Task[AnyId] = Task.deferFuture {
     commentType match {
       case TodoComment => db.run(todoCommentTableOps.write(comment, writeType))
       case EventComment => db.run(eventCommentTableOps.write(comment, writeType))
       case ForumComment => db.run(forumCommentTableOps.write(comment, writeType))
+      case ChatComment => db.run(chatCommentTableOps.write(comment, writeType))
     }
   }
 
@@ -101,6 +120,7 @@ class SQLiteInterpreter(dbPath: Path)(implicit exc: Scheduler) extends StoreInte
       case TodoComment => db.run(todoCommentTableOps.write(comments, writeType))
       case EventComment => db.run(eventCommentTableOps.write(comments, writeType))
       case ForumComment => db.run(forumCommentTableOps.write(comments, writeType))
+      case ChatComment => db.run(chatCommentTableOps.write(comments, writeType))
     }
   }
 

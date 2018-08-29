@@ -2,8 +2,6 @@
 CybozuLiveのグループを[Backlog]に移行するためのツールです。
 (English document is described after Japanese)
 
-**Backlog Migration for CybozuLiveはベータバージョンです。Backlog上の既存プロジェクトにインポートする場合は、先に新しく別プロジェクトを作成し、こちらにインポートし内容を確認後、正式なプロジェクトにインポートしてください**
-
 * Backlog
     * [https://backlog.com](https://backlog.com/)
 
@@ -103,10 +101,16 @@ Backlogの **管理者権限** が必要になります。
 ### プロジェクトについて
 * テキスト整形のルール： **markdown**
 
+### チャットデータの移行について
+* チャットとして移行された課題の状態は全て **Open** となります。
+* 課題の作成者と作成日時は、最初にチャットルームで投稿したユーザと投稿日時になります。
+
 ### CybozuLive側の制限について
 - 掲示板/ToDoリスト
   - コメント数：最新から10,000件
 - イベント
+  - コメント数：最新から10,000件
+- チャット
   - コメント数：最新から10,000件
 - 掲示板やイベントの添付ファイルは移行できません
 - ToDoのカテゴリは移行できません。
@@ -255,10 +259,16 @@ Sample commands:
 ### Backlog's user roles
 This program is for the users with the Space's **administrator** roles.
 
+### About migrating chat data
+* All issues that are created when migrating chats will have state **Open**.
+* The user that first posted to the chat will be set as the issues Registered by and the first message post time will be set as the issues Created date.
+
 ### About limitations in CybozuLive
 - Forum/ToDo-list
   - Comments：10,000 from the latest
 - Event
+  - Comments：10,000 from the latest
+- Chat
   - Comments：10,000 from the latest
 - Can not migrate bulletin forum and event attachments
 - The ToDo category can not be migrated.

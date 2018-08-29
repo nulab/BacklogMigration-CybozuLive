@@ -93,6 +93,25 @@ class IssueConverter()(implicit ctx: MappingContext) extends Logger {
     }
   }
 
+  def from(from: CybozuChat, firstPostUser: Option[CybozuUser], issueType: CybozuIssueType): Either[ConvertError, BacklogIssue] = {
+    val createdAt = DateUtil.toDateTimeString(from.createdAt)
+    for {
+      optCreator <- userConverter.to(firstPostUser)
+    } yield
+      defaultBacklogIssue.copy(
+        id = from.id,
+        summary = createBacklogIssueSummary(from.title),
+        description = from.description,
+        optIssueTypeName = Some(issueType.value),
+        operation = defaultBacklogIssue.operation.copy(
+          optCreatedUser = optCreator,
+          optCreated = Some(createdAt),
+          optUpdatedUser = optCreator,
+          optUpdated = Some(createdAt)
+        )
+      )
+  }
+
   private def createBacklogIssueSummary(summary: String): BacklogIssueSummary =
     BacklogIssueSummary(value = summary, original = summary)
 

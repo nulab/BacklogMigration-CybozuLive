@@ -37,4 +37,10 @@ class ZonedDateTimeParserSpec extends FlatSpec with Matchers {
     val actual = ZonedDateTimeParser.toZonedDateTime(date, time)
     actual shouldEqual Right(ZonedDateTime.of(2015, 10, 5, 8, 23, 0, 0, ZoneId.systemDefault()))
   }
+
+  "ZonedDateTimeParser" should "parse other formatted date time string" in {
+    val date = "Fri, Jul 13, 2018 8:36"
+    val actual = ZonedDateTimeParser.toZonedDateTime(date)
+    actual shouldEqual Right(ZonedDateTime.of(2018, 7, 13, 8, 36, 0, 0, ZoneId.systemDefault()))
+  }
 }
