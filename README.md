@@ -261,7 +261,7 @@ This program is for the users with the Space's **administrator** roles.
 
 ### About migrating chat data
 * All issues that are created when migrating chats will have state **Open**.
-* The creator of the issue and the creation date are the user who posted in the chat room and the posting date.
+* The user that first posted to the chat will be set as the issues Registered by and the first message post time will be set as the issues Created date.
 
 ### About limitations in CybozuLive
 - Forum/ToDo-list
