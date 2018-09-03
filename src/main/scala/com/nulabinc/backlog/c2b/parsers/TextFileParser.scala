@@ -5,7 +5,7 @@ import com.nulabinc.backlog.c2b.datas.{CybozuTextPost, CybozuTextTopic, CybozuTe
 object TextFileParser {
 
   private val titlePattern = """.+?: (.+?)""".r
-  private val MIN_TOPIC_LINES = 4
+  private val MIN_TOPIC_LINES = 2
   private val TITLE_LINE_INDEX = 1
   private val DESCRIPRION_START_INDEX = 3
 
@@ -18,13 +18,14 @@ object TextFileParser {
 
   def topic(topicText: String): Either[ParseError[CybozuTextTopic], CybozuTextTopic] = {
     val lines = topicText.split("\n")
+    val lineLength = lines.length
 
-    if (lines.length < MIN_TOPIC_LINES)
-      Left(CannotParseFromString(classOf[CybozuTextTopic], "Invalid topic rows: min", topicText))
+    if (lineLength < MIN_TOPIC_LINES)
+      Left(CannotParseFromString(classOf[CybozuTextTopic], s"Invalid topic row length: $lineLength. Required: $MIN_TOPIC_LINES", topicText))
     else {
       val result = for {
         title <- title(lines(TITLE_LINE_INDEX))
-        description = arrayToString(lines.slice(DESCRIPRION_START_INDEX, lines.length))
+        description = if (lineLength < DESCRIPRION_START_INDEX) "" else arrayToString(lines.slice(DESCRIPRION_START_INDEX, lineLength))
       } yield CybozuTextTopic(title, description)
       result match {
         case Right(value) => Right(value)
