@@ -1,7 +1,7 @@
 package com.nulabinc.backlog.c2b.syntax
 
-import com.nulabinc.backlog.c2b.interpreters.AppDSL
-import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.dsl.AppDSL
+import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
 
 import scala.util.{Failure, Success, Try}
 
