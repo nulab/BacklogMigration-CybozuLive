@@ -6,8 +6,7 @@ import better.files.File
 import cats.free.Free
 import com.github.chaabaj.backlog4s.dsl.ApiDsl.ApiPrg
 import com.github.chaabaj.backlog4s.streaming.ApiStream.ApiStream
-import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL
-import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
+import com.nulabinc.backlog.c2b.dsl.ConsoleDSL.ConsoleProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration

@@ -6,10 +6,9 @@ import com.github.chaabaj.backlog4s.apis._
 import com.github.chaabaj.backlog4s.datas._
 import com.github.chaabaj.backlog4s.dsl.HttpADT.Response
 import com.nulabinc.backlog.c2b.core.Logger
-import com.nulabinc.backlog.c2b.dsl.AppDSL
+import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
-import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL
 import com.nulabinc.backlog.c2b.services.MappingFiles
 import com.osinka.i18n.Messages

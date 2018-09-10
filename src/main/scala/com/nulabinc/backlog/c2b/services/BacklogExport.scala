@@ -8,10 +8,9 @@ import com.nulabinc.backlog.c2b.converters._
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.{AnyId, DateTime}
-import com.nulabinc.backlog.c2b.dsl.AppDSL
+import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
-import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
 import com.nulabinc.backlog.migration.common.conf.BacklogPaths
 import com.nulabinc.backlog.migration.common.domain._

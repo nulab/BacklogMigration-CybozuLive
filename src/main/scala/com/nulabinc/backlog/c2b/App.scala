@@ -8,9 +8,9 @@ import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core._
-import com.nulabinc.backlog.c2b.dsl.AppDSL
+import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleDSL, ConsoleInterpreter}
+import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
