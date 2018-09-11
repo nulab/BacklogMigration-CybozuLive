@@ -5,9 +5,9 @@ import java.io.File
 import com.nulabinc.backlog.c2b.core.Logger
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
+import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL}
+import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
-import com.nulabinc.backlog.c2b.interpreters.{AppDSL, ConsoleDSL}
-import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.parsers.TextFileParser
 import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram

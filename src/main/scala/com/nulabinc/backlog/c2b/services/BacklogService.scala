@@ -3,8 +3,8 @@ package com.nulabinc.backlog.c2b.services
 import com.github.chaabaj.backlog4s.apis.{PriorityApi, StatusApi, UserApi}
 import com.nulabinc.backlog.c2b.datas.{BacklogPriority, BacklogStatus, BacklogUser}
 import com.nulabinc.backlog.c2b.exceptions.CybozuLiveImporterException
-import com.nulabinc.backlog.c2b.interpreters.AppDSL
-import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.dsl.AppDSL
+import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL
 import monix.reactive.Observable
 

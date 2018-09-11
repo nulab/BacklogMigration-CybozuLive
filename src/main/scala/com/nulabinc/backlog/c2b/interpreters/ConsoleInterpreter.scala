@@ -1,30 +1,10 @@
 package com.nulabinc.backlog.c2b.interpreters
 
-import cats.free.Free
 import cats.~>
-import com.nulabinc.backlog.c2b.interpreters.ConsoleDSL.ConsoleProgram
+import com.nulabinc.backlog.c2b.dsl._
+import com.nulabinc.backlog.c2b.dsl.ConsoleDSL.ConsoleProgram
 import com.nulabinc.backlog.migration.common.utils.ConsoleOut
 import monix.eval.Task
-
-sealed trait ConsoleADT[A]
-case class Print(str: String) extends ConsoleADT[Unit]
-case class PrintBold(str: String) extends ConsoleADT[Unit]
-case class Read(printMessage: String) extends ConsoleADT[String]
-
-object ConsoleDSL {
-
-  type ConsoleProgram[A] = Free[ConsoleADT, A]
-
-  def print(str: String): ConsoleProgram[Unit] =
-    Free.liftF(Print(str))
-
-  def printBold(str: String): ConsoleProgram[Unit] =
-    Free.liftF(PrintBold(str))
-
-  def read(printMessage: String): ConsoleProgram[String] =
-    Free.liftF(Read(printMessage))
-
-}
 
 class ConsoleInterpreter extends (ConsoleADT ~> Task) {
 
