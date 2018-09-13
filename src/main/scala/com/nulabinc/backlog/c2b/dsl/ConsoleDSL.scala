@@ -12,6 +12,9 @@ object ConsoleDSL {
   def printBold(str: String): ConsoleProgram[Unit] =
     Free.liftF(PrintBold(str))
 
+  def printWarning(str: String): ConsoleProgram[Unit] =
+    Free.liftF(PrintWarning(str))
+
   def read(printMessage: String): ConsoleProgram[String] =
     Free.liftF(Read(printMessage))
 

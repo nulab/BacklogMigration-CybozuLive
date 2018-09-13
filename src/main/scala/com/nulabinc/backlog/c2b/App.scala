@@ -20,7 +20,7 @@ import com.osinka.i18n.Messages
 import monix.eval.Task
 import monix.execution.Scheduler
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 object App extends Logger {
 
@@ -34,21 +34,6 @@ object App extends Logger {
     } yield ()) match {
       case Failure(ex) => exit(1, ex)
       case _ => ()
-    }
-
-    // Check release version
-    GithubRelease.getLatestVersion() match {
-      case Success(latestVersion) =>
-        if (latestVersion != Config.App.version) {
-          ConsoleOut.warning(
-            s"""
-               |--------------------------------------------------
-               |${Messages("warn.not_latest_version", latestVersion, Config.App.version)}
-               |--------------------------------------------------
-            """.stripMargin)
-        }
-      case Failure(error) =>
-        log.error(error.getMessage, error)
     }
 
     val config = ConfigParser.parse(args) match {
@@ -75,6 +60,7 @@ object App extends Logger {
 
     val program = for {
       _ <- AppDSL.setLanguage(Config.App.language)
+      _ <- checkReleaseVersion(Config.App.version)
       _ <- printBanner()
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, Config.App.language)
@@ -166,6 +152,29 @@ object App extends Logger {
            |--------------------------------------------------""".stripMargin
       )
     )
+
+  private def checkReleaseVersion(appVersion: String): AppProgram[Unit] =
+    for {
+      versionResponse <- GithubRelease.getLatestVersionProgram
+      messageResponse = for {
+        latestVersion <- versionResponse
+        message = if (latestVersion != appVersion) {
+          s"""
+             |--------------------------------------------------
+             |${Messages("warn.not_latest_version", latestVersion, appVersion)}
+             |--------------------------------------------------
+             |""".stripMargin
+        } else
+          ""
+      } yield message
+      _ <- messageResponse match {
+        case Right(data) =>
+          AppDSL.fromConsole(ConsoleDSL.printWarning(data))
+        case Left(error) =>
+          log.error(error.toString)
+          AppDSL.pure(())
+      }
+    } yield ()
 
   private def exit(exitCode: Int): Unit = {
     sys.exit(exitCode)
