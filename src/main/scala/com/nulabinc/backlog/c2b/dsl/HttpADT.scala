@@ -3,7 +3,6 @@ package com.nulabinc.backlog.c2b.dsl
 import com.nulabinc.backlog.c2b.dsl.HttpADT.Response
 
 sealed trait HttpADT[A]
-
 case class Get(uri: String) extends HttpADT[Response[String]]
 
 sealed trait HttpError

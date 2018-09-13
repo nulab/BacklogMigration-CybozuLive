@@ -6,9 +6,9 @@ object HttpDSL {
 
   import HttpADT._
 
-  type HttpProgram[A] = Free[HttpADT, Response[A]]
+  type HttpProgram[A] = Free[HttpADT, A]
 
-  def get(uri: String): HttpProgram[String] =
+  def get(uri: String): HttpProgram[Response[String]] =
     Free.liftF(Get(uri))
 
 }

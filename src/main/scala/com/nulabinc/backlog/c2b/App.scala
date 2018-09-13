@@ -10,7 +10,7 @@ import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core._
 import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL}
 import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter}
+import com.nulabinc.backlog.c2b.interpreters.{AkkaHttpInterpreter, AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
@@ -69,11 +69,13 @@ object App extends Logger {
     implicit val mat: ActorMaterializer = ActorMaterializer()
     implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
 
+    val proxyConfig = ProxyConfig.create
     val interpreter = new AppInterpreter(
-      backlogInterpreter = new AkkaHttpInterpret(ProxyConfig.create),
+      backlogInterpreter = new AkkaHttpInterpret(proxyConfig),
       storageInterpreter = new LocalStorageInterpreter,
       storeInterpreter = new SQLiteInterpreter(Config.DB_PATH),
-      consoleInterpreter = new ConsoleInterpreter
+      consoleInterpreter = new ConsoleInterpreter,
+      httpInterpreter = new AkkaHttpInterpreter(proxyConfig)
     )
 
     val program = for {

@@ -26,7 +26,8 @@ import scala.util.{Failure, Success}
 class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
                      storageInterpreter: StorageInterpreter[Task],
                      storeInterpreter: StoreInterpreter[Task],
-                     consoleInterpreter: ConsoleInterpreter)
+                     consoleInterpreter: ConsoleInterpreter,
+                     httpInterpreter: HttpInterpreter[Task])
                     (implicit exc: Scheduler) extends (AppADT ~> Task) {
 
   def run[A](appProgram: AppProgram[A]): Task[A] =
@@ -70,12 +71,20 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       }
     )
 
-  def terminate(): Task[Unit] = Task.deferFuture {
-    backlogInterpreter match {
-      case akkaInterpreter: AkkaHttpInterpret =>
-        akkaInterpreter.terminate()
+  def terminate(): Task[Unit] = {
+    Task.deferFuture {
+      backlogInterpreter match {
+        case akkaInterpreter: AkkaHttpInterpret =>
+          akkaInterpreter.terminate()
+        case _ =>
+          Future.successful()
+      }
+    }
+    httpInterpreter match {
+      case httpInterpreter: AkkaHttpInterpreter =>
+        httpInterpreter.terminate()
       case _ =>
-        Future.successful()
+        Task()
     }
   }
 
@@ -101,6 +110,8 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     }
     case FromBacklogStream(stream) =>
       fromBacklogStream(stream)
+    case FromHttp(program) =>
+      httpInterpreter.run(program)
     case ConsumeStream(prgs) =>
       consumeStream(prgs)
     case Export(file, content) =>

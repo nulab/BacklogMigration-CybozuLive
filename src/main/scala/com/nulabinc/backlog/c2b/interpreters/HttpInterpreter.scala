@@ -19,7 +19,7 @@ import scala.language.higherKinds
 
 trait HttpInterpreter[F[_]] extends (HttpADT ~> F) {
 
-  def run[A](program: HttpProgram[A])
+  def run[A](program: HttpProgram[A]): Task[A]
 
   def get(uri: String): F[Response[String]]
 
@@ -42,7 +42,7 @@ case class AkkaHttpInterpreter(optTransport: Option[ClientTransport] = None)
     headers.`Accept-Charset`(HttpCharsets.`UTF-8`)
   )
 
-  def run[A](program: HttpProgram[A]): Unit =
+  def run[A](program: HttpProgram[A]): Task[A] =
     program.foldMap(this)
 
   def get(uri: String): Task[Response[String]] = {
