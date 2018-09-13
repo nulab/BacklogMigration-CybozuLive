@@ -30,3 +30,5 @@ case class FromTask[A](task: Task[A]) extends AppADT[Try[A]]
 
 case class Export(file: File, content: String) extends AppADT[File]
 case class Import(backlogApiConfiguration: BacklogApiConfiguration) extends AppADT[PrintStream]
+
+case class SetLanguage(lang: String) extends AppADT[Unit]

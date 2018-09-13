@@ -1,6 +1,7 @@
 package com.nulabinc.backlog.c2b.interpreters
 
 import java.io.PrintStream
+import java.util.Locale
 
 import better.files.File
 import cats.~>
@@ -64,6 +65,14 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
     )
   }
 
+  def setLanguage(lang: String): Task[Unit] = Task {
+    lang match {
+      case "ja" => Locale.setDefault(Locale.JAPAN)
+      case "en" => Locale.setDefault(Locale.US)
+      case _ => ()
+    }
+  }
+
   def consumeStream(programs: Observable[AppProgram[Unit]]): Task[Unit] =
     programs.consumeWith(
       Consumer.foreachParallelTask[AppProgram[Unit]](1) { prg =>
@@ -118,5 +127,7 @@ class AppInterpreter(backlogInterpreter: BacklogHttpInterpret[Future],
       export(file, content)
     case Import(config) =>
       `import`(config)
+    case SetLanguage(lang) =>
+      setLanguage(lang)
   }
 }

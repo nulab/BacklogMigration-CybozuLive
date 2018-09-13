@@ -20,6 +20,10 @@ class ConsoleInterpreter extends (ConsoleADT ~> Task) {
     ConsoleOut.boldln(string)
   }
 
+  def printWarning(string: String): Task[Unit] = Task {
+    ConsoleOut.warning(string)
+  }
+
   def read(printMessage: String): Task[String] = Task {
     scala.io.StdIn.readLine(printMessage)
   }
@@ -27,6 +31,7 @@ class ConsoleInterpreter extends (ConsoleADT ~> Task) {
   def apply[A](fa: ConsoleADT[A]): Task[A] = fa match  {
     case Print(str) => print(str)
     case PrintBold(str) => printBold(str)
+    case PrintWarning(str) => printWarning(str)
     case Read(printMessage) => read(printMessage)
   }
 }

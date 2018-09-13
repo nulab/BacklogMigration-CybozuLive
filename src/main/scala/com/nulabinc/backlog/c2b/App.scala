@@ -1,14 +1,12 @@
 package com.nulabinc.backlog.c2b
 
-import java.util.Locale
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core._
-import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL}
+import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL, HttpDSL}
 import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AkkaHttpInterpreter, AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -22,7 +20,7 @@ import com.osinka.i18n.Messages
 import monix.eval.Task
 import monix.execution.Scheduler
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 object App extends Logger {
 
@@ -36,24 +34,6 @@ object App extends Logger {
     } yield ()) match {
       case Failure(ex) => exit(1, ex)
       case _ => ()
-    }
-
-    // Initialize
-    setLanguage(Config.App.language)
-
-    // Check release version
-    GithubRelease.getLatestVersion() match {
-      case Success(latestVersion) =>
-        if (latestVersion != Config.App.version) {
-          ConsoleOut.warning(
-            s"""
-               |--------------------------------------------------
-               |${Messages("warn.not_latest_version", latestVersion, Config.App.version)}
-               |--------------------------------------------------
-            """.stripMargin)
-        }
-      case Failure(error) =>
-        log.error(error.getMessage, error)
     }
 
     val config = ConfigParser.parse(args) match {
@@ -79,6 +59,8 @@ object App extends Logger {
     )
 
     val program = for {
+      _ <- AppDSL.setLanguage(Config.App.language)
+      _ <- checkReleaseVersion(Config.App.version)
       _ <- printBanner()
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, Config.App.language)
@@ -171,24 +153,34 @@ object App extends Logger {
       )
     )
 
-  private def exit(exitCode: Int): Unit = {
+  private def checkReleaseVersion(appVersion: String): AppProgram[Unit] =
+    for {
+      result <- AppDSL.fromHttp(HttpDSL.get(GithubRelease.url))
+      message <- result match {
+        case Right(source) =>
+          val latestVersion = GithubRelease.parseLatestVersion(source)
+          if (latestVersion != appVersion) {
+            AppDSL.pure(s"""
+               |--------------------------------------------------
+               |${Messages("warn.not_latest_version", latestVersion, appVersion)}
+               |--------------------------------------------------
+               |""".stripMargin
+            )
+          } else
+            AppDSL.pure("")
+        case Left(error) =>
+          log.error(error.toString)
+          AppDSL.pure("")
+      }
+      _ <- AppDSL.fromConsole(ConsoleDSL.printWarning(message))
+    } yield ()
+
+  private def exit(exitCode: Int): Unit =
     sys.exit(exitCode)
-  }
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
-    ConsoleOut.error("ERROR: " + error.getMessage)
+    ConsoleOut.error("ERROR: " + error.getMessage + "\n" + error.printStackTrace())
     exit(exitCode)
   }
 
-  private def exit(exitCode: Int, error: String): Unit = {
-    Console.println(error)
-    exit(exitCode)
-  }
-
-  private def setLanguage(locale: String): Unit =
-    locale match {
-      case "ja" => Locale.setDefault(Locale.JAPAN)
-      case "en" => Locale.setDefault(Locale.US)
-      case _ => ()
-    }
 }
