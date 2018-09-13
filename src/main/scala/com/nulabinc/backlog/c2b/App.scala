@@ -176,12 +176,7 @@ object App extends Logger {
   }
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
-    ConsoleOut.error("ERROR: " + error.getMessage)
-    exit(exitCode)
-  }
-
-  private def exit(exitCode: Int, error: String): Unit = {
-    Console.println(error)
+    ConsoleOut.error("ERROR: " + error.getMessage + "\n" + error.printStackTrace())
     exit(exitCode)
   }
 
