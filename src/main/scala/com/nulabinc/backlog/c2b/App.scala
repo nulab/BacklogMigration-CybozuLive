@@ -6,7 +6,7 @@ import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core._
-import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL}
+import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL, HttpDSL}
 import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
 import com.nulabinc.backlog.c2b.interpreters.{AkkaHttpInterpreter, AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
@@ -155,30 +155,28 @@ object App extends Logger {
 
   private def checkReleaseVersion(appVersion: String): AppProgram[Unit] =
     for {
-      versionResponse <- GithubRelease.getLatestVersionProgram
-      messageResponse = for {
-        latestVersion <- versionResponse
-        message = if (latestVersion != appVersion) {
-          s"""
-             |--------------------------------------------------
-             |${Messages("warn.not_latest_version", latestVersion, appVersion)}
-             |--------------------------------------------------
-             |""".stripMargin
-        } else
-          ""
-      } yield message
-      _ <- messageResponse match {
-        case Right(data) =>
-          AppDSL.fromConsole(ConsoleDSL.printWarning(data))
+      result <- AppDSL.fromHttp(HttpDSL.get(GithubRelease.url))
+      message <- result match {
+        case Right(source) =>
+          val latestVersion = GithubRelease.parseLatestVersion(source)
+          if (latestVersion != appVersion) {
+            AppDSL.pure(s"""
+               |--------------------------------------------------
+               |${Messages("warn.not_latest_version", latestVersion, appVersion)}
+               |--------------------------------------------------
+               |""".stripMargin
+            )
+          } else
+            AppDSL.pure("")
         case Left(error) =>
           log.error(error.toString)
-          AppDSL.pure(())
+          AppDSL.pure("")
       }
+      _ <- AppDSL.fromConsole(ConsoleDSL.printWarning(message))
     } yield ()
 
-  private def exit(exitCode: Int): Unit = {
+  private def exit(exitCode: Int): Unit =
     sys.exit(exitCode)
-  }
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
     ConsoleOut.error("ERROR: " + error.getMessage + "\n" + error.printStackTrace())
