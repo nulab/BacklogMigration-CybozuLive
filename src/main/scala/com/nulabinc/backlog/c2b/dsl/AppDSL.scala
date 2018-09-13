@@ -6,6 +6,7 @@ import better.files.File
 import cats.free.Free
 import com.github.chaabaj.backlog4s.dsl.ApiDsl.ApiPrg
 import com.github.chaabaj.backlog4s.streaming.ApiStream.ApiStream
+import com.nulabinc.backlog.c2b.Config
 import com.nulabinc.backlog.c2b.dsl.ConsoleDSL.ConsoleProgram
 import com.nulabinc.backlog.c2b.dsl.HttpDSL.HttpProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
@@ -68,6 +69,11 @@ object AppDSL {
 
   def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
     Free.liftF(Import(backlogApiConfiguration))
+
+  def finalizeImport(config: Config): AppProgram[Unit] =
+    for {
+      _ <- fromHttp(HttpDSL.get(s"${config.backlogUrl}/api/v2/importer/cybouz?projectKey=${config.projectKey}"))
+    } yield ()
 
   def setLanguage(lang: String): AppProgram[Unit] =
     Free.liftF(SetLanguage(lang))

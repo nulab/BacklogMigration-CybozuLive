@@ -141,6 +141,7 @@ object App extends Logger {
       mappingContext <- MappingFiles.createMappingContext()
       _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
+      _ <- AppDSL.finalizeImport(config)
     } yield ()
   }
 
