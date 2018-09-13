@@ -24,9 +24,10 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= {
-      val catsVersion = "1.2.0"
+      val catsVersion = "1.3.1"
       val slickVersion = "3.2.3"
       val monixVersion = "3.0.0-RC1"
+      val akkaHttpVersion = "10.1.5"
       Seq(
         "com.github.scopt"      %% "scopt"            % "3.7.0",
         "org.typelevel"         %% "cats-core"        % catsVersion,
@@ -38,6 +39,7 @@ lazy val root = (project in file("."))
         "io.monix"              %% "monix-reactive"   % monixVersion,
         "io.monix"              %% "monix-execution"  % monixVersion,
         "io.monix"              %% "monix-eval"       % monixVersion,
+        "com.typesafe.akka"     %% "akka-http"        % akkaHttpVersion,
         "org.apache.commons"    %  "commons-csv"      % "1.5",
         "org.scalatest"         %% "scalatest"        % "3.0.5"       % Test
       )

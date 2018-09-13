@@ -7,6 +7,7 @@ import cats.free.Free
 import com.github.chaabaj.backlog4s.dsl.ApiDsl.ApiPrg
 import com.github.chaabaj.backlog4s.streaming.ApiStream.ApiStream
 import com.nulabinc.backlog.c2b.dsl.ConsoleDSL.ConsoleProgram
+import com.nulabinc.backlog.c2b.dsl.HttpDSL.HttpProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import com.nulabinc.backlog.migration.common.conf.BacklogApiConfiguration
@@ -55,6 +56,9 @@ object AppDSL {
 
   def fromBacklogStream[A](prg: ApiStream[A]): AppProgram[Observable[Seq[A]]] =
     Free.liftF[AppADT, Observable[Seq[A]]](FromBacklogStream(prg))
+
+  def fromHttp[A](program: HttpProgram[A]): AppProgram[A] =
+    Free.liftF(FromHttp(program))
 
   def export(message: String, file: File, content: String): AppProgram[File] =
     for {

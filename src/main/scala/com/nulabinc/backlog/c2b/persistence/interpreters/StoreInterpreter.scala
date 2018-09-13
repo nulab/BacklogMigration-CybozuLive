@@ -7,6 +7,8 @@ import com.nulabinc.backlog.c2b.persistence.dsl._
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
 import monix.reactive.Observable
 
+import scala.language.higherKinds
+
 trait StoreInterpreter[F[_]] extends (StoreADT ~> F) {
 
   def run[A](prg: StoreProgram[A]): F[A]
