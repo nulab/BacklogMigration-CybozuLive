@@ -68,4 +68,8 @@ object AppDSL {
 
   def `import`(backlogApiConfiguration: BacklogApiConfiguration): AppProgram[PrintStream] =
     Free.liftF(Import(backlogApiConfiguration))
+
+  def setLanguage(lang: String): AppProgram[Unit] =
+    Free.liftF(SetLanguage(lang))
+
 }

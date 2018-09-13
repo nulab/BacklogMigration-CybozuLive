@@ -1,7 +1,5 @@
 package com.nulabinc.backlog.c2b
 
-import java.util.Locale
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
@@ -37,9 +35,6 @@ object App extends Logger {
       case Failure(ex) => exit(1, ex)
       case _ => ()
     }
-
-    // Initialize
-    setLanguage(Config.App.language)
 
     // Check release version
     GithubRelease.getLatestVersion() match {
@@ -79,6 +74,7 @@ object App extends Logger {
     )
 
     val program = for {
+      _ <- AppDSL.setLanguage(Config.App.language)
       _ <- printBanner()
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, Config.App.language)
@@ -180,10 +176,4 @@ object App extends Logger {
     exit(exitCode)
   }
 
-  private def setLanguage(locale: String): Unit =
-    locale match {
-      case "ja" => Locale.setDefault(Locale.JAPAN)
-      case "en" => Locale.setDefault(Locale.US)
-      case _ => ()
-    }
 }
