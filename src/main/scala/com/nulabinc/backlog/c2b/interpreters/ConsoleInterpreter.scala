@@ -12,16 +12,18 @@ class ConsoleInterpreter extends (ConsoleADT ~> Task) {
     program.foldMap(this)
 
   def print(string: String): Task[Unit] = Task {
-    ConsoleOut.println(string)
-    ()
+    if (string.nonEmpty)
+      ConsoleOut.println(string)
   }
 
   def printBold(string: String): Task[Unit] = Task {
-    ConsoleOut.boldln(string)
+    if (string.nonEmpty)
+      ConsoleOut.boldln(string)
   }
 
   def printWarning(string: String): Task[Unit] = Task {
-    ConsoleOut.warning(string)
+    if (string.nonEmpty)
+      ConsoleOut.warning(string)
   }
 
   def read(printMessage: String): Task[String] = Task {

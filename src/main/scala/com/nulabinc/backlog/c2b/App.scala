@@ -157,23 +157,22 @@ object App extends Logger {
   private def checkReleaseVersion(appVersion: String): AppProgram[Unit] =
     for {
       result <- AppDSL.fromHttp(HttpDSL.get(GithubRelease.url))
-      message <- result match {
+      _ <- result match {
         case Right(source) =>
           val latestVersion = GithubRelease.parseLatestVersion(source)
           if (latestVersion != appVersion) {
-            AppDSL.pure(s"""
+            val message = s"""
                |--------------------------------------------------
                |${Messages("warn.not_latest_version", latestVersion, appVersion)}
                |--------------------------------------------------
                |""".stripMargin
-            )
+            AppDSL.fromConsole(ConsoleDSL.printWarning(message))
           } else
-            AppDSL.pure("")
+            AppDSL.pure(())
         case Left(error) =>
           log.error(error.toString)
-          AppDSL.pure("")
+          AppDSL.pure(())
       }
-      _ <- AppDSL.fromConsole(ConsoleDSL.printWarning(message))
     } yield ()
 
   private def exit(exitCode: Int): Unit =
