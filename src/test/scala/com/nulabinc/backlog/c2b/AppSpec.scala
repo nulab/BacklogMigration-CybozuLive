@@ -10,7 +10,9 @@ import com.github.chaabaj.backlog4s.dsl.HttpADT.{ByteStream, Response}
 import cats.Monad
 import com.nulabinc.backlog.c2b.datas._
 import com.nulabinc.backlog.c2b.datas.Types.AnyId
-import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter}
+import com.nulabinc.backlog.c2b.dsl.HttpADT
+import com.nulabinc.backlog.c2b.dsl.HttpDSL.HttpProgram
+import com.nulabinc.backlog.c2b.interpreters.{AppInterpreter, ConsoleInterpreter, HttpInterpreter}
 import com.nulabinc.backlog.c2b.persistence.dsl.{CommentType, StorageADT, StoreADT, WriteType}
 import com.nulabinc.backlog.c2b.persistence.dsl.StorageDSL.StorageProgram
 import com.nulabinc.backlog.c2b.persistence.dsl.StoreDSL.StoreProgram
@@ -35,7 +37,8 @@ class AppSpec extends FlatSpec with Matchers {
     backlogInterpreter = new TestBacklogInterpreter,
     storageInterpreter = new TestStorageInterpreter,
     storeInterpreter = new TestStoreInterpreter,
-    consoleInterpreter = new TestConsoleInterpreter
+    consoleInterpreter = new TestConsoleInterpreter,
+    httpInterpreter = new TestHttpInterpreter
   )
 
   "App" should "validationProgram" in {
@@ -137,5 +140,11 @@ class AppSpec extends FlatSpec with Matchers {
   class TestConsoleInterpreter extends ConsoleInterpreter {
     override def read(printMessage: String): Task[String] = super.read(printMessage)
     override def print(string: String): Task[Unit] = super.print(string)
+  }
+
+  class TestHttpInterpreter extends HttpInterpreter[Task] {
+    override def run[A](program: HttpProgram[A]): Task[A] = ???
+    override def get(uri: String): Task[HttpADT.Response[String]] = ???
+    override def apply[A](fa: HttpADT[A]): Task[A] = ???
   }
 }

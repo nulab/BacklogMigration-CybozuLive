@@ -1,15 +1,14 @@
 package com.nulabinc.backlog.c2b
 
-import java.util.Locale
-
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import com.github.chaabaj.backlog4s.apis.AllApi
 import com.github.chaabaj.backlog4s.interpreters.AkkaHttpInterpret
 import com.nulabinc.backlog.c2b.Config._
 import com.nulabinc.backlog.c2b.core._
-import com.nulabinc.backlog.c2b.interpreters.AppDSL.AppProgram
-import com.nulabinc.backlog.c2b.interpreters.{AppDSL, AppInterpreter, ConsoleDSL, ConsoleInterpreter}
+import com.nulabinc.backlog.c2b.dsl.{AppDSL, ConsoleDSL, HttpDSL}
+import com.nulabinc.backlog.c2b.dsl.AppDSL.AppProgram
+import com.nulabinc.backlog.c2b.interpreters.{AkkaHttpInterpreter, AppInterpreter, ConsoleInterpreter}
 import com.nulabinc.backlog.c2b.parsers.ConfigParser
 import com.nulabinc.backlog.c2b.persistence.dsl.{StorageDSL, StoreDSL}
 import com.nulabinc.backlog.c2b.persistence.interpreters.file.LocalStorageInterpreter
@@ -21,7 +20,7 @@ import com.osinka.i18n.Messages
 import monix.eval.Task
 import monix.execution.Scheduler
 
-import scala.util.{Failure, Success}
+import scala.util.Failure
 
 object App extends Logger {
 
@@ -37,24 +36,6 @@ object App extends Logger {
       case _ => ()
     }
 
-    // Initialize
-    setLanguage(Config.App.language)
-
-    // Check release version
-    GithubRelease.getLatestVersion() match {
-      case Success(latestVersion) =>
-        if (latestVersion != Config.App.version) {
-          ConsoleOut.warning(
-            s"""
-               |--------------------------------------------------
-               |${Messages("warn.not_latest_version", latestVersion, Config.App.version)}
-               |--------------------------------------------------
-            """.stripMargin)
-        }
-      case Failure(error) =>
-        log.error(error.getMessage, error)
-    }
-
     val config = ConfigParser.parse(args) match {
       case Some(c) => c.commandType match {
         case Some(InitCommand) => c
@@ -68,14 +49,18 @@ object App extends Logger {
     implicit val mat: ActorMaterializer = ActorMaterializer()
     implicit val exc: Scheduler = monix.execution.Scheduler.Implicits.global
 
+    val proxyConfig = ProxyConfig.create
     val interpreter = new AppInterpreter(
-      backlogInterpreter = new AkkaHttpInterpret(ProxyConfig.create),
+      backlogInterpreter = new AkkaHttpInterpret(proxyConfig),
       storageInterpreter = new LocalStorageInterpreter,
       storeInterpreter = new SQLiteInterpreter(Config.DB_PATH),
-      consoleInterpreter = new ConsoleInterpreter
+      consoleInterpreter = new ConsoleInterpreter,
+      httpInterpreter = new AkkaHttpInterpreter(proxyConfig)
     )
 
     val program = for {
+      _ <- AppDSL.setLanguage(Config.App.language)
+      _ <- checkReleaseVersion(Config.App.version)
       _ <- printBanner()
       _ <- config.commandType match {
         case Some(InitCommand) => init(config, Config.App.language)
@@ -156,6 +141,7 @@ object App extends Logger {
       mappingContext <- MappingFiles.createMappingContext()
       _ <- BacklogExport.all(config)(mappingContext)
       _ <- AppDSL.`import`(backlogApiConfiguration)
+      _ <- AppDSL.finalizeImport(config)
     } yield ()
   }
 
@@ -168,24 +154,33 @@ object App extends Logger {
       )
     )
 
-  private def exit(exitCode: Int): Unit = {
+  private def checkReleaseVersion(appVersion: String): AppProgram[Unit] =
+    for {
+      result <- AppDSL.fromHttp(HttpDSL.get(GithubRelease.url))
+      _ <- result match {
+        case Right(source) =>
+          val latestVersion = GithubRelease.parseLatestVersion(source)
+          if (latestVersion != appVersion) {
+            val message = s"""
+               |--------------------------------------------------
+               |${Messages("warn.not_latest_version", latestVersion, appVersion)}
+               |--------------------------------------------------
+               |""".stripMargin
+            AppDSL.fromConsole(ConsoleDSL.printWarning(message))
+          } else
+            AppDSL.pure(())
+        case Left(error) =>
+          log.error(error.toString)
+          AppDSL.pure(())
+      }
+    } yield ()
+
+  private def exit(exitCode: Int): Unit =
     sys.exit(exitCode)
-  }
 
   private def exit(exitCode: Int, error: Throwable): Unit = {
-    ConsoleOut.error("ERROR: " + error.getMessage)
+    ConsoleOut.error("ERROR: " + error.getMessage + "\n" + error.printStackTrace())
     exit(exitCode)
   }
 
-  private def exit(exitCode: Int, error: String): Unit = {
-    Console.println(error)
-    exit(exitCode)
-  }
-
-  private def setLanguage(locale: String): Unit =
-    locale match {
-      case "ja" => Locale.setDefault(Locale.JAPAN)
-      case "en" => Locale.setDefault(Locale.US)
-      case _ => ()
-    }
 }
