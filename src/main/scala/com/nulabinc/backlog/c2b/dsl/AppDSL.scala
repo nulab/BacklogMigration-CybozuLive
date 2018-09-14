@@ -72,7 +72,7 @@ object AppDSL {
 
   def finalizeImport(config: Config): AppProgram[Unit] =
     for {
-      _ <- fromHttp(HttpDSL.get(s"${config.backlogUrl}/api/v2/importer/cybouz?projectKey=${config.projectKey}"))
+      _ <- fromHttp(HttpDSL.get(s"${config.backlogUrl}/api/v2/importer/cybouzu?projectKey=${config.projectKey}"))
     } yield ()
 
   def setLanguage(lang: String): AppProgram[Unit] =
