@@ -98,6 +98,16 @@ Backlog側の空白の項目は自動設定できなかった項目になりま�
       --backlog.key XXXXXXXXXXXXX \
       --backlog.url https://xxxxx.backlog.com \
       --projectKey BACKLOG_PROJECT
+      
+
+ログファイルはlogディレクトリ内に出力されます。
+
+    .
+    ├── log
+    │   ├── backlog-migration-cybozulive-warn.log
+    │   └── backlog-migration-cybozulive.log
+    └── backlog-migration-cybozulive-[最新バージョン].jar
+
 
 ## 制限事項
 
@@ -267,7 +277,17 @@ Sample commands:
       --backlog.key XXXXXXXXXXXXX \
       --backlog.url https://xxxxxxx.backlog.jp \
       --projectKey BACKLOG_PROJECT
-      
+
+
+Log files will be output in the log directory. 
+
+    .
+    ├── log
+    │   ├── backlog-migration-cybozulive-warn.log
+    │   └── backlog-migration-cybozulive.log
+    └── backlog-migration-cybozulive-[latest version].jar
+
+
 ## Limitation
 
 ### Backlog's user roles
