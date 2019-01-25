@@ -68,18 +68,18 @@ CybozuLiveからエクスポートしたtxtファイルを、作成した`backlo
       --backlog.url https://xxxxx.backlog.com \
       --projectKey BACKLOG_PROJECT
 
-- backlog-migration/mappings/users.json (ユーザー)
-- backlog-migration/mappings/priorities.json (優先度)
-- backlog-migration/mappings/statuses.json (状態)
+- backlog-migration/mappings/users.csv (ユーザー)
+- backlog-migration/mappings/priorities.csv (優先度)
+- backlog-migration/mappings/statuses.csv (状態)
 
 ### マッピングファイルを修正
 自動作成されるファイルは以下のようにCSV形式で出力されます。
 Backlog側の空白の項目は自動設定できなかった項目になります。
 以下のファイルからBacklog側の項目をコピーして、空白を埋める必要が有ります。
 
-- backlog-migration/mappings/users_list.json (ユーザー)
-- backlog-migration/mappings/priorities_list.json (優先度)
-- backlog-migration/mappings/statuses_list.json (状態)
+- backlog-migration/mappings/users_list.csv (ユーザー)
+- backlog-migration/mappings/priorities_list.csv (優先度)
+- backlog-migration/mappings/statuses_list.csv (状態)
 
 ### Import コマンド
 
@@ -247,18 +247,18 @@ Sample commands:
 
 The mapping files are created as follows.
 
-- backlog-migration/mappings/users.json (user)
-- backlog-migration/mappings/priorities.json (priorities)
-- backlog-migration/mappings/statuses.json (status)
+- backlog-migration/mappings/users.csv (user)
+- backlog-migration/mappings/priorities.csv (priorities)
+- backlog-migration/mappings/statuses.csv (status)
       
 ### Fix the mapping file
 A file in CSV format will be automatically created.
 The right side is Backlog item. 
 For the assignable items, please refer to the following file by reference.
 
-- backlog-migration/mappings/users_list.json (user)
-- backlog-migration/mappings/priorities_list.json (priority)
-- backlog-migration/mappings/statuses_list.json (status)
+- backlog-migration/mappings/users_list.csv (user)
+- backlog-migration/mappings/priorities_list.csv (priority)
+- backlog-migration/mappings/statuses_list.csv (status)
 
 ### Import command
 
