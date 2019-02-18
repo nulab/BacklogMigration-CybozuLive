@@ -128,7 +128,7 @@ Backlogの **管理者権限** が必要になります。
   - コメント数：最新から10,000件
 - チャット
   - コメント数：最新から10,000件
-- 掲示板やイベントの添付ファイルは移行できません
+- ToDoや掲示板、イベント、チャットの添付ファイルは移行できません
 - ToDoのカテゴリは移行できません。
 
 ### Backlog側の制限について
@@ -304,7 +304,7 @@ This program is for the users with the Space's **administrator** roles.
   - Comments：10,000 from the latest
 - Chat
   - Comments：10,000 from the latest
-- Can not migrate bulletin forum and event attachments
+- Can not migrate bulletin ToDo and forum, event, chat attachments.
 - The ToDo category can not be migrated.
 
 ### About limitations in the Backlog
