@@ -2,6 +2,8 @@
 CybozuLiveのグループを[Backlog]に移行するためのツールです。
 (English document is described after Japanese)
 
+**テスト用プロジェクトに移行して内容を確認してから、正式なプロジェクトに使用してください。**
+
 * Backlog
     * [https://backlog.com](https://backlog.com/)
 
@@ -160,6 +162,10 @@ MacOSにおいて、`テキストエディット`アプリでマッピングフ�
 退会したユーザーが存在するとcsvファイルに`(サービス退会者)`としてエクスポートされます。
 このデータは現時点では処理できないため、実在するユーザーに置換して実行してください。
 
+### イベントの移行について
+イベントとしてインポートされる課題の作成日は、 イベントの日時が設定されます。  
+未来のイベントの場合は作成日が未来になり、「最近の更新」に残り続けるのでご注意ください。
+
 ## ライセンス
 
 MIT License
@@ -179,6 +185,8 @@ https://backlog.com/ja/contact/
 # Backlog Migration for CybozuLive
 
 Migrate your projects from CybozuLive to [Backlog].
+
+**First import your data into a test project and verify the data before importing it into your project.**
 
 * Backlog
     * [https://backlog.com](https://backlog.com/)
@@ -336,6 +344,10 @@ Please uncheck "Preferences" → "Smart quotes".
 
 ### CybozuLive user name
 Can not migrate if the user name contains spaces before and after it.
+
+### Migrating events
+The creation date of issues imported from an event will be set to the same date as the event.
+If the date for an event is a future date, the creation date for the issue will also be set to the same future date and will therefor remain in "Recent Updates" until that date has passed.
 
 ## License
 
