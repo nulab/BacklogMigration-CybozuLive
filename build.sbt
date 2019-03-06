@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= {
-      val catsVersion = "1.3.1"
+      val catsVersion = "1.6.0"
       val slickVersion = "3.2.3"
       val monixVersion = "3.0.0-RC1"
       val akkaHttpVersion = "10.1.5"
