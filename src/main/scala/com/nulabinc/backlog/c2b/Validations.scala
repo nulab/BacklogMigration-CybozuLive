@@ -40,7 +40,7 @@ object Validations extends Logger {
     for {
       // Access check
       _ <- fromConsole(ConsoleDSL.print(Messages("validation.access", backlogName)))
-      apiAccess <- fromBacklog(spaceApi.logo)
+      apiAccess <- fromBacklog(spaceApi.current)
       _ <- apiAccess.orExit(
         Messages("validation.access.ok", backlogName),
         Messages("validation.access.error", backlogName)
