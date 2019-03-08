@@ -132,6 +132,7 @@ Backlogの **管理者権限** が必要になります。
   - コメント数：最新から10,000件
 - ToDoや掲示板、イベント、チャットの添付ファイルは移行できません
 - ToDoのカテゴリは移行できません。
+- CybozuLiveを退会したユーザーは、マッピングファイル(backlog-migration/mappings/users.csv)に`(サービス退会者)`としてエクスポートされます。
 
 ### Backlog側の制限について
 * 空のコメントは登録されません。
@@ -157,10 +158,6 @@ MacOSにおいて、`テキストエディット`アプリでマッピングフ�
 
 ### CybozuLiveのユーザー名
 ユーザー名の前後に空白が含まれていると移行できません。
-
-### 退会したユーザーについて
-退会したユーザーが存在するとcsvファイルに`(サービス退会者)`としてエクスポートされます。
-このデータは現時点では処理できないため、実在するユーザーに置換して実行してください。
 
 ### イベントの移行について
 イベントとしてインポートされる課題の作成日は、 イベントの日時が設定されます。  
@@ -318,6 +315,7 @@ This program is for the users with the Space's **administrator** roles.
   - Comments：10,000 from the latest
 - Can not migrate bulletin ToDo and forum, event, chat attachments.
 - The ToDo category can not be migrated.
+- Users who leave CybozuLive are output as `(サービス退会者)` in the mapping file (backlog-migration/mappings/users.csv).
 
 ### About limitations in the Backlog
 - Empty comments are not registered.
