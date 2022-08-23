@@ -1,4 +1,8 @@
 # Backlog Migration for CybozuLive
+
+**非推奨**
+本リポジトリの利用は非推奨となりました。
+
 CybozuLiveのグループを[Backlog]に移行するためのツールです。
 (English document is described after Japanese)
 
@@ -180,6 +184,9 @@ https://backlog.com/ja/contact/
 
 
 # Backlog Migration for CybozuLive
+
+**Deprecated**
+This repository has been deprecated.
 
 Migrate your projects from CybozuLive to [Backlog].
 
